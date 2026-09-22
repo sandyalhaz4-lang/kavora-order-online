@@ -119,6 +119,22 @@ function updateQrisBox(){
 }
 function add(id){cart[id]=(cart[id]||0)+1;save()}
 function minus(id){if(cart[id])cart[id]--;if(!cart[id])delete cart[id];save()}
+async function loadProducts(){
+ menu.innerHTML='<p style="color:#8a7a70">Memuat menu...</p>';
+ const {data,error}=await db.from("products")
+   .select("id,name,price,category,description,image_url")
+   .eq("is_active",true)
+   .order("sort_order",{ascending:true});
+ if(error){
+   console.error(error);
+   menu.innerHTML='<p style="color:#a33">Menu gagal dimuat. Silakan refresh halaman.</p>';
+   return;
+ }
+ products=data||[];
+ renderCategories();
+ renderMenu();
+ renderCart();
+}
 function renderCategories(){const cats=["All","Coffee","Non Coffee","Snack"];document.getElementById("categories").innerHTML=cats.map(c=>'<button class="cat '+(activeCat===c?'active':'')+'" data-cat="'+c+'" type="button">'+(c==="All"?"Semua":c)+'</button>').join("");document.querySelectorAll("[data-cat]").forEach(b=>b.onclick=()=>{activeCat=b.dataset.cat;renderCategories();renderMenu()})}
 function renderMenu(){
  const q=search.value.trim().toLowerCase();
