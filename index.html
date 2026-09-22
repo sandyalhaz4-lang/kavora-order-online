@@ -3,174 +3,231 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#201713">
 <title>Kavora — Order Online</title>
 <style>
-body{font-family:Arial,sans-serif;margin:0;background:#f7f2ea;color:#2b211b}
-header{background:#241a15;color:#fff;padding:24px;text-align:center}
-header h1{margin:0;font-size:32px} header p{margin:6px 0 0;color:#dbc7b4}
-main{max-width:900px;margin:auto;padding:20px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
-.card{background:#fff;border-radius:16px;padding:16px;box-shadow:0 3px 14px #0001}
-.price{font-weight:700;margin:10px 0}
-button{border:0;border-radius:10px;padding:10px 14px;background:#6b4226;color:#fff;cursor:pointer}
-.cart{position:sticky;bottom:10px;background:#fff;border-radius:16px;padding:16px;box-shadow:0 3px 18px #0002;margin-top:20px}
-input,select,textarea{width:100%;box-sizing:border-box;padding:10px;margin:5px 0 10px;border:1px solid #ddd;border-radius:9px}
-#orderBtn{background:#6b4226;font-size:16px}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f7f3ee;color:#241b17}
+header{background:linear-gradient(135deg,#17110e,#3a261c);color:#fff;padding:34px 20px 28px;text-align:center}
+.logo{font-size:34px;font-weight:800;letter-spacing:4px}
+.tagline{margin-top:7px;color:#dbc7b4;font-size:13px;letter-spacing:1.5px}
+.container{max-width:1050px;margin:auto;padding:22px 18px 50px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+h2{margin:0}
+.cart-link{border:0;border-radius:999px;background:#6b4226;color:white;padding:10px 16px;font-weight:700;cursor:pointer}
+.toolbar{display:flex;gap:10px;margin-bottom:18px}
+.search{flex:1;border:1px solid #ddd2c8;background:white;border-radius:12px;padding:12px 14px;font-size:15px;outline:none}
+.categories{display:flex;gap:8px;overflow-x:auto;padding-bottom:5px;margin-bottom:18px}
+.cat{white-space:nowrap;border:1px solid #d9cbbf;background:#fff;border-radius:999px;padding:9px 14px;cursor:pointer}
+.cat.active{background:#6b4226;color:#fff;border-color:#6b4226}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}
+.card{background:#fff;border:1px solid #eee3db;border-radius:18px;padding:15px;box-shadow:0 4px 14px rgba(40,25,15,.06);display:flex;flex-direction:column;min-height:175px}
+.icon{height:78px;border-radius:14px;background:linear-gradient(135deg,#ead9c8,#f7efe7);display:flex;align-items:center;justify-content:center;font-size:34px;margin-bottom:12px}
+.card h3{font-size:16px;margin:0 0 5px}
+.desc{font-size:12px;color:#8a7a70;min-height:30px}
+.price{font-weight:800;margin:8px 0 12px}
+.add{margin-top:auto;width:100%;border:0;border-radius:10px;padding:10px;background:#6b4226;color:#fff;font-weight:700;cursor:pointer}
+.add:active,.cart-link:active,.checkout:active{transform:scale(.98)}
+.cart-section{margin-top:30px;background:#fff;border-radius:20px;border:1px solid #eee3db;padding:20px;box-shadow:0 4px 18px rgba(40,25,15,.06)}
+.cart-empty{color:#8a7a70}
+.cart-row{display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid #eee;padding:12px 0}
+.cart-info{flex:1}.cart-info strong{display:block}.cart-info small{color:#8a7a70}
+.qty{display:flex;align-items:center;gap:8px}
+.qty button{width:30px;height:30px;border:0;border-radius:8px;background:#eee2d7;cursor:pointer;font-size:17px}
+.total{display:flex;justify-content:space-between;font-size:18px;font-weight:800;padding:16px 0}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{font-size:13px;font-weight:700}
+input,select,textarea{width:100%;border:1px solid #ddd2c8;border-radius:10px;padding:11px;background:#fff;font:inherit;margin-top:6px}
+textarea{min-height:80px;resize:vertical}
+.full{grid-column:1/-1}
+.checkout{width:100%;border:0;border-radius:12px;background:#1d1714;color:#fff;padding:13px;font-size:16px;font-weight:800;cursor:pointer;margin-top:14px}
+.note{font-size:12px;color:#8a7a70;margin-top:8px;text-align:center}
+footer{text-align:center;color:#8a7a70;font-size:12px;padding:10px 0 30px}
+@media(max-width:800px){.grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){
+  header{padding:27px 16px 23px}.logo{font-size:29px}
+  .container{padding:18px 12px 40px}.topbar{align-items:flex-start}
+  .topbar h2{font-size:22px}.cart-link{padding:9px 12px;font-size:13px}
+  .grid{gap:10px}.card{padding:11px;min-height:165px;border-radius:15px}
+  .icon{height:64px;font-size:28px}.card h3{font-size:14px}.desc{font-size:11px}
+  .price{font-size:14px}.add{font-size:13px;padding:9px}
+  .form-grid{grid-template-columns:1fr}.full{grid-column:auto}
+}
 </style>
 </head>
 <body>
-<header><h1>KAVORA</h1><p>GOOD COFFEE, ANYTIME</p></header>
-<main>
-<h2>Menu</h2>
-<div id="menu" class="grid"></div>
 
-<div class="cart">
-<h2>Keranjang</h2>
-<div id="cart"></div>
-<hr>
-<label>Nama</label>
-<input id="customerName" placeholder="Nama customer">
+<header>
+  <div class="logo">KAVORA</div>
+  <div class="tagline">GOOD COFFEE, ANYTIME</div>
+</header>
 
-<label>No. HP</label>
-<input id="customerPhone" placeholder="08xxxxxxxxxx">
+<main class="container">
+  <div class="topbar">
+    <h2>Menu</h2>
+    <button class="cart-link" id="goCart" type="button">🛒 Keranjang <span id="cartCount">0</span></button>
+  </div>
 
-<label>Tipe Order</label>
-<select id="orderType">
-<option>Take Away</option>
-<option>Delivery</option>
-</select>
+  <div class="toolbar">
+    <input class="search" id="search" placeholder="Cari menu Kavora...">
+  </div>
 
-<label>Catatan</label>
-<textarea id="orderNote" placeholder="Catatan pesanan"></textarea>
+  <div class="categories" id="categories"></div>
+  <div class="grid" id="menu"></div>
 
-<button id="orderBtn" type="button">Pesan via WhatsApp</button>
-</div>
+  <section class="cart-section" id="cartSection">
+    <h2>Keranjang</h2>
+    <div id="cart" style="margin-top:8px"></div>
+
+    <div id="checkoutArea" style="display:none">
+      <div class="total"><span>Total</span><span id="total">Rp 0</span></div>
+
+      <div class="form-grid">
+        <div>
+          <label>Nama</label>
+          <input id="customerName" placeholder="Nama customer">
+        </div>
+        <div>
+          <label>No. HP</label>
+          <input id="customerPhone" placeholder="08xxxxxxxxxx">
+        </div>
+        <div>
+          <label>Tipe Order</label>
+          <select id="orderType">
+            <option>Take Away</option>
+            <option>Delivery</option>
+          </select>
+        </div>
+        <div class="full">
+          <label>Catatan</label>
+          <textarea id="orderNote" placeholder="Contoh: less ice, tanpa gula, alamat delivery, dll."></textarea>
+        </div>
+      </div>
+
+      <button class="checkout" id="orderBtn" type="button">Pesan via WhatsApp</button>
+      <div class="note">Pesanan akan dikirim ke WhatsApp Kavora.</div>
+    </div>
+  </section>
 </main>
+
+<footer>Kavora Bottled Coffee • Good Coffee, Anytime</footer>
 
 <script>
 (function(){
 "use strict";
 
-const WA_NUMBER = "6282262877440";
-
-const products = [
-  ["Kavora Latte",25000],
-  ["Kavora Aren",28000],
-  ["Americano",22000],
-  ["Mocha",30000],
-  ["Chocolate",26000],
-  ["Matcha Latte",28000],
-  ["Croissant",20000],
-  ["Cookies",15000]
+const WA_NUMBER="6282262877440";
+const products=[
+ {name:"Kavora Latte",price:25000,cat:"Coffee",icon:"☕",desc:"Creamy coffee dengan rasa lembut."},
+ {name:"Kavora Aren",price:28000,cat:"Coffee",icon:"🧋",desc:"Coffee dengan manis legit gula aren."},
+ {name:"Americano",price:22000,cat:"Coffee",icon:"☕",desc:"Bold, clean, dan refreshing."},
+ {name:"Mocha",price:30000,cat:"Coffee",icon:"🍫",desc:"Coffee dengan sentuhan cokelat."},
+ {name:"Chocolate",price:26000,cat:"Non Coffee",icon:"🍫",desc:"Cokelat creamy untuk setiap waktu."},
+ {name:"Matcha Latte",price:28000,cat:"Non Coffee",icon:"🍵",desc:"Matcha creamy dengan rasa earthy."},
+ {name:"Croissant",price:20000,cat:"Snack",icon:"🥐",desc:"Pasangan sempurna untuk coffee."},
+ {name:"Cookies",price:15000,cat:"Snack",icon:"🍪",desc:"Camilan manis dan crunchy."}
 ];
 
-let cart = JSON.parse(localStorage.getItem("kavora_cart") || "{}");
+let cart=JSON.parse(localStorage.getItem("kavora_cart")||"{}");
+let activeCat="All";
 
-const menuEl = document.getElementById("menu");
-const cartEl = document.getElementById("cart");
-const nameEl = document.getElementById("customerName");
-const phoneEl = document.getElementById("customerPhone");
-const typeEl = document.getElementById("orderType");
-const noteEl = document.getElementById("orderNote");
-const orderBtn = document.getElementById("orderBtn");
+const menu=document.getElementById("menu");
+const cartEl=document.getElementById("cart");
+const cartCount=document.getElementById("cartCount");
+const totalEl=document.getElementById("total");
+const checkoutArea=document.getElementById("checkoutArea");
+const search=document.getElementById("search");
 
 function rupiah(n){
-  return new Intl.NumberFormat("id-ID", {
-    style:"currency", currency:"IDR", maximumFractionDigits:0
-  }).format(n);
+ return new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(n);
 }
-
 function save(){
-  localStorage.setItem("kavora_cart", JSON.stringify(cart));
-  renderCart();
+ localStorage.setItem("kavora_cart",JSON.stringify(cart));
+ renderCart();
 }
-
-function add(i){
-  cart[i] = (cart[i] || 0) + 1;
-  save();
-}
-
+function add(i){cart[i]=(cart[i]||0)+1;save();}
 function minus(i){
-  if(cart[i]) cart[i]--;
-  if(!cart[i]) delete cart[i];
-  save();
+ if(cart[i])cart[i]--;
+ if(!cart[i])delete cart[i];
+ save();
 }
-
+function renderCategories(){
+ const cats=["All","Coffee","Non Coffee","Snack"];
+ document.getElementById("categories").innerHTML=cats.map(c=>
+   '<button class="cat '+(activeCat===c?'active':'')+'" data-cat="'+c+'" type="button">'+(c==="All"?"Semua":c)+'</button>'
+ ).join("");
+ document.querySelectorAll("[data-cat]").forEach(b=>b.onclick=function(){
+   activeCat=b.dataset.cat;renderCategories();renderMenu();
+ });
+}
 function renderMenu(){
-  menuEl.innerHTML = products.map(function(p,i){
-    return '<div class="card">' +
-      '<h3>'+p[0]+'</h3>' +
-      '<div class="price">'+rupiah(p[1])+'</div>' +
-      '<button type="button" data-add="'+i+'">+ Tambah</button>' +
-      '</div>';
-  }).join("");
-
-  menuEl.querySelectorAll("[data-add]").forEach(function(btn){
-    btn.addEventListener("click", function(){
-      add(Number(btn.dataset.add));
-    });
-  });
+ const q=search.value.trim().toLowerCase();
+ const list=products.map((p,i)=>({p,i})).filter(x=>
+   (activeCat==="All"||x.p.cat===activeCat) &&
+   (!q||x.p.name.toLowerCase().includes(q))
+ );
+ if(!list.length){menu.innerHTML="<p style='color:#8a7a70'>Menu tidak ditemukan.</p>";return;}
+ menu.innerHTML=list.map(x=>
+  '<div class="card">'+
+   '<div class="icon">'+x.p.icon+'</div>'+
+   '<h3>'+x.p.name+'</h3>'+
+   '<div class="desc">'+x.p.desc+'</div>'+
+   '<div class="price">'+rupiah(x.p.price)+'</div>'+
+   '<button class="add" type="button" data-add="'+x.i+'">+ Tambah</button>'+
+  '</div>'
+ ).join("");
+ document.querySelectorAll("[data-add]").forEach(b=>b.onclick=function(){add(Number(b.dataset.add));});
 }
-
 function renderCart(){
-  const keys = Object.keys(cart);
-  if(!keys.length){
-    cartEl.innerHTML = "<p>Keranjang masih kosong.</p>";
-    return;
-  }
-
-  let total = 0;
-  cartEl.innerHTML = keys.map(function(i){
-    const subtotal = products[i][1] * cart[i];
-    total += subtotal;
-    return '<p><b>'+products[i][0]+'</b> × '+cart[i]+' — '+rupiah(subtotal)+
-      ' <button type="button" data-minus="'+i+'">−</button></p>';
-  }).join("") + '<h3>Total: '+rupiah(total)+'</h3>';
-
-  cartEl.querySelectorAll("[data-minus]").forEach(function(btn){
-    btn.addEventListener("click", function(){
-      minus(Number(btn.dataset.minus));
-    });
-  });
+ const keys=Object.keys(cart);
+ const count=keys.reduce((sum,i)=>sum+cart[i],0);
+ cartCount.textContent=count;
+ if(!keys.length){
+   cartEl.innerHTML='<div class="cart-empty">Keranjang masih kosong. Pilih menu di atas untuk mulai order.</div>';
+   checkoutArea.style.display="none";
+   totalEl.textContent=rupiah(0);
+   return;
+ }
+ let total=0;
+ cartEl.innerHTML=keys.map(i=>{
+   const sub=products[i].price*cart[i];total+=sub;
+   return '<div class="cart-row">'+
+     '<div class="cart-info"><strong>'+products[i].name+'</strong><small>'+rupiah(products[i].price)+' / item</small></div>'+
+     '<div class="qty"><button type="button" data-minus="'+i+'">−</button><b>'+cart[i]+'</b><button type="button" data-plus="'+i+'">+</button></div>'+
+     '</div>';
+ }).join("");
+ totalEl.textContent=rupiah(total);
+ checkoutArea.style.display="block";
+ document.querySelectorAll("[data-minus]").forEach(b=>b.onclick=function(){minus(Number(b.dataset.minus));});
+ document.querySelectorAll("[data-plus]").forEach(b=>b.onclick=function(){add(Number(b.dataset.plus));});
 }
+search.addEventListener("input",renderMenu);
+document.getElementById("goCart").onclick=function(){
+ document.getElementById("cartSection").scrollIntoView({behavior:"smooth",block:"start"});
+};
+document.getElementById("orderBtn").onclick=function(){
+ const keys=Object.keys(cart);
+ if(!keys.length){alert("Keranjang masih kosong.");return;}
+ const name=document.getElementById("customerName").value.trim();
+ if(!name){alert("Silakan isi Nama terlebih dahulu.");document.getElementById("customerName").focus();return;}
+ let total=0;
+ const lines=keys.map(i=>{
+   const sub=products[i].price*cart[i];total+=sub;
+   return products[i].name+" x "+cart[i]+" = "+rupiah(sub);
+ });
+ const message=
+  "Halo Kavora, saya ingin order:%0A%0A"+
+  lines.map(encodeURIComponent).join("%0A")+
+  "%0A%0ATotal: "+encodeURIComponent(rupiah(total))+
+  "%0ANama: "+encodeURIComponent(name)+
+  "%0ANo HP: "+encodeURIComponent(document.getElementById("customerPhone").value.trim())+
+  "%0ATipe: "+encodeURIComponent(document.getElementById("orderType").value)+
+  "%0ACatatan: "+encodeURIComponent(document.getElementById("orderNote").value.trim());
+ window.location.assign("https://api.whatsapp.com/send?phone="+WA_NUMBER+"&text="+message);
+};
 
-orderBtn.addEventListener("click", function(){
-  const keys = Object.keys(cart);
-
-  if(!keys.length){
-    alert("Keranjang masih kosong.");
-    return;
-  }
-
-  const customerName = nameEl.value.trim();
-  if(!customerName){
-    alert("Silakan isi Nama terlebih dahulu.");
-    nameEl.focus();
-    return;
-  }
-
-  let total = 0;
-  const lines = keys.map(function(i){
-    const subtotal = products[i][1] * cart[i];
-    total += subtotal;
-    return products[i][0] + " x " + cart[i] + " = " + rupiah(subtotal);
-  });
-
-  const message =
-    "Halo Kavora, saya ingin order:%0A%0A" +
-    lines.map(encodeURIComponent).join("%0A") +
-    "%0A%0ATotal: " + encodeURIComponent(rupiah(total)) +
-    "%0ANama: " + encodeURIComponent(customerName) +
-    "%0ANo HP: " + encodeURIComponent(phoneEl.value.trim()) +
-    "%0ATipe: " + encodeURIComponent(typeEl.value) +
-    "%0ACatatan: " + encodeURIComponent(noteEl.value.trim());
-
-  const url = "https://api.whatsapp.com/send?phone=" + WA_NUMBER + "&text=" + message;
-
-  // Navigate directly instead of relying on a popup.
-  window.location.assign(url);
-});
-
+renderCategories();
 renderMenu();
 renderCart();
 })();
