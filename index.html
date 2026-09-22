@@ -131,38 +131,97 @@ function renderMenu(){
  document.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>add(b.dataset.add))
 }
 function renderCart(){
- const valid=Object.keys(cart).filter(id=>products.some(p=>p.id===id));valid.forEach(id=>{if(!cart[id])delete cart[id]});
- const count=Object.values(cart).reduce((a,b)=>a+b,0);cartCount.textContent=count;
- if(!valid.length){cartEl.innerHTML='<div class="cart-empty">Keranjang masih kosong. Pilih menu di atas untuk mulai order.</div>';checkoutArea.style.display="none";totalEl.textContent=rupiah(0);return}
- let total=0;
- cartEl.innerHTML=valid.map(id=>{const p=products.find(x=>x.id===id),sub=p.price*cart[id];total+=sub;return '<div class="cart-row"><div class="cart-info"><strong>'+esc(p.name)+'</strong><small>'+rupiah(p.price)+' / item</small></div><div class="qty"><button type="button" data-minus="'+id+'">−</button><b>'+cart[id]+'</b><button type="button" data-plus="'+id+'">+</button></div></div>'}).join("");
- totalEl.textContent=rupiah(total);checkoutArea.style.display="block";
- document.querySelectorAll("[data-minus]").forEach(b=>b.onclick=()=>minus(b.dataset.minus));document.querySelectorAll("[data-plus]").forEach(b=>b.onclick=()=>add(b.dataset.plus))
-}
-async function loadProducts(){
- menu.innerHTML='<p style="color:#8a7a70">Memuat menu...</p>';
- const {data,error}=await db.from("products").select("id,name,price,category,description,image_url").eq("is_active",true).order("sort_order",{ascending:true});
- if(error){menu.innerHTML='<p style="color:#a33">Menu gagal dimuat. Silakan refresh halaman.</p>';return}
- products=data||[];renderCategories();renderMenu();renderCart()
+ const valid=Object.keys(cart).filter(id=>products.some(p=>p.id===id));
+ valid.forEach(id=>{if(!cart[id])delete cart[id]});
+ const count=Object.values(cart).reduce((a,b)=>a+b,0);
+ cartCount.textContent=count;
+ if(!valid.length){
+   cartEl.innerHTML='<div class="cart-empty">Keranjang masih kosong. Pilih menu di atas untuk mulai order.</div>';
+   checkoutArea.style.display="none";
+   totalEl.textContent=rupiah(0);
+   return;
+ }
+ let subtotal=0;
+ cartEl.innerHTML=valid.map(id=>{
+   const p=products.find(x=>x.id===id), sub=p.price*cart[id];
+   subtotal+=sub;
+   return '<div class="cart-row"><div class="cart-info"><strong>'+esc(p.name)+'</strong><small>'+rupiah(p.price)+' / item</small></div><div class="qty"><button type="button" data-minus="'+id+'">−</button><b>'+cart[id]+'</b><button type="button" data-plus="'+id+'">+</button></div></div>';
+ }).join("");
+ const delivery=document.getElementById("orderType")?.value==="Delivery" ? Number(deliveryFee||0) : 0;
+ const grandTotal=subtotal+delivery;
+ totalEl.innerHTML=rupiah(grandTotal)+(delivery?'<div style="font-size:12px;font-weight:400;color:#8a7a70;margin-top:4px">Subtotal '+rupiah(subtotal)+' + Ongkir '+rupiah(delivery)+'</div>':'');
+ checkoutArea.style.display="block";
+ document.querySelectorAll("[data-minus]").forEach(x=>x.onclick=()=>minus(x.dataset.minus));
+ document.querySelectorAll("[data-plus]").forEach(x=>x.onclick=()=>add(x.dataset.plus));
 }
 document.getElementById("goCart").onclick=()=>document.getElementById("cartSection").scrollIntoView({behavior:"smooth",block:"start"});
 search.oninput=renderMenu;
 document.getElementById("paymentMethod").onchange=updateQrisBox;
 document.getElementById("orderType").onchange=updateDeliveryBox;
 document.getElementById("orderBtn").onclick=async()=>{
- const keys=Object.keys(cart).filter(id=>cart[id]>0);if(!keys.length)return alert("Keranjang masih kosong.");
- const name=document.getElementById("customerName").value.trim();if(!name){alert("Silakan isi Nama terlebih dahulu.");return}
- const phone=document.getElementById("customerPhone").value.trim(),type=document.getElementById("orderType").value,paymentMethod=document.getElementById("paymentMethod").value,note=document.getElementById("orderNote").value.trim(),deliveryAddress=document.getElementById("deliveryAddress")?.value.trim()||"";
- let total=0;
- const lines=keys.map(id=>{const p=products.find(x=>x.id===id),sub=p.price*cart[id];total+=sub;return p.name+" x "+cart[id]+" = "+rupiah(sub)});
- const paymentLabel=paymentMethod==="qris"?"QRIS":"Cash / Bayar di Tempat";
- const deliveryText=type==="Delivery"?"\nAlamat Delivery: "+deliveryAddress+"\nOngkir: "+rupiah(deliveryFee):"";
- const plain="Halo Kavora, saya ingin order:\n\n"+lines.join("\n")+"\n\nSubtotal: "+rupiah(subtotal)+"\nOngkir: "+rupiah(type==="Delivery"?deliveryFee:0)+"\nTotal: "+rupiah(total)+"\nNama: "+name+"\nNo HP: "+phone+"\nTipe: "+type+deliveryText+"\nPembayaran: "+paymentLabel+"\nStatus Pembayaran: Belum Bayar\nCatatan: "+note;
- const btn=document.getElementById("orderBtn");btn.disabled=true;btn.textContent="Memproses...";
- const {data:order,error}=await db.from("orders").insert({customer_name:name,customer_phone:phone,order_type:type,delivery_address:type==="Delivery"?deliveryAddress:null,delivery_fee:type==="Delivery"?deliveryFee:0,notes:note,total,status:"new",payment_method:paymentMethod,payment_status:"unpaid",whatsapp_message:plain}).select("id").single();
- if(!error&&order){const items=keys.map(id=>{const p=products.find(x=>x.id===id);return{order_id:order.id,product_id:p.id,product_name:p.name,quantity:cart[id],unit_price:p.price,subtotal:p.price*cart[id]}});await db.from("order_items").insert(items)}
- cart={};localStorage.removeItem("kavora_cart");renderCart();btn.disabled=false;btn.textContent="Pesan via WhatsApp";
- window.location.assign("https://api.whatsapp.com/send?phone="+WA_NUMBER+"&text="+encodeURIComponent(plain))
+ try{
+   const keys=Object.keys(cart).filter(id=>cart[id]>0);
+   if(!keys.length){alert("Keranjang masih kosong.");return}
+   const name=document.getElementById("customerName").value.trim();
+   if(!name){alert("Silakan isi Nama terlebih dahulu.");return}
+   const phone=document.getElementById("customerPhone").value.trim();
+   const type=document.getElementById("orderType").value;
+   const paymentMethod=document.getElementById("paymentMethod").value;
+   const note=document.getElementById("orderNote").value.trim();
+   const deliveryAddress=document.getElementById("deliveryAddress")?.value.trim()||"";
+   if(type==="Delivery" && !deliveryAddress){alert("Alamat delivery wajib diisi.");return}
+
+   let subtotal=0;
+   const lines=keys.map(id=>{
+     const p=products.find(x=>x.id===id);
+     if(!p) throw new Error("Produk tidak ditemukan.");
+     const sub=p.price*cart[id]; subtotal+=sub;
+     return p.name+" x "+cart[id]+" = "+rupiah(sub);
+   });
+   const ongkir=type==="Delivery"?Number(deliveryFee||0):0;
+   const total=subtotal+ongkir;
+   const paymentLabel=paymentMethod==="qris"?"QRIS":"Cash / Bayar di Tempat";
+   const deliveryText=type==="Delivery"?"\nAlamat Delivery: "+deliveryAddress+"\nOngkir: "+rupiah(ongkir):"";
+   const plain="Halo Kavora, saya ingin order:\n\n"+lines.join("\n")+
+     "\n\nSubtotal: "+rupiah(subtotal)+"\nOngkir: "+rupiah(ongkir)+
+     "\nTotal: "+rupiah(total)+"\nNama: "+name+"\nNo HP: "+phone+
+     "\nTipe: "+type+deliveryText+"\nPembayaran: "+paymentLabel+
+     "\nStatus Pembayaran: Belum Bayar\nCatatan: "+note;
+
+   const btn=document.getElementById("orderBtn");
+   btn.disabled=true; btn.textContent="Memproses...";
+
+   const {data:order,error}=await db.from("orders").insert({
+     customer_name:name,customer_phone:phone,order_type:type,
+     delivery_address:type==="Delivery"?deliveryAddress:null,
+     delivery_fee:ongkir,notes:note,total:total,status:"new",
+     payment_method:paymentMethod,payment_status:"unpaid",
+     whatsapp_message:plain
+   }).select("id").single();
+
+   if(error){
+     console.error(error);
+     alert("Pesanan belum tersimpan. Silakan coba lagi.");
+     btn.disabled=false; btn.textContent="Pesan via WhatsApp";
+     return;
+   }
+
+   const items=keys.map(id=>{
+     const p=products.find(x=>x.id===id);
+     return {order_id:order.id,product_id:p.id,product_name:p.name,quantity:cart[id],unit_price:p.price,subtotal:p.price*cart[id]};
+   });
+   const itemResult=await db.from("order_items").insert(items);
+   if(itemResult.error) console.error(itemResult.error);
+
+   cart={};localStorage.removeItem("kavora_cart");renderCart();
+   btn.disabled=false;btn.textContent="Pesan via WhatsApp";
+   window.location.href="https://api.whatsapp.com/send?phone="+WA_NUMBER+"&text="+encodeURIComponent(plain);
+ }catch(err){
+   console.error(err);
+   alert("Terjadi kesalahan saat membuat pesanan. Silakan coba lagi.");
+   const btn=document.getElementById("orderBtn");
+   btn.disabled=false;btn.textContent="Pesan via WhatsApp";
+ }
 };
 loadProducts();
 loadPaymentSettings();
