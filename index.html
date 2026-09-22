@@ -1,1 +1,179 @@
-<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Kavora — Order Online</title><style>body{font-family:Arial;margin:0;background:#f7f2ea;color:#2b211b}header{background:#241a15;color:#fff;text-align:center;padding:28px}main{max-width:900px;margin:auto;padding:20px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}.card,.cart{background:#fff;border-radius:16px;padding:16px;box-shadow:0 3px 14px #0001}.price{font-weight:700;margin:10px 0}button{border:0;border-radius:10px;padding:10px 14px;background:#6b4226;color:#fff}input,select,textarea{width:100%;box-sizing:border-box;padding:10px;margin:5px 0 10px;border:1px solid #ddd;border-radius:9px}.cart{margin-top:20px}</style></head><body><header><h1>KAVORA</h1><p>GOOD COFFEE, ANYTIME</p></header><main><h2>Menu</h2><div id="menu" class="grid"></div><section class="cart"><h2>Keranjang</h2><div id="cart"></div><label>Nama</label><input id="name"><label>No. HP</label><input id="phone"><label>Tipe Order</label><select id="type"><option>Take Away</option><option>Delivery</option></select><label>Catatan</label><textarea id="note"></textarea><button onclick="order()">Pesan via WhatsApp</button></section></main><script>const WA='6282262877440';const p=[['Kavora Latte',25000],['Kavora Aren',28000],['Americano',22000],['Mocha',30000],['Chocolate',26000],['Matcha Latte',28000],['Croissant',20000],['Cookies',15000]];let c={};const rp=n=>new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(n);function draw(){menu.innerHTML=p.map((x,i)=>`<div class="card"><h3>${x[0]}</h3><div class="price">${rp(x[1])}</div><button onclick="add(${i})">+ Tambah</button></div>`).join('');drawCart()}function add(i){c[i]=(c[i]||0)+1;drawCart()}function sub(i){c[i]--;if(c[i]<=0)delete c[i];drawCart()}function drawCart(){let k=Object.keys(c);if(!k.length){cart.innerHTML='<p>Keranjang masih kosong.</p>';return}let t=0;cart.innerHTML=k.map(i=>{let s=p[i][1]*c[i];t+=s;return `<p>${p[i][0]} × ${c[i]} — ${rp(s)} <button onclick="sub(${i})">−</button></p>`}).join('')+`<h3>Total: ${rp(t)}</h3>`}function order(){let k=Object.keys(c);if(!k.length)return alert('Keranjang masih kosong');if(!name.value.trim())return alert('Isi nama terlebih dahulu');let t=k.reduce((a,i)=>a+p[i][1]*c[i],0);let msg='Halo Kavora, saya ingin order:%0A%0A'+k.map(i=>p[i][0]+' x '+c[i]+' = '+rp(p[i][1]*c[i])).join('%0A')+'%0A%0ATotal: '+rp(t)+'%0ANama: '+encodeURIComponent(name.value)+'%0ANo HP: '+encodeURIComponent(phone.value)+'%0ATipe: '+encodeURIComponent(type.value)+'%0ACatatan: '+encodeURIComponent(note.value);location.href='https://wa.me/'+WA+'?text='+msg}draw();</script></body></html>
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kavora — Order Online</title>
+<style>
+body{font-family:Arial,sans-serif;margin:0;background:#f7f2ea;color:#2b211b}
+header{background:#241a15;color:#fff;padding:24px;text-align:center}
+header h1{margin:0;font-size:32px} header p{margin:6px 0 0;color:#dbc7b4}
+main{max-width:900px;margin:auto;padding:20px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.card{background:#fff;border-radius:16px;padding:16px;box-shadow:0 3px 14px #0001}
+.price{font-weight:700;margin:10px 0}
+button{border:0;border-radius:10px;padding:10px 14px;background:#6b4226;color:#fff;cursor:pointer}
+.cart{position:sticky;bottom:10px;background:#fff;border-radius:16px;padding:16px;box-shadow:0 3px 18px #0002;margin-top:20px}
+input,select,textarea{width:100%;box-sizing:border-box;padding:10px;margin:5px 0 10px;border:1px solid #ddd;border-radius:9px}
+#orderBtn{background:#6b4226;font-size:16px}
+</style>
+</head>
+<body>
+<header><h1>KAVORA</h1><p>GOOD COFFEE, ANYTIME</p></header>
+<main>
+<h2>Menu</h2>
+<div id="menu" class="grid"></div>
+
+<div class="cart">
+<h2>Keranjang</h2>
+<div id="cart"></div>
+<hr>
+<label>Nama</label>
+<input id="customerName" placeholder="Nama customer">
+
+<label>No. HP</label>
+<input id="customerPhone" placeholder="08xxxxxxxxxx">
+
+<label>Tipe Order</label>
+<select id="orderType">
+<option>Take Away</option>
+<option>Delivery</option>
+</select>
+
+<label>Catatan</label>
+<textarea id="orderNote" placeholder="Catatan pesanan"></textarea>
+
+<button id="orderBtn" type="button">Pesan via WhatsApp</button>
+</div>
+</main>
+
+<script>
+(function(){
+"use strict";
+
+const WA_NUMBER = "6282262877440";
+
+const products = [
+  ["Kavora Latte",25000],
+  ["Kavora Aren",28000],
+  ["Americano",22000],
+  ["Mocha",30000],
+  ["Chocolate",26000],
+  ["Matcha Latte",28000],
+  ["Croissant",20000],
+  ["Cookies",15000]
+];
+
+let cart = JSON.parse(localStorage.getItem("kavora_cart") || "{}");
+
+const menuEl = document.getElementById("menu");
+const cartEl = document.getElementById("cart");
+const nameEl = document.getElementById("customerName");
+const phoneEl = document.getElementById("customerPhone");
+const typeEl = document.getElementById("orderType");
+const noteEl = document.getElementById("orderNote");
+const orderBtn = document.getElementById("orderBtn");
+
+function rupiah(n){
+  return new Intl.NumberFormat("id-ID", {
+    style:"currency", currency:"IDR", maximumFractionDigits:0
+  }).format(n);
+}
+
+function save(){
+  localStorage.setItem("kavora_cart", JSON.stringify(cart));
+  renderCart();
+}
+
+function add(i){
+  cart[i] = (cart[i] || 0) + 1;
+  save();
+}
+
+function minus(i){
+  if(cart[i]) cart[i]--;
+  if(!cart[i]) delete cart[i];
+  save();
+}
+
+function renderMenu(){
+  menuEl.innerHTML = products.map(function(p,i){
+    return '<div class="card">' +
+      '<h3>'+p[0]+'</h3>' +
+      '<div class="price">'+rupiah(p[1])+'</div>' +
+      '<button type="button" data-add="'+i+'">+ Tambah</button>' +
+      '</div>';
+  }).join("");
+
+  menuEl.querySelectorAll("[data-add]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      add(Number(btn.dataset.add));
+    });
+  });
+}
+
+function renderCart(){
+  const keys = Object.keys(cart);
+  if(!keys.length){
+    cartEl.innerHTML = "<p>Keranjang masih kosong.</p>";
+    return;
+  }
+
+  let total = 0;
+  cartEl.innerHTML = keys.map(function(i){
+    const subtotal = products[i][1] * cart[i];
+    total += subtotal;
+    return '<p><b>'+products[i][0]+'</b> × '+cart[i]+' — '+rupiah(subtotal)+
+      ' <button type="button" data-minus="'+i+'">−</button></p>';
+  }).join("") + '<h3>Total: '+rupiah(total)+'</h3>';
+
+  cartEl.querySelectorAll("[data-minus]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      minus(Number(btn.dataset.minus));
+    });
+  });
+}
+
+orderBtn.addEventListener("click", function(){
+  const keys = Object.keys(cart);
+
+  if(!keys.length){
+    alert("Keranjang masih kosong.");
+    return;
+  }
+
+  const customerName = nameEl.value.trim();
+  if(!customerName){
+    alert("Silakan isi Nama terlebih dahulu.");
+    nameEl.focus();
+    return;
+  }
+
+  let total = 0;
+  const lines = keys.map(function(i){
+    const subtotal = products[i][1] * cart[i];
+    total += subtotal;
+    return products[i][0] + " x " + cart[i] + " = " + rupiah(subtotal);
+  });
+
+  const message =
+    "Halo Kavora, saya ingin order:%0A%0A" +
+    lines.map(encodeURIComponent).join("%0A") +
+    "%0A%0ATotal: " + encodeURIComponent(rupiah(total)) +
+    "%0ANama: " + encodeURIComponent(customerName) +
+    "%0ANo HP: " + encodeURIComponent(phoneEl.value.trim()) +
+    "%0ATipe: " + encodeURIComponent(typeEl.value) +
+    "%0ACatatan: " + encodeURIComponent(noteEl.value.trim());
+
+  const url = "https://api.whatsapp.com/send?phone=" + WA_NUMBER + "&text=" + message;
+
+  // Navigate directly instead of relying on a popup.
+  window.location.assign(url);
+});
+
+renderMenu();
+renderCart();
+})();
+</script>
+</body>
+</html>
