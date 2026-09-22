@@ -19,6 +19,8 @@ input,select,textarea{width:100%;padding:11px;border:1px solid #ddd3cb;border-ra
 .report{display:grid;grid-template-columns:1fr 1fr;gap:12px}.reportbox{padding:16px;border:1px solid #eee;border-radius:14px}.reportbox b{font-size:22px;display:block;margin-top:6px}
 .detail{background:#faf8f5;border-radius:12px;padding:12px;margin-top:10px}.item{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #eee}.item:last-child{border-bottom:0}
 @media(max-width:700px){.grid4{grid-template-columns:1fr 1fr}.two,.report{grid-template-columns:1fr}}
+
+.adminnav{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 14px;margin-bottom:4px;position:sticky;top:0;z-index:10;background:#f7f2ea}.navbtn{white-space:nowrap;background:#fff;color:#4a3528;border:1px solid #e7ddd4;padding:10px 13px;border-radius:12px;font-weight:600}.navbtn.active{background:#6b4226;color:#fff;border-color:#6b4226}.sectionhead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:4px 0 14px}.quickgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}.quick{background:#fff;color:#2b211b;text-align:left;border:1px solid #eee0d5;padding:16px;border-radius:15px;box-shadow:0 3px 12px #00000008}.quick b,.quick span{display:block}.quick span{font-size:13px;color:#786b63;margin-top:5px}@media(max-width:760px){.quickgrid{grid-template-columns:repeat(2,1fr)}.grid4{grid-template-columns:repeat(2,1fr)}.adminnav{margin-left:-4px;margin-right:-4px}}@media(max-width:480px){.quickgrid{grid-template-columns:1fr}.grid4{grid-template-columns:1fr 1fr}.navbtn{font-size:13px;padding:9px 11px}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -28,88 +30,74 @@ input,select,textarea{width:100%;padding:11px;border:1px solid #ddd3cb;border-ra
 <section id="login" class="panel"><h2>Login Admin</h2><p class="muted">Masukkan email admin. Supabase akan mengirim link login.</p><input id="email" type="email" value="sandyalhaz79@gmail.com"><button id="send">Kirim Link Login</button><p id="loginMsg" class="muted"></p></section>
 
 <section id="app" class="hidden">
-<div class="grid4">
-<div class="stat"><small>Pesanan Hari Ini</small><b id="todayOrders">0</b></div><div class="stat"><small>Omzet Hari Ini</small><b id="todaySales">Rp 0</b></div>
-<div class="stat"><small>Pesanan Baru</small><b id="newOrders">0</b></div><div class="stat"><small>Menu Aktif</small><b id="activeProducts">0</b></div>
+<div class="adminnav">
+  <button class="navbtn active" data-tab="dashboard">⌂ Dashboard</button>
+  <button class="navbtn" data-tab="ordersTab">🧾 Orderan</button>
+  <button class="navbtn" data-tab="stockTab">📦 Stock & Menu</button>
+  <button class="navbtn" data-tab="memberTab">👥 Member</button>
+  <button class="navbtn" data-tab="discountTab">🎁 Discount & Reward</button>
+  <button class="navbtn" data-tab="settingsTab">⚙️ Pengaturan</button>
+  <button class="navbtn" data-tab="reportTab">📊 Report Sales</button>
 </div>
 
-<div class="panel"><div class="top"><h2>Menu Produk</h2><button id="newProduct">+ Tambah Produk</button></div>
+<div id="dashboard" class="tabpage">
+  <div class="sectionhead"><div><h2>Dashboard</h2><p class="muted">Ringkasan aktivitas Kavora hari ini.</p></div><button id="refresh" class="secondary">↻ Refresh</button></div>
+  <div class="grid4">
+    <div class="stat"><small>Pesanan Hari Ini</small><b id="todayOrders">0</b></div>
+    <div class="stat"><small>Omzet Hari Ini</small><b id="todaySales">Rp 0</b></div>
+    <div class="stat"><small>Pesanan Baru</small><b id="newOrders">0</b></div>
+    <div class="stat"><small>Menu Aktif</small><b id="activeProducts">0</b></div>
+  </div>
+  <div class="quickgrid">
+    <button class="quick" data-go="ordersTab"><b>🧾 Orderan</b><span>Lihat pesanan masuk</span></button>
+    <button class="quick" data-go="stockTab"><b>📦 Stock & Menu</b><span>Kelola produk dan stok</span></button>
+    <button class="quick" data-go="memberTab"><b>👥 Member</b><span>Poin dan loyalty</span></button>
+    <button class="quick" data-go="discountTab"><b>🎁 Discount & Reward</b><span>Voucher dan reward</span></button>
+  </div>
+</div>
+
+<div id="ordersTab" class="tabpage hidden"><div class="panel"><div class="top"><div><h2>Orderan</h2><p class="muted">Kelola pesanan yang masuk.</p></div><button id="refreshOrders" class="secondary">↻ Refresh</button></div>
+<div class="toolbar"><input id="orderSearch" placeholder="Cari nama / nomor HP..."><select id="statusFilter"><option value="all">Semua status</option><option value="new">New</option><option value="processing">Processing</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></div>
+<div id="orders"></div></div></div>
+
+<div id="stockTab" class="tabpage hidden">
+<div class="panel"><div class="top"><div><h2>Stock & Menu</h2><p class="muted">Kelola produk, harga, foto, kategori dan stok.</p></div><button id="newProduct">+ Tambah Produk</button></div>
 <div class="toolbar"><input id="productSearch" placeholder="Cari produk..."><select id="productFilter"><option value="all">Semua kategori</option><option>Coffee</option><option>Non Coffee</option><option>Snack</option></select></div>
 <div id="products"></div>
 <div id="editor" class="editor hidden"><h3 id="editorTitle">Tambah Produk</h3>
 <div class="two"><div><label>Nama</label><input id="pname"></div><div><label>Harga</label><input id="price" type="number" min="0"></div></div>
 <div class="two"><div><label>Kategori</label><select id="cat"><option>Coffee</option><option>Non Coffee</option><option>Snack</option></select></div><div><label>Urutan</label><input id="sort" type="number" min="0"></div></div><div class="two"><div><label>Stok</label><input id="stock" type="number" min="0" step="1" value="999"></div><div></div></div>
-<label>Deskripsi</label><textarea id="desc" rows="3"></textarea><label>Foto Produk</label>
-<input id="imageFile" type="file" accept="image/*">
-<div id="imagePreview" style="margin:6px 0 12px"></div>
-<input id="image" type="hidden">
-<label><input id="active" type="checkbox" checked style="width:auto"> Produk aktif</label><br>
-<button id="save">Simpan</button> <button id="cancel" class="secondary">Batal</button></div></div>
-
-<div class="panel"><h2>Pengaturan Pembayaran</h2><p class="muted">Upload QRIS yang akan tampil di halaman customer saat memilih pembayaran QRIS.</p>
-<input id="qrisFile" type="file" accept="image/*">
-<div id="qrisPreview" style="margin:8px 0"></div>
-<button id="saveQris" type="button">Simpan QRIS</button>
+<label>Deskripsi</label><textarea id="desc" rows="3"></textarea><label>Foto Produk</label><input id="imageFile" type="file" accept="image/*"><div id="imagePreview" style="margin:6px 0 12px"></div><input id="image" type="hidden">
+<label><input id="active" type="checkbox" checked style="width:auto"> Produk aktif</label><br><button id="save">Simpan</button> <button id="cancel" class="secondary">Batal</button></div></div>
 </div>
 
-<div class="panel"><h2>Promo & Voucher</h2>
-<p class="muted">Buat kode promo yang bisa digunakan customer saat checkout.</p>
-<div class="two">
-<div><label>Kode Voucher</label><input id="vCode" placeholder="KAVORA10"></div>
-<div><label>Tipe Diskon</label><select id="vType"><option value="percent">Persen (%)</option><option value="fixed">Nominal (Rp)</option></select></div>
-</div>
-<div class="two">
-<div><label>Nilai Diskon</label><input id="vValue" type="number" min="1"></div>
-<div><label>Minimum Pembelian</label><input id="vMin" type="number" min="0" value="0"></div>
-</div>
-<div class="two">
-<div><label>Maksimum Diskon (opsional)</label><input id="vMax" type="number" min="0" placeholder="Kosongkan jika tidak ada"></div>
-<div><label>Batas Pemakaian (opsional)</label><input id="vLimit" type="number" min="1" placeholder="Kosongkan jika tidak dibatasi"></div>
-</div>
-<div class="two">
-<div><label>Mulai</label><input id="vStart" type="datetime-local"></div>
-<div><label>Berakhir</label><input id="vEnd" type="datetime-local"></div>
-</div>
-<button id="saveVoucher" type="button">Simpan Voucher</button>
-<div id="voucherMsgAdmin" class="muted" style="margin-top:8px"></div>
-<div id="voucherList" style="margin-top:15px"></div>
-</div>
-<div class="panel"><h2>Pengaturan Delivery</h2>
-<label><input id="deliveryEnabled" type="checkbox" checked style="width:auto"> Aktifkan Delivery</label>
-<label>Ongkir Default</label><input id="deliveryFee" type="number" min="0" value="0" placeholder="Contoh: 10000">
-<button id="saveDelivery" type="button">Simpan Pengaturan Delivery</button>
-<p id="deliveryMsg" class="muted"></p>
-</div>
-<div class="panel"><div class="top"><h2>Pesanan</h2><button id="refresh" class="secondary">Refresh</button></div>
-<div class="toolbar"><input id="orderSearch" placeholder="Cari nama / nomor HP..."><select id="statusFilter"><option value="all">Semua status</option><option value="new">New</option><option value="processing">Processing</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></div>
-<div id="orders"></div></div>
+<div id="memberTab" class="tabpage hidden"><div class="panel"><div class="top"><div><h2>Member & Loyalty</h2><p class="muted">Kelola member, poin dan riwayat loyalty.</p></div><button id="memberRefresh" class="secondary" type="button">↻ Refresh</button></div>
+<div class="toolbar"><input id="memberSearch" placeholder="Cari nama / nomor HP..."></div><div id="members"></div></div></div>
 
-<div class="panel"><div class="top"><h2>Member & Loyalty</h2><button id="memberRefresh" class="secondary" type="button">Refresh</button></div>
-<p class="muted">Member dibuat otomatis berdasarkan nomor HP saat transaksi. Setiap Rp10.000 dari total transaksi mendapatkan 1 poin.</p>
-<div class="toolbar"><input id="memberSearch" placeholder="Cari nama / nomor HP..."></div>
-<div id="members"></div></div>
-<div class="panel">
-<div class="top"><h2>🎁 Reward Member</h2><button id="rewardRefresh" class="secondary" type="button">Refresh</button></div>
-<p class="muted">Buat reward yang dapat ditukar member menggunakan poin.</p>
-<div class="toolbar" style="flex-wrap:wrap">
-<input id="rName" placeholder="Nama reward" style="flex:1;min-width:180px">
-<input id="rPoints" type="number" min="1" placeholder="Poin" style="width:120px">
-<select id="rType" style="width:180px"><option value="fixed_discount">Diskon Nominal</option><option value="percent_discount">Diskon Persen</option><option value="free_product">Free Product</option></select>
-<input id="rValue" type="number" min="0" placeholder="Nilai diskon" style="width:140px">
+<div id="discountTab" class="tabpage hidden">
+<div class="panel"><h2>Promo & Voucher</h2><p class="muted">Buat kode promo yang bisa digunakan customer saat checkout.</p>
+<div class="two"><div><label>Kode Voucher</label><input id="vCode" placeholder="KAVORA10"></div><div><label>Tipe Diskon</label><select id="vType"><option value="percent">Persen (%)</option><option value="fixed">Nominal (Rp)</option></select></div></div>
+<div class="two"><div><label>Nilai Diskon</label><input id="vValue" type="number" min="1"></div><div><label>Minimum Pembelian</label><input id="vMin" type="number" min="0" value="0"></div></div>
+<div class="two"><div><label>Maksimum Diskon (opsional)</label><input id="vMax" type="number" min="0" placeholder="Kosongkan jika tidak ada"></div><div><label>Batas Pemakaian (opsional)</label><input id="vLimit" type="number" min="1" placeholder="Kosongkan jika tidak dibatasi"></div></div>
+<div class="two"><div><label>Mulai</label><input id="vStart" type="datetime-local"></div><div><label>Berakhir</label><input id="vEnd" type="datetime-local"></div></div>
+<button id="saveVoucher" type="button">Simpan Voucher</button><div id="voucherMsgAdmin" class="muted" style="margin-top:8px"></div><div id="voucherList" style="margin-top:15px"></div></div>
+<div class="panel"><div class="top"><div><h2>🎁 Reward Member</h2><p class="muted">Reward yang dapat ditukar member menggunakan poin.</p></div><button id="rewardRefresh" class="secondary" type="button">↻ Refresh</button></div>
+<div class="toolbar" style="flex-wrap:wrap"><input id="rName" placeholder="Nama reward" style="flex:1;min-width:180px"><input id="rPoints" type="number" min="1" placeholder="Poin" style="width:120px"><select id="rType" style="width:180px"><option value="fixed_discount">Diskon Nominal</option><option value="percent_discount">Diskon Persen</option><option value="free_product">Free Product</option></select><input id="rValue" type="number" min="0" placeholder="Nilai diskon" style="width:140px"></div>
+<input id="rDesc" placeholder="Deskripsi reward (opsional)"><button id="saveReward" type="button" style="margin-top:8px">+ Buat Reward</button><p id="rewardMsgAdmin" class="muted"></p><div id="rewardListAdmin" style="margin-top:12px"></div><h3 style="margin-top:22px">Riwayat Redeem</h3><div id="redemptionList" style="margin-top:10px"></div></div>
 </div>
-<input id="rDesc" placeholder="Deskripsi reward (opsional)">
-<button id="saveReward" type="button" style="margin-top:8px">+ Buat Reward</button>
-<p id="rewardMsgAdmin" class="muted"></p><div id="rewardListAdmin" style="margin-top:12px"></div>
-<h3 style="margin-top:22px">Riwayat Redeem</h3><div id="redemptionList" style="margin-top:10px"></div>
-</div><div class="panel"><h2>Laporan Penjualan</h2>
-<div class="toolbar"><div style="flex:1;min-width:150px"><label>Dari Tanggal</label><input id="reportFrom" type="date"></div><div style="flex:1;min-width:150px"><label>Sampai Tanggal</label><input id="reportTo" type="date"></div><button id="reportToday" class="secondary" type="button">Hari Ini</button><button id="reportRefresh" class="secondary" type="button">Tampilkan</button></div>
-<p class="muted">Kosongkan kedua tanggal untuk melihat semua data. Periode termasuk seluruh hari yang dipilih.</p>
-<div class="report" style="margin-top:12px"><div class="reportbox"><small>Total Transaksi</small><b id="reportOrders">0</b></div><div class="reportbox"><small>Total Omzet</small><b id="reportSales">Rp 0</b></div></div>
-<div id="topProducts" style="margin-top:15px"></div></div>
+
+<div id="settingsTab" class="tabpage hidden">
+<div class="panel"><h2>Pengaturan Pembayaran</h2><p class="muted">Upload QRIS yang tampil di halaman customer.</p><input id="qrisFile" type="file" accept="image/*"><div id="qrisPreview" style="margin:8px 0"></div><button id="saveQris" type="button">Simpan QRIS</button></div>
+<div class="panel"><h2>Pengaturan Delivery</h2><label><input id="deliveryEnabled" type="checkbox" checked style="width:auto"> Aktifkan Delivery</label><label>Ongkir Default</label><input id="deliveryFee" type="number" min="0" value="0" placeholder="Contoh: 10000"><button id="saveDelivery" type="button">Simpan Pengaturan Delivery</button><p id="deliveryMsg" class="muted"></p></div>
+</div>
+
+<div id="reportTab" class="tabpage hidden"><div class="panel"><h2>Report Sales</h2><p class="muted">Lihat ringkasan penjualan berdasarkan periode.</p><div class="toolbar"><div style="flex:1;min-width:150px"><label>Dari Tanggal</label><input id="reportFrom" type="date"></div><div style="flex:1;min-width:150px"><label>Sampai Tanggal</label><input id="reportTo" type="date"></div><button id="reportToday" class="secondary" type="button">Hari Ini</button><button id="reportRefresh" class="secondary" type="button">Tampilkan</button></div><p class="muted">Kosongkan kedua tanggal untuk melihat semua data.</p><div class="report" style="margin-top:12px"><div class="reportbox"><small>Total Transaksi</small><b id="reportOrders">0</b></div><div class="reportbox"><small>Total Omzet</small><b id="reportSales">Rp 0</b></div></div><div id="topProducts" style="margin-top:15px"></div></div></div>
 </section></div>
 
 <script>
 (()=>{"use strict";
+const _tabs=[...document.querySelectorAll('.navbtn')];function openTab(id){document.querySelectorAll('.tabpage').forEach(x=>x.classList.add('hidden'));const el=document.getElementById(id);if(el)el.classList.remove('hidden');_tabs.forEach(b=>b.classList.toggle('active',b.dataset.tab===id));} _tabs.forEach(b=>b.addEventListener('click',()=>openTab(b.dataset.tab)));document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>openTab(b.dataset.go)));
+
 const SUPABASE_URL="https://gooawhtldgefmiwplxzs.supabase.co",KEY="sb_publishable_sD0QPAk-uDg5cveBKtwePA_dWV5Q8GH",ADMIN="sandyalhaz79@gmail.com";
 const db=supabase.createClient(SUPABASE_URL,KEY);let products=[],orders=[],editing=null,details={},oldImageUrl=null;
 const $=id=>document.getElementById(id),rp=n=>new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(n||0);
@@ -295,6 +283,9 @@ async function loadRedemptions(){
 
 $("saveReward").onclick=saveRewardAdmin;$("rewardRefresh").onclick=()=>{loadRewardsAdmin();loadRedemptions()};
 
+
+const _ro=document.getElementById('refreshOrders');if(_ro)_ro.onclick=()=>loadOrders();
+openTab('dashboard');
 })();
 
 </script>
