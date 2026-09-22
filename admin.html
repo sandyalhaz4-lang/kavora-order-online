@@ -84,8 +84,13 @@ input,select,textarea{width:100%;padding:11px;border:1px solid #ddd3cb;border-ra
 <div class="toolbar"><input id="orderSearch" placeholder="Cari nama / nomor HP..."><select id="statusFilter"><option value="all">Semua status</option><option value="new">New</option><option value="processing">Processing</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></div>
 <div id="orders"></div></div>
 
+<div class="panel"><div class="top"><h2>Member & Loyalty</h2><button id="memberRefresh" class="secondary" type="button">Refresh</button></div>
+<p class="muted">Member dibuat otomatis berdasarkan nomor HP saat transaksi. Setiap Rp10.000 dari total transaksi mendapatkan 1 poin.</p>
+<div class="toolbar"><input id="memberSearch" placeholder="Cari nama / nomor HP..."></div>
+<div id="members"></div></div>
 <div class="panel"><h2>Laporan Penjualan</h2>
-<div class="toolbar"><select id="reportRange"><option value="today">Hari Ini</option><option value="7">7 Hari Terakhir</option><option value="30">30 Hari Terakhir</option><option value="all">Semua Data</option></select><button id="reportRefresh" class="secondary">Refresh Laporan</button></div>
+<div class="toolbar"><div style="flex:1;min-width:150px"><label>Dari Tanggal</label><input id="reportFrom" type="date"></div><div style="flex:1;min-width:150px"><label>Sampai Tanggal</label><input id="reportTo" type="date"></div><button id="reportToday" class="secondary" type="button">Hari Ini</button><button id="reportRefresh" class="secondary" type="button">Tampilkan</button></div>
+<p class="muted">Kosongkan kedua tanggal untuk melihat semua data. Periode termasuk seluruh hari yang dipilih.</p>
 <div class="report" style="margin-top:12px"><div class="reportbox"><small>Total Transaksi</small><b id="reportOrders">0</b></div><div class="reportbox"><small>Total Omzet</small><b id="reportSales">Rp 0</b></div></div>
 <div id="topProducts" style="margin-top:15px"></div></div>
 </section></div>
@@ -96,12 +101,12 @@ const SUPABASE_URL="https://gooawhtldgefmiwplxzs.supabase.co",KEY="sb_publishabl
 const db=supabase.createClient(SUPABASE_URL,KEY);let products=[],orders=[],editing=null,details={},oldImageUrl=null;
 const $=id=>document.getElementById(id),rp=n=>new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(n||0);
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
-function showApp(u){if(!u||(u.email||"").toLowerCase()!==ADMIN){db.auth.signOut();alert("Email ini bukan akun admin Kavora.");return}$("login").classList.add("hidden");$("app").classList.remove("hidden");$("logout").classList.remove("hidden");refreshAll()}
+function showApp(u){if(!u||(u.email||"").toLowerCase()!==ADMIN){db.auth.signOut();alert("Email ini bukan akun admin Kavora.");return}$("login").classList.add("hidden");$("app").classList.remove("hidden");$("logout").classList.remove("hidden");const d=new Date(),v=d.toISOString().slice(0,10);$("reportFrom").value=v;$("reportTo").value=v;refreshAll()}
 async function init(){const {data}=await db.auth.getSession();if(data.session)showApp(data.session.user)}
 $("send").onclick=async()=>{const e=$("email").value.trim();if(e.toLowerCase()!==ADMIN){$("loginMsg").textContent="Gunakan email admin yang terdaftar.";return}$("send").disabled=true;const {error}=await db.auth.signInWithOtp({email:e,options:{emailRedirectTo:location.href}});$("loginMsg").textContent=error?error.message:"Link login sudah dikirim. Cek Gmail."; $("send").disabled=false}
 $("logout").onclick=()=>db.auth.signOut().then(()=>location.reload());db.auth.onAuthStateChange((_e,s)=>{if(s)showApp(s.user)});
 
-async function refreshAll(){await Promise.all([loadProducts(),loadOrders()]);updateStats();loadReport()}
+async function refreshAll(){await Promise.all([loadProducts(),loadOrders(),loadMembers()]);updateStats();loadReport()}
 async function loadProducts(){const {data,error}=await db.from("products").select("*").order("sort_order");if(error){$("products").textContent=error.message;return}products=data||[];renderProducts()}
 function renderProducts(){const q=$("productSearch").value.trim().toLowerCase(),c=$("productFilter").value;const a=products.filter(p=>(c==="all"||p.category===c)&&(!q||p.name.toLowerCase().includes(q)));$("products").innerHTML=a.map(p=>`<div class="product"><div class="top"><div><b>${esc(p.name)}</b><div class="muted">${esc(p.category)} · ${esc(p.description||"")}</div></div><div class="price">${rp(p.price)}</div></div><div style="margin-top:8px;display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap">
 <span>${p.is_active?"🟢 Aktif":"⚪ Nonaktif"} · ${Number(p.stock??999)<=0?"🔴 Habis":Number(p.stock??999)<=5?"🟠 Stok "+Number(p.stock):"🟢 Stok "+Number(p.stock??999)}</span>
@@ -137,10 +142,31 @@ async function showDetail(id){const box=$("detail-"+id);if(!box)return;if(!box.c
 $("orderSearch").oninput=renderOrders;$("statusFilter").onchange=renderOrders;$("refresh").onclick=refreshAll;
 
 function updateStats(){const d=new Date();d.setHours(0,0,0,0);const a=orders.filter(o=>new Date(o.created_at)>=d);$("todayOrders").textContent=a.length;$("todaySales").textContent=rp(a.filter(o=>o.status!=="cancelled").reduce((s,o)=>s+Number(o.total||0),0));$("newOrders").textContent=orders.filter(o=>o.status==="new").length;$("activeProducts").textContent=products.filter(p=>p.is_active).length}
-$("reportRange").onchange=loadReport;$("reportRefresh").onclick=loadReport;
-async function loadReport(){let from=null;const range=$("reportRange").value;if(range==="today"){from=new Date();from.setHours(0,0,0,0)}else if(range!=="all"){from=new Date(Date.now()-Number(range)*86400000);from.setHours(0,0,0,0)}const list=orders.filter(o=>(!from||new Date(o.created_at)>=from)&&o.status!=="cancelled");$("reportOrders").textContent=list.length;$("reportSales").textContent=rp(list.reduce((s,o)=>s+Number(o.total||0),0));
-const ids=list.map(o=>o.id);if(!ids.length){$("topProducts").innerHTML='<p class="muted">Belum ada penjualan pada periode ini.</p>';return}
-const {data}=await db.from("order_items").select("product_name,quantity,subtotal,order_id").in("order_id",ids);const map={};(data||[]).forEach(i=>{map[i.product_name]??={qty:0,sales:0};map[i.product_name].qty+=Number(i.quantity||0);map[i.product_name].sales+=Number(i.subtotal||0)});const top=Object.entries(map).sort((a,b)=>b[1].qty-a[1].qty).slice(0,5);$("topProducts").innerHTML="<h3>Produk Terlaris</h3>"+(top.length?top.map(([n,v],i)=>`<div class="item"><span>${i+1}. ${esc(n)} × ${v.qty}</span><b>${rp(v.sales)}</b></div>`).join(""):'<p class="muted">Belum ada data.</p>')}
+$("reportRefresh").onclick=loadReport;
+async function loadReport(){
+ const fromVal=$("reportFrom").value, toVal=$("reportTo").value;
+ let from=null,to=null;
+ if(fromVal){from=new Date(fromVal+"T00:00:00");}
+ if(toVal){to=new Date(toVal+"T23:59:59.999");}
+ if(from&&to&&to<from){$("topProducts").innerHTML='<p class="muted">Tanggal sampai harus sama atau setelah tanggal dari.</p>';return}
+ let q=db.from("orders").select("*").order("created_at",{ascending:false});
+ if(from)q=q.gte("created_at",from.toISOString());
+ if(to)q=q.lte("created_at",to.toISOString());
+ const {data,error}=await q.limit(5000);
+ if(error){$("reportOrders").textContent="0";$("reportSales").textContent=rp(0);$("topProducts").innerHTML='<p class="muted">'+esc(error.message)+'</p>';return}
+ const list=(data||[]).filter(o=>o.status!=="cancelled");
+ $("reportOrders").textContent=list.length;
+ $("reportSales").textContent=rp(list.reduce((s,o)=>s+Number(o.total||0),0));
+ const ids=list.map(o=>o.id);
+ if(!ids.length){$("topProducts").innerHTML='<p class="muted">Belum ada penjualan pada periode ini.</p>';return}
+ const {data:items}=await db.from("order_items").select("product_name,quantity,subtotal,order_id").in("order_id",ids);
+ const map={};
+ (items||[]).forEach(i=>{map[i.product_name]??={qty:0,sales:0};map[i.product_name].qty+=Number(i.quantity||0);map[i.product_name].sales+=Number(i.subtotal||0)});
+ const top=Object.entries(map).sort((a,b)=>b[1].qty-a[1].qty).slice(0,5);
+ $("topProducts").innerHTML="<h3>Produk Terlaris</h3>"+(top.length?top.map(([n,v],i)=>`<div class="item"><span>${i+1}. ${esc(n)} × ${v.qty}</span><b>${rp(v.sales)}</b></div>`).join(""):'<p class="muted">Belum ada data.</p>');
+}
+$("reportToday").onclick=()=>{const d=new Date();const v=d.toISOString().slice(0,10);$("reportFrom").value=v;$("reportTo").value=v;loadReport()};
+
 async function loadQris(){
  const {data}=await db.from("payment_settings").select("qris_image_url").eq("id",1).maybeSingle();
  $("qrisPreview").innerHTML=data?.qris_image_url?'<img src="'+esc(data.qris_image_url)+'" style="max-width:260px;max-height:260px;border-radius:12px;border:1px solid #eee">':'<span class="muted">QRIS belum diupload.</span>';
@@ -187,6 +213,29 @@ $("saveVoucher").onclick=async()=>{
  $("vCode").value="";$("vValue").value="";$("vMin").value="0";$("vMax").value="";$("vLimit").value="";$("vStart").value="";$("vEnd").value="";
  loadVouchers();
 };
+async function loadMembers(){
+ const q=$("memberSearch").value.trim().toLowerCase();
+ const {data,error}=await db.from("members").select("*").order("created_at",{ascending:false});
+ if(error){$("members").textContent=error.message;return}
+ const list=(data||[]).filter(m=>!q||String(m.name||"").toLowerCase().includes(q)||String(m.phone||"").includes(q));
+ $("members").innerHTML=list.map(m=>`<div class="product"><div class="top"><div><b>${esc(m.name)}</b><div class="muted">${esc(m.phone)}</div></div><div class="price">${Number(m.points||0)} poin</div></div><div class="muted" style="margin-top:6px">${Number(m.total_orders||0)} transaksi · Total belanja ${rp(m.total_spent||0)}</div><div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap"><button type="button" data-mplus="${m.id}">+ Poin</button><button type="button" class="secondary" data-mminus="${m.id}">− Poin</button></div></div>`).join("")||'<p class="muted">Belum ada member.</p>';
+ document.querySelectorAll("[data-mplus]").forEach(b=>b.onclick=()=>adjustMemberPoints(b.dataset.mplus,1));
+ document.querySelectorAll("[data-mminus]").forEach(b=>b.onclick=()=>adjustMemberPoints(b.dataset.mminus,-1));
+}
+async function adjustMemberPoints(id,dir){
+ const amount=Number(prompt(dir>0?"Tambah berapa poin?":"Kurangi berapa poin?","10"));
+ if(!Number.isFinite(amount)||amount<=0)return;
+ const {data,error}=await db.from("members").select("points").eq("id",id).single();
+ if(error)return alert(error.message);
+ const next=dir>0?Number(data.points||0)+amount:Math.max(0,Number(data.points||0)-amount);
+ const r=await db.from("members").update({points:next,updated_at:new Date().toISOString()}).eq("id",id);
+ if(r.error)return alert(r.error.message);
+ const tx=await db.from("member_transactions").insert({member_id:id,type:"adjust",points:dir>0?amount:-amount,note:"Penyesuaian manual oleh admin"});
+ if(tx.error)return alert(tx.error.message);
+ loadMembers();
+}
+$("memberSearch").oninput=loadMembers;
+$("memberRefresh").onclick=loadMembers;
 async function loadDeliverySettings(){
  const {data,error}=await db.from("store_settings").select("delivery_enabled,delivery_fee").eq("id",1).maybeSingle();
  if(error)return;
