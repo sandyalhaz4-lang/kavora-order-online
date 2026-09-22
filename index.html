@@ -57,7 +57,12 @@ footer{text-align:center;color:#8a7a70;font-size:12px;padding:10px 0 30px}
 <div class="total"><span>Total</span><span id="total">Rp 0</span></div>
 <div class="form-grid">
 <div><label>Nama</label><input id="customerName" placeholder="Nama customer"></div>
-<div><label>No. HP</label><input id="customerPhone" placeholder="08xxxxxxxxxx"></div>
+<div><label>No. HP</label><input id="customerPhone" placeholder="08xxxxxxxxxx">
+<div style="margin-top:6px;padding:10px 12px;border:1px solid #eadfd5;border-radius:10px;background:#fbf7f2">
+<div style="font-weight:700">☕ Kavora Member</div>
+<div id="memberInfo" style="font-size:13px;color:#7d6c61;margin-top:4px">Cek poin berdasarkan nomor HP. Nomor akan otomatis menjadi member setelah transaksi pertama.</div>
+<button id="checkMember" type="button" style="margin-top:7px;border:0;border-radius:9px;padding:8px 12px;background:#e7ddd4;color:#4d3425">Cek Poin</button>
+</div></div>
 <div><label>Tipe Order</label><select id="orderType"><option>Take Away</option><option>Delivery</option></select></div>
 <div class="full" id="deliveryBox" style="display:none"><label>Alamat Delivery</label><textarea id="deliveryAddress" rows="3" placeholder="Masukkan alamat lengkap delivery"></textarea>
 <div id="deliveryFeeInfo" style="font-size:13px;color:#8a7a70;margin-top:-5px">Ongkir: Rp 0</div></div>
@@ -162,6 +167,27 @@ function renderMenu(){
  }).join("");
  document.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>add(b.dataset.add))
 }
+async function checkMember(){
+ const el=document.getElementById("memberInfo"), phone=document.getElementById("customerPhone").value.trim();
+ const normalized=phone.replace(/\D/g,"");
+ if(!normalized){el.textContent="Masukkan nomor HP terlebih dahulu.";return}
+ el.textContent="Mengecek poin...";
+ const {data,error}=await db.from("members").select("name,points,total_orders,total_spent").eq("phone",normalized).eq("is_active",true).maybeSingle();
+ if(error){el.textContent="Tidak dapat mengecek member saat ini.";return}
+ if(!data){el.textContent="Belum terdaftar. Kamu akan otomatis menjadi member setelah transaksi pertama.";return}
+ el.innerHTML="Member: <b>"+esc(data.name)+"</b> · Poin: <b>"+Number(data.points||0)+"</b> · "+Number(data.total_orders||0)+" transaksi";
+}
+document.getElementById("checkMember").onclick=checkMember;
+async function checkMember(){
+ const el=document.getElementById("memberInfo"), phone=document.getElementById("customerPhone").value.trim(), normalized=phone.replace(/\D/g,"");
+ if(!normalized){el.textContent="Masukkan nomor HP terlebih dahulu.";return}
+ el.textContent="Mengecek poin...";
+ const {data,error}=await db.from("members").select("name,points,total_orders,total_spent").eq("phone",normalized).eq("is_active",true).maybeSingle();
+ if(error){el.textContent="Tidak dapat mengecek member saat ini.";return}
+ if(!data){el.textContent="Belum terdaftar. Kamu akan otomatis menjadi member setelah transaksi pertama.";return}
+ el.innerHTML="Member: <b>"+esc(data.name)+"</b> · Poin: <b>"+Number(data.points||0)+"</b> · "+Number(data.total_orders||0)+" transaksi";
+}
+document.getElementById("checkMember").onclick=checkMember;
 function calcVoucherDiscount(subtotal){
  if(!appliedVoucher)return 0;
  let d=appliedVoucher.discount_type==="percent"
