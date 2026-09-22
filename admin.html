@@ -20,7 +20,40 @@ input,select,textarea{width:100%;padding:11px;border:1px solid #ddd3cb;border-ra
 .detail{background:#faf8f5;border-radius:12px;padding:12px;margin-top:10px}.item{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #eee}.item:last-child{border-bottom:0}
 @media(max-width:700px){.grid4{grid-template-columns:1fr 1fr}.two,.report{grid-template-columns:1fr}}
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+async function loadRewardsAdmin(){
+ const {data,error}=await db.from("rewards").select("*").order("points_cost",{ascending:true});
+ if(error){$("rewardListAdmin").textContent=error.message;return}
+ $("rewardListAdmin").innerHTML=(data||[]).map(r=>{
+   const val=r.reward_type==="percent_discount"?r.reward_value+"%":r.reward_type==="fixed_discount"?rp(r.reward_value):"Free product";
+   return `<div class="item" style="display:block;margin-top:8px"><div style="display:flex;justify-content:space-between;gap:8px"><b>${esc(r.name)}</b><span>${Number(r.points_cost)} poin</span></div><div class="muted">${esc(r.description||"")} · ${val} · ${r.is_active?"Aktif":"Nonaktif"}</div><button type="button" class="secondary" data-rtoggle="${r.id}" style="margin-top:6px">${r.is_active?"Nonaktifkan":"Aktifkan"}</button></div>`;
+ }).join("")||'<p class="muted">Belum ada reward.</p>';
+ document.querySelectorAll("[data-rtoggle]").forEach(b=>b.onclick=async()=>{
+   const r=(data||[]).find(x=>x.id===b.dataset.rtoggle); if(!r)return;
+   const x=await db.from("rewards").update({is_active:!r.is_active,updated_at:new Date().toISOString()}).eq("id",r.id);
+   if(x.error)alert(x.error.message);else loadRewardsAdmin();
+ });
+}
+$("saveReward").onclick=async()=>{
+ const name=$("rName").value.trim(), points=Number($("rPoints").value||0), type=$("rType").value, value=Number($("rValue").value||0), desc=$("rDesc").value.trim();
+ if(!name||points<=0)return alert("Nama reward dan poin wajib diisi.");
+ if(type!=="free_product"&&value<=0)return alert("Nilai reward wajib diisi.");
+ if(type==="percent_discount"&&value>100)return alert("Diskon persen maksimal 100%.");
+ const x=await db.from("rewards").insert({name,description:desc,points_cost:points,reward_type:type,reward_value:value,is_active:true});
+ if(x.error)return alert(x.error.message);
+ $("rewardMsgAdmin").textContent="Reward berhasil dibuat.";
+ $("rName").value="";$("rPoints").value="";$("rValue").value="";$("rDesc").value="";
+ loadRewardsAdmin();
+};
+async function loadRedemptions(){
+ const {data,error}=await db.from("reward_redemptions").select("id,code,points_spent,status,created_at,used_at,member:members(name,phone),reward:rewards(name)").order("created_at",{ascending:false}).limit(100);
+ if(error){$("redemptionList").textContent=error.message;return}
+ $("redemptionList").innerHTML=(data||[]).map(x=>`<div class="item" style="display:block;margin-top:7px"><b>${esc(x.code)}</b> · ${esc(x.reward?.name||"-")} · ${Number(x.points_spent)} poin<div class="muted">${esc(x.member?.name||"-")} (${esc(x.member?.phone||"-")}) · ${esc(x.status)} · ${new Date(x.created_at).toLocaleString("id-ID")}</div></div>`).join("")||'<p class="muted">Belum ada redeem.</p>';
+}
+$("rewardRefresh").onclick=()=>{loadRewardsAdmin();loadRedemptions()};
+
+loadRewardsAdmin();loadRedemptions();
+</script>
 </head>
 <body>
 <header><div class="wrap"><div class="top"><div><h1>KAVORA ADMIN</h1><div class="sub">Dashboard • Menu • Pesanan • Laporan</div></div><button id="logout" class="secondary hidden">Logout</button></div></div></header>
@@ -88,6 +121,23 @@ input,select,textarea{width:100%;padding:11px;border:1px solid #ddd3cb;border-ra
 <p class="muted">Member dibuat otomatis berdasarkan nomor HP saat transaksi. Setiap Rp10.000 dari total transaksi mendapatkan 1 poin.</p>
 <div class="toolbar"><input id="memberSearch" placeholder="Cari nama / nomor HP..."></div>
 <div id="members"></div></div>
+
+<div class="panel">
+<div class="top"><h2>🎁 Reward Member</h2><button id="rewardRefresh" class="secondary" type="button">Refresh</button></div>
+<p class="muted">Buat reward yang dapat ditukar member menggunakan poin.</p>
+<div class="toolbar" style="flex-wrap:wrap">
+<input id="rName" placeholder="Nama reward" style="flex:1;min-width:180px">
+<input id="rPoints" type="number" min="1" placeholder="Poin" style="width:120px">
+<select id="rType" style="width:180px"><option value="fixed_discount">Diskon Nominal</option><option value="percent_discount">Diskon Persen</option><option value="free_product">Free Product</option></select>
+<input id="rValue" type="number" min="0" placeholder="Nilai diskon" style="width:140px">
+</div>
+<input id="rDesc" placeholder="Deskripsi reward (opsional)">
+<button id="saveReward" type="button" style="margin-top:8px">+ Buat Reward</button>
+<p id="rewardMsgAdmin" class="muted"></p>
+<div id="rewardListAdmin" style="margin-top:12px"></div>
+<h3 style="margin-top:22px">Riwayat Redeem</h3>
+<div id="redemptionList" style="margin-top:10px"></div>
+</div>
 <div class="panel"><h2>Laporan Penjualan</h2>
 <div class="toolbar"><div style="flex:1;min-width:150px"><label>Dari Tanggal</label><input id="reportFrom" type="date"></div><div style="flex:1;min-width:150px"><label>Sampai Tanggal</label><input id="reportTo" type="date"></div><button id="reportToday" class="secondary" type="button">Hari Ini</button><button id="reportRefresh" class="secondary" type="button">Tampilkan</button></div>
 <p class="muted">Kosongkan kedua tanggal untuk melihat semua data. Periode termasuk seluruh hari yang dipilih.</p>
