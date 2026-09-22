@@ -1,31 +1,213 @@
 <!doctype html>
-<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Kavora Admin</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kavora Admin</title>
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f7f2ea;color:#2b211b}header{background:#241a15;color:#fff;padding:20px}header h1{margin:0}.wrap{max-width:1100px;margin:auto;padding:18px}.panel{background:#fff;border-radius:16px;padding:18px;margin:14px 0;box-shadow:0 3px 14px #0001}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}input,select,textarea{width:100%;padding:11px;border:1px solid #ddd;border-radius:9px;margin:5px 0 10px}button{border:0;border-radius:9px;padding:10px 14px;background:#6b4226;color:#fff;cursor:pointer}.secondary{background:#ddd;color:#332}.danger{background:#a33}.row{display:grid;grid-template-columns:1fr 120px 130px 100px;gap:8px;align-items:center;border-top:1px solid #eee;padding:10px 0}.muted{color:#766}.hidden{display:none}.order{border-top:1px solid #eee;padding:12px 0}.badge{padding:4px 8px;border-radius:12px;background:#eee}.top{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
-</style></head><body>
-<header><div class="wrap"><div class="top"><div><h1>KAVORA ADMIN</h1><div>Menu & Pesanan</div></div><button id="logout" class="secondary hidden">Logout</button></div></div></header>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f7f2ea;color:#2b211b}
+header{background:#241a15;color:#fff;padding:20px}
+header h1{margin:0}
+.wrap{max-width:1100px;margin:auto;padding:18px}
+.panel{background:#fff;border-radius:16px;padding:18px;margin:14px 0;box-shadow:0 3px 14px #0001}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+input,select,textarea{width:100%;padding:11px;border:1px solid #ddd;border-radius:9px;margin:5px 0 10px}
+button{border:0;border-radius:9px;padding:10px 14px;background:#6b4226;color:#fff;cursor:pointer}
+button:disabled{opacity:.55;cursor:not-allowed}
+.secondary{background:#ddd;color:#332}
+.row{display:grid;grid-template-columns:1fr 120px 130px 100px;gap:8px;align-items:center;border-top:1px solid #eee;padding:10px 0}
+.muted{color:#766}
+.hidden{display:none}
+.order{border-top:1px solid #eee;padding:12px 0}
+.badge{padding:4px 8px;border-radius:12px;background:#eee}
+.top{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+.msg{margin-top:12px;padding:10px;border-radius:9px;background:#f4eee8}
+@media(max-width:600px){.row{grid-template-columns:1fr 1fr}.row>div:first-child{grid-column:1/-1}}
+</style>
+</head>
+<body>
+<header><div class="wrap"><div class="top">
+<div><h1>KAVORA ADMIN</h1><div>Menu & Pesanan</div></div>
+<button id="logout" class="secondary hidden">Logout</button>
+</div></div></header>
+
 <div class="wrap">
-<section id="login" class="panel"><h2>Login Admin</h2><p class="muted">Masukkan email admin. Supabase akan mengirim link login ke email.</p><input id="email" type="email" placeholder="Email admin"><button id="send">Kirim Link Login</button><p id="loginMsg" class="muted"></p></section>
+<section id="login" class="panel">
+<h2>Login Admin</h2>
+<p class="muted">Masukkan email admin. Supabase akan mengirim link login ke email.</p>
+<input id="email" type="email" value="sandyalhaz79@gmail.com" placeholder="Email admin">
+<button id="send" type="button">Kirim Link Login</button>
+<p id="loginMsg" class="muted"></p>
+</section>
+
 <section id="app" class="hidden">
-<div class="panel"><div class="top"><h2>Menu Produk</h2><button id="new">+ Tambah Produk</button></div><div id="products"></div></div>
-<div id="editor" class="panel hidden"><h2 id="editorTitle">Tambah Produk</h2><div class="grid"><div><label>Nama</label><input id="pname"></div><div><label>Harga</label><input id="price" type="number" min="0"></div><div><label>Kategori</label><select id="cat"><option>Coffee</option><option>Non Coffee</option><option>Snack</option></select></div><div><label>Urutan</label><input id="sort" type="number" min="0"></div></div><label>Deskripsi</label><textarea id="desc" rows="3"></textarea><label>URL Foto (opsional)</label><input id="image"><label><input id="active" type="checkbox" checked style="width:auto"> Produk aktif</label><br><button id="save">Simpan</button> <button id="cancel" class="secondary">Batal</button></div>
-<div class="panel"><div class="top"><h2>Pesanan</h2><button id="refreshOrders" class="secondary">Refresh</button></div><div id="orders"></div></div>
-</section></div>
+<div class="panel"><div class="top"><h2>Menu Produk</h2><button id="new" type="button">+ Tambah Produk</button></div><div id="products"></div></div>
+<div id="editor" class="panel hidden">
+<h2 id="editorTitle">Tambah Produk</h2>
+<div class="grid">
+<div><label>Nama</label><input id="pname"></div>
+<div><label>Harga</label><input id="price" type="number" min="0"></div>
+<div><label>Kategori</label><select id="cat"><option>Coffee</option><option>Non Coffee</option><option>Snack</option></select></div>
+<div><label>Urutan</label><input id="sort" type="number" min="0"></div>
+</div>
+<label>Deskripsi</label><textarea id="desc" rows="3"></textarea>
+<label>URL Foto (opsional)</label><input id="image">
+<label><input id="active" type="checkbox" checked style="width:auto"> Produk aktif</label><br>
+<button id="save" type="button">Simpan</button> <button id="cancel" class="secondary" type="button">Batal</button>
+</div>
+<div class="panel"><div class="top"><h2>Pesanan</h2><button id="refreshOrders" class="secondary" type="button">Refresh</button></div><div id="orders"></div></div>
+</section>
+</div>
+
 <script>
-const URL='https://gooawhtldgefmiwplxzs.supabase.co',KEY='sb_publishable_sD0QPAk-uDg5cveBKtwePA_dWV5Q8GH';
-const db=supabase.createClient(URL,KEY);let editing=null;
-const $=id=>document.getElementById(id),rp=n=>new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(n);
-function showApp(user){if(!user||user.email.toLowerCase()!=='sandyalhaz79@gmail.com'){alert('Email ini bukan akun admin Kavora.');db.auth.signOut();return}$('login').classList.add('hidden');$('app').classList.remove('hidden');$('logout').classList.remove('hidden');loadProducts();loadOrders()}
-async function init(){const {data}=await db.auth.getSession();if(data.session)showApp(data.session.user)}
-$('send').onclick=async()=>{const email=$('email').value.trim();if(email.toLowerCase()!=='sandyalhaz79@gmail.com'){ $('loginMsg').textContent='Gunakan email admin yang terdaftar.';return }const {error}=await db.auth.signInWithOtp({email,options:{emailRedirectTo:location.href}});$('loginMsg').textContent=error?error.message:'Link login sudah dikirim. Cek email kamu.'};
-$('logout').onclick=()=>db.auth.signOut().then(()=>location.reload());db.auth.onAuthStateChange((_e,s)=>{if(s)showApp(s.user)});
-async function loadProducts(){const {data,error}=await db.from('products').select('*').order('sort_order');if(error){$('products').textContent=error.message;return}$('products').innerHTML=(data||[]).map(p=>`<div class="row"><div><b>${esc(p.name)}</b><br><span class="muted">${esc(p.category)} · ${esc(p.description||'')}</span></div><div>${rp(p.price)}</div><div>${p.is_active?'Aktif':'Nonaktif'}</div><div><button data-edit="${p.id}">Edit</button></div></div>`).join('')||'<p class="muted">Belum ada produk.</p>';document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>edit(b.dataset.edit))}
-function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
-$('new').onclick=()=>{editing=null;$('editorTitle').textContent='Tambah Produk';$('pname').value='';$('price').value='';$('cat').value='Coffee';$('sort').value='0';$('desc').value='';$('image').value='';$('active').checked=true;$('editor').classList.remove('hidden')};
-async function edit(id){const {data,error}=await db.from('products').select('*').eq('id',id).single();if(error)return alert(error.message);editing=id;$('editorTitle').textContent='Edit Produk';$('pname').value=data.name;$('price').value=data.price;$('cat').value=data.category;$('sort').value=data.sort_order;$('desc').value=data.description||'';$('image').value=data.image_url||'';$('active').checked=data.is_active;$('editor').classList.remove('hidden')}
-$('cancel').onclick=()=>$('editor').classList.add('hidden');
-$('save').onclick=async()=>{const obj={name:$('pname').value.trim(),price:Number($('price').value),category:$('cat').value,sort_order:Number($('sort').value||0),description:$('desc').value.trim(),image_url:$('image').value.trim()||null,is_active:$('active').checked};if(!obj.name||obj.price<0)return alert('Nama dan harga wajib diisi.');let q=editing?db.from('products').update(obj).eq('id',editing):db.from('products').insert(obj);const {error}=await q;if(error)return alert(error.message);$('editor').classList.add('hidden');loadProducts()};
-async function loadOrders(){const {data,error}=await db.from('orders').select('*').order('created_at',{ascending:false}).limit(50);if(error){$('orders').textContent=error.message;return}$('orders').innerHTML=(data||[]).map(o=>`<div class="order"><div class="top"><b>${esc(o.customer_name)}</b><span class="badge">${esc(o.status)}</span></div><div>${esc(o.order_type||'')} · ${esc(o.customer_phone||'')} · ${rp(o.total)}</div><div class="muted">${new Date(o.created_at).toLocaleString('id-ID')} · ${esc(o.notes||'')}</div><br><select data-status="${o.id}"><option ${o.status==='new'?'selected':''}>new</option><option ${o.status==='processing'?'selected':''}>processing</option><option ${o.status==='completed'?'selected':''}>completed</option><option ${o.status==='cancelled'?'selected':''}>cancelled</option></select></div>`).join('')||'<p class="muted">Belum ada pesanan.</p>';document.querySelectorAll('[data-status]').forEach(s=>s.onchange=async()=>{const {error}=await db.from('orders').update({status:s.value}).eq('id',s.dataset.status);if(error)alert(error.message)})}
-$('refreshOrders').onclick=loadOrders;init();
-</script></body></html>
+(function(){
+"use strict";
+
+const SUPABASE_URL="https://gooawhtldgefmiwplxzs.supabase.co";
+const SUPABASE_KEY="sb_publishable_sD0QPAk-uDg5cveBKtwePA_dWV5Q8GH";
+let db=null, editing=null;
+
+const $=id=>document.getElementById(id);
+const rp=n=>new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(n);
+const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+
+function msg(text, error=false){
+  $("loginMsg").textContent=text;
+  $("loginMsg").style.color=error?"#a33":"#766";
+}
+
+async function loadSupabase(){
+  if(window.supabase) return true;
+  return new Promise(resolve=>{
+    const s=document.createElement("script");
+    s.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+    s.onload=()=>resolve(!!window.supabase);
+    s.onerror=()=>{
+      const s2=document.createElement("script");
+      s2.src="https://unpkg.com/@supabase/supabase-js@2";
+      s2.onload=()=>resolve(!!window.supabase);
+      s2.onerror=()=>resolve(false);
+      document.head.appendChild(s2);
+    };
+    document.head.appendChild(s);
+  });
+}
+
+function showApp(user){
+  if(!user || (user.email||"").toLowerCase()!=="sandyalhaz79@gmail.com"){
+    alert("Email ini bukan akun admin Kavora.");
+    if(db) db.auth.signOut();
+    return;
+  }
+  $("login").classList.add("hidden");
+  $("app").classList.remove("hidden");
+  $("logout").classList.remove("hidden");
+  loadProducts();
+  loadOrders();
+}
+
+async function init(){
+  $("send").disabled=true;
+  msg("Menghubungkan ke sistem login...");
+  const ok=await loadSupabase();
+  if(!ok){
+    msg("Sistem login gagal dimuat. Coba refresh halaman atau ganti jaringan.",true);
+    $("send").disabled=false;
+    return;
+  }
+  try{
+    db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+    const {data}=await db.auth.getSession();
+    if(data && data.session) showApp(data.session.user);
+    else msg("Siap. Tekan tombol Kirim Link Login.");
+    db.auth.onAuthStateChange((_event,session)=>{
+      if(session) showApp(session.user);
+    });
+  }catch(e){
+    msg("Gagal memuat sistem login: "+e.message,true);
+  }
+  $("send").disabled=false;
+}
+
+$("send").addEventListener("click",async()=>{
+  if(!db){msg("Sistem login belum siap. Tunggu sebentar lalu coba lagi.",true);return;}
+  const email=$("email").value.trim();
+  if(email.toLowerCase()!=="sandyalhaz79@gmail.com"){
+    msg("Gunakan email admin yang terdaftar.",true);return;
+  }
+  const btn=$("send");
+  btn.disabled=true; btn.textContent="Mengirim...";
+  const {error}=await db.auth.signInWithOtp({email,options:{emailRedirectTo:location.href}});
+  if(error) msg("Gagal mengirim: "+error.message,true);
+  else msg("Link login sudah dikirim. Cek email Gmail kamu.");
+  btn.disabled=false; btn.textContent="Kirim Link Login";
+});
+
+$("logout").onclick=()=>db.auth.signOut().then(()=>location.reload());
+
+$("new").onclick=()=>{
+  editing=null;
+  $("editorTitle").textContent="Tambah Produk";
+  $("pname").value="";$("price").value="";$("cat").value="Coffee";$("sort").value="0";
+  $("desc").value="";$("image").value="";$("active").checked=true;
+  $("editor").classList.remove("hidden");
+};
+
+async function loadProducts(){
+  const {data,error}=await db.from("products").select("*").order("sort_order");
+  if(error){$("products").textContent=error.message;return;}
+  $("products").innerHTML=(data||[]).map(p=>`
+    <div class="row">
+      <div><b>${esc(p.name)}</b><br><span class="muted">${esc(p.category)} · ${esc(p.description||"")}</span></div>
+      <div>${rp(p.price)}</div><div>${p.is_active?"Aktif":"Nonaktif"}</div>
+      <div><button type="button" data-edit="${p.id}">Edit</button></div>
+    </div>`).join("")||'<p class="muted">Belum ada produk.</p>';
+  document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>edit(b.dataset.edit));
+}
+
+async function edit(id){
+  const {data,error}=await db.from("products").select("*").eq("id",id).single();
+  if(error)return alert(error.message);
+  editing=id;$("editorTitle").textContent="Edit Produk";
+  $("pname").value=data.name;$("price").value=data.price;$("cat").value=data.category;
+  $("sort").value=data.sort_order;$("desc").value=data.description||"";
+  $("image").value=data.image_url||"";$("active").checked=data.is_active;
+  $("editor").classList.remove("hidden");
+}
+
+$("cancel").onclick=()=>$("editor").classList.add("hidden");
+
+$("save").onclick=async()=>{
+  const obj={name:$("pname").value.trim(),price:Number($("price").value),category:$("cat").value,
+    sort_order:Number($("sort").value||0),description:$("desc").value.trim(),
+    image_url:$("image").value.trim()||null,is_active:$("active").checked};
+  if(!obj.name||obj.price<0)return alert("Nama dan harga wajib diisi.");
+  const q=editing?db.from("products").update(obj).eq("id",editing):db.from("products").insert(obj);
+  const {error}=await q;if(error)return alert(error.message);
+  $("editor").classList.add("hidden");loadProducts();
+};
+
+async function loadOrders(){
+  const {data,error}=await db.from("orders").select("*").order("created_at",{ascending:false}).limit(50);
+  if(error){$("orders").textContent=error.message;return;}
+  $("orders").innerHTML=(data||[]).map(o=>`
+    <div class="order"><div class="top"><b>${esc(o.customer_name)}</b><span class="badge">${esc(o.status)}</span></div>
+    <div>${esc(o.order_type||"")} · ${esc(o.customer_phone||"")} · ${rp(o.total)}</div>
+    <div class="muted">${new Date(o.created_at).toLocaleString("id-ID")} · ${esc(o.notes||"")}</div><br>
+    <select data-status="${o.id}"><option ${o.status==="new"?"selected":""}>new</option>
+    <option ${o.status==="processing"?"selected":""}>processing</option>
+    <option ${o.status==="completed"?"selected":""}>completed</option>
+    <option ${o.status==="cancelled"?"selected":""}>cancelled</option></select></div>`).join("")
+    ||'<p class="muted">Belum ada pesanan.</p>';
+  document.querySelectorAll("[data-status]").forEach(s=>s.onchange=async()=>{
+    const {error}=await db.from("orders").update({status:s.value}).eq("id",s.dataset.status);
+    if(error)alert(error.message);
+  });
+}
+$("refreshOrders").onclick=loadOrders;
+init();
+})();
+</script>
+</body>
+</html>
