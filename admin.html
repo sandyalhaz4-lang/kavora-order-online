@@ -119,7 +119,7 @@ async function init(){const {data}=await db.auth.getSession();if(data.session)sh
 $("send").onclick=async()=>{const e=$("email").value.trim();if(e.toLowerCase()!==ADMIN){$("loginMsg").textContent="Gunakan email admin yang terdaftar.";return}$("send").disabled=true;const {error}=await db.auth.signInWithOtp({email:e,options:{emailRedirectTo:location.href}});$("loginMsg").textContent=error?error.message:"Link login sudah dikirim. Cek Gmail."; $("send").disabled=false}
 $("logout").onclick=()=>db.auth.signOut().then(()=>location.reload());db.auth.onAuthStateChange((_e,s)=>{if(s)showApp(s.user)});
 
-async function refreshAll(){await Promise.all([loadProducts(),loadOrders(),loadMembers()]);updateStats();loadReport()}
+async function refreshAll(){await Promise.all([loadProducts(),loadOrders(),loadMembers()]);updateStats();loadReport();loadRewardsAdmin();loadRedemptions()}
 async function loadProducts(){const {data,error}=await db.from("products").select("*").order("sort_order");if(error){$("products").textContent=error.message;return}products=data||[];renderProducts()}
 function renderProducts(){const q=$("productSearch").value.trim().toLowerCase(),c=$("productFilter").value;const a=products.filter(p=>(c==="all"||p.category===c)&&(!q||p.name.toLowerCase().includes(q)));$("products").innerHTML=a.map(p=>`<div class="product"><div class="top"><div><b>${esc(p.name)}</b><div class="muted">${esc(p.category)} · ${esc(p.description||"")}</div></div><div class="price">${rp(p.price)}</div></div><div style="margin-top:8px;display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap">
 <span>${p.is_active?"🟢 Aktif":"⚪ Nonaktif"} · ${Number(p.stock??999)<=0?"🔴 Habis":Number(p.stock??999)<=5?"🟠 Stok "+Number(p.stock):"🟢 Stok "+Number(p.stock??999)}</span>
@@ -263,8 +263,6 @@ $("saveDelivery").onclick=async()=>{
  $("deliveryMsg").textContent="Pengaturan delivery berhasil disimpan.";
 };
 init().then(()=>{loadDeliverySettings();loadVouchers();loadQris();});
-})();
-
 async function loadRewardsAdmin(){
  const box=$("rewardListAdmin"), {data,error}=await db.from("rewards").select("*").order("points_cost",{ascending:true});
  if(error){box.textContent=error.message;return}
@@ -296,5 +294,8 @@ async function loadRedemptions(){
 }
 
 $("saveReward").onclick=saveRewardAdmin;$("rewardRefresh").onclick=()=>{loadRewardsAdmin();loadRedemptions()};
+
+})();
+
 </script>
 </body></html>
