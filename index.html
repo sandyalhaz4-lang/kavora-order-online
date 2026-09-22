@@ -59,6 +59,11 @@ footer{text-align:center;color:#8a7a70;font-size:12px;padding:10px 0 30px}
 <div><label>Nama</label><input id="customerName" placeholder="Nama customer"></div>
 <div><label>No. HP</label><input id="customerPhone" placeholder="08xxxxxxxxxx"></div>
 <div><label>Tipe Order</label><select id="orderType"><option>Take Away</option><option>Delivery</option></select></div>
+<div><label>Metode Pembayaran</label><select id="paymentMethod"><option value="cash">Cash / Bayar di Tempat</option><option value="qris">QRIS</option></select></div>
+<div class="full" id="qrisBox" style="display:none;border:1px solid #eadfd5;border-radius:12px;padding:12px;background:#fbf7f2">
+<strong>Bayar dengan QRIS</strong>
+<div id="qrisContent" style="margin-top:8px;color:#8a7a70">Memuat QRIS...</div>
+</div>
 <div class="full"><label>Catatan / Alamat Delivery</label><textarea id="orderNote" placeholder="Contoh: less ice, tanpa gula, alamat delivery, dll."></textarea></div>
 </div>
 <button class="checkout" id="orderBtn" type="button">Pesan via WhatsApp</button><div class="note">Pesanan akan disimpan dan dikirim ke WhatsApp Kavora.</div>
@@ -70,6 +75,7 @@ footer{text-align:center;color:#8a7a70;font-size:12px;padding:10px 0 30px}
 (function(){
 "use strict";
 const WA_NUMBER="6282262877440";
+let qrisImageUrl=null;
 const SUPABASE_URL="https://gooawhtldgefmiwplxzs.supabase.co";
 const SUPABASE_KEY="sb_publishable_sD0QPAk-uDg5cveBKtwePA_dWV5Q8GH";
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
@@ -78,6 +84,20 @@ const menu=document.getElementById("menu"),cartEl=document.getElementById("cart"
 function rupiah(n){return new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(n)}
 function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
 function save(){localStorage.setItem("kavora_cart",JSON.stringify(cart));renderCart()}
+async function loadPaymentSettings(){
+ const {data}=await db.from("payment_settings").select("qris_image_url").eq("id",1).maybeSingle();
+ qrisImageUrl=data?.qris_image_url||null;
+ updateQrisBox();
+}
+function updateQrisBox(){
+ const method=document.getElementById("paymentMethod").value;
+ const box=document.getElementById("qrisBox");
+ box.style.display=method==="qris"?"block":"none";
+ if(method!=="qris")return;
+ document.getElementById("qrisContent").innerHTML=qrisImageUrl
+ ? '<img src="'+esc(qrisImageUrl)+'" alt="QRIS Kavora" style="display:block;width:100%;max-width:300px;margin:8px auto;border-radius:12px"><div style="text-align:center;font-size:12px;color:#8a7a70">Scan QRIS Kavora untuk pembayaran.</div>'
+ : '<div>QRIS belum tersedia. Pilih Cash / Bayar di Tempat atau hubungi admin Kavora.</div>';
+}
 function add(id){cart[id]=(cart[id]||0)+1;save()}
 function minus(id){if(cart[id])cart[id]--;if(!cart[id])delete cart[id];save()}
 function renderCategories(){const cats=["All","Coffee","Non Coffee","Snack"];document.getElementById("categories").innerHTML=cats.map(c=>'<button class="cat '+(activeCat===c?'active':'')+'" data-cat="'+c+'" type="button">'+(c==="All"?"Semua":c)+'</button>').join("");document.querySelectorAll("[data-cat]").forEach(b=>b.onclick=()=>{activeCat=b.dataset.cat;renderCategories();renderMenu()})}
@@ -108,20 +128,23 @@ async function loadProducts(){
 }
 document.getElementById("goCart").onclick=()=>document.getElementById("cartSection").scrollIntoView({behavior:"smooth",block:"start"});
 search.oninput=renderMenu;
+document.getElementById("paymentMethod").onchange=updateQrisBox;
 document.getElementById("orderBtn").onclick=async()=>{
  const keys=Object.keys(cart).filter(id=>cart[id]>0);if(!keys.length)return alert("Keranjang masih kosong.");
  const name=document.getElementById("customerName").value.trim();if(!name){alert("Silakan isi Nama terlebih dahulu.");return}
- const phone=document.getElementById("customerPhone").value.trim(),type=document.getElementById("orderType").value,note=document.getElementById("orderNote").value.trim();
+ const phone=document.getElementById("customerPhone").value.trim(),type=document.getElementById("orderType").value,paymentMethod=document.getElementById("paymentMethod").value,note=document.getElementById("orderNote").value.trim();
  let total=0;
  const lines=keys.map(id=>{const p=products.find(x=>x.id===id),sub=p.price*cart[id];total+=sub;return p.name+" x "+cart[id]+" = "+rupiah(sub)});
- const plain="Halo Kavora, saya ingin order:\n\n"+lines.join("\n")+"\n\nTotal: "+rupiah(total)+"\nNama: "+name+"\nNo HP: "+phone+"\nTipe: "+type+"\nCatatan: "+note;
+ const paymentLabel=paymentMethod==="qris"?"QRIS":"Cash / Bayar di Tempat";
+ const plain="Halo Kavora, saya ingin order:\n\n"+lines.join("\n")+"\n\nTotal: "+rupiah(total)+"\nNama: "+name+"\nNo HP: "+phone+"\nTipe: "+type+"\nPembayaran: "+paymentLabel+"\nStatus Pembayaran: Belum Bayar\nCatatan: "+note;
  const btn=document.getElementById("orderBtn");btn.disabled=true;btn.textContent="Memproses...";
- const {data:order,error}=await db.from("orders").insert({customer_name:name,customer_phone:phone,order_type:type,notes:note,total,status:"new",whatsapp_message:plain}).select("id").single();
+ const {data:order,error}=await db.from("orders").insert({customer_name:name,customer_phone:phone,order_type:type,notes:note,total,status:"new",payment_method:paymentMethod,payment_status:"unpaid",whatsapp_message:plain}).select("id").single();
  if(!error&&order){const items=keys.map(id=>{const p=products.find(x=>x.id===id);return{order_id:order.id,product_id:p.id,product_name:p.name,quantity:cart[id],unit_price:p.price,subtotal:p.price*cart[id]}});await db.from("order_items").insert(items)}
  cart={};localStorage.removeItem("kavora_cart");renderCart();btn.disabled=false;btn.textContent="Pesan via WhatsApp";
  window.location.assign("https://api.whatsapp.com/send?phone="+WA_NUMBER+"&text="+encodeURIComponent(plain))
 };
 loadProducts();
+loadPaymentSettings();
 })();
 </script>
 </body></html>
