@@ -148,7 +148,7 @@ function renderMenu(){
  if(!list.length){menu.innerHTML="<p style='color:#8a7a70'>Menu tidak ditemukan.</p>";return}
  menu.innerHTML=list.map(p=>{
    const stock=Number(p.stock ?? 999), soldOut=stock<=0, limited=stock>0&&stock<=5;
-   const visual=p.image_url?'<img src="'+esc(p.image_url)+'" alt="'+esc(p.name)+'" loading="lazy" onerror="this.style.display=\\'none\\';this.nextElementSibling.style.display=\\'flex\\'"><span class="placeholder" style="display:none">☕</span>':'<span class="placeholder">☕</span>';
+   const visual=p.image_url?'<img src="'+esc(p.image_url)+'" alt="'+esc(p.name)+'" loading="lazy"><span class="placeholder" style="display:none">☕</span>':'<span class="placeholder">☕</span>';
    const stockText=soldOut?'🔴 Habis':limited?'🟠 Tersisa '+stock:'🟢 Tersedia';
    return '<div class="card" style="'+(soldOut?'opacity:.68':'')+'"><div class="photo">'+visual+'</div><h3>'+esc(p.name)+'</h3><div class="desc">'+esc(p.description||"")+'</div><div class="price">'+rupiah(p.price)+'</div><div style="font-size:13px;margin:7px 0;color:#7d6c61">'+stockText+'</div><button class="add" type="button" data-add="'+p.id+'" '+(soldOut?'disabled style="opacity:.55;cursor:not-allowed"':'')+'>'+ (soldOut?'Habis':'+ Tambah') +'</button></div>'
  }).join("");
