@@ -184,7 +184,8 @@ document.getElementById("paymentMethod").onchange=updateQrisBox;
 document.getElementById("orderType").onchange=updateDeliveryBox;
 document.getElementById("orderBtn").onclick=async()=>{
  try{
-   const keys=Object.keys(cart).filter(id=>cart[id]>0);\n   for(const id of keys){const p=products.find(x=>x.id===id);if(!p||Number(p.stock??999)<cart[id]){alert("Stok "+(p?.name||"produk")+" tidak mencukupi. Silakan refresh menu.");return}}
+   const keys=Object.keys(cart).filter(id=>cart[id]>0);
+   for(const id of keys){const p=products.find(x=>x.id===id);if(!p||Number(p.stock??999)<cart[id]){alert("Stok "+(p?.name||"produk")+" tidak mencukupi. Silakan refresh menu.");return}}
    if(!keys.length){alert("Keranjang masih kosong.");return}
    const name=document.getElementById("customerName").value.trim();
    if(!name){alert("Silakan isi Nama terlebih dahulu.");return}
