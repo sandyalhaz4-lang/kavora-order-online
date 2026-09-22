@@ -46,6 +46,12 @@ input,select,textarea{width:100%;padding:11px;border:1px solid #ddd3cb;border-ra
 <label><input id="active" type="checkbox" checked style="width:auto"> Produk aktif</label><br>
 <button id="save">Simpan</button> <button id="cancel" class="secondary">Batal</button></div></div>
 
+<div class="panel"><h2>Pengaturan Pembayaran</h2><p class="muted">Upload QRIS yang akan tampil di halaman customer saat memilih pembayaran QRIS.</p>
+<input id="qrisFile" type="file" accept="image/*">
+<div id="qrisPreview" style="margin:8px 0"></div>
+<button id="saveQris" type="button">Simpan QRIS</button>
+</div>
+
 <div class="panel"><div class="top"><h2>Pesanan</h2><button id="refresh" class="secondary">Refresh</button></div>
 <div class="toolbar"><input id="orderSearch" placeholder="Cari nama / nomor HP..."><select id="statusFilter"><option value="all">Semua status</option><option value="new">New</option><option value="processing">Processing</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></div>
 <div id="orders"></div></div>
@@ -79,7 +85,11 @@ $("save").onclick=async()=>{const o={name:$("pname").value.trim(),price:Number($
 async function toggleProduct(id){const p=products.find(x=>x.id===id);const {error}=await db.from("products").update({is_active:!p.is_active}).eq("id",id);if(error)alert(error.message);else{await loadProducts();updateStats()}}
 
 async function loadOrders(){const {data,error}=await db.from("orders").select("*").order("created_at",{ascending:false}).limit(200);if(error){$("orders").textContent=error.message;return}orders=data||[];renderOrders()}
-function renderOrders(){const q=$("orderSearch").value.trim().toLowerCase(),st=$("statusFilter").value;const a=orders.filter(o=>(st==="all"||o.status===st)&&(!q||String(o.customer_name||"").toLowerCase().includes(q)||String(o.customer_phone||"").includes(q)));$("orders").innerHTML=a.map(o=>`<div class="order"><div class="top"><div><b>${esc(o.customer_name)}</b><span class="badge ${esc(o.status)}">${esc(o.status)}</span></div><b>${rp(o.total)}</b></div><div class="muted" style="margin-top:5px">${esc(o.order_type||"")} · ${esc(o.customer_phone||"")} · ${new Date(o.created_at).toLocaleString("id-ID")}</div>${o.notes?`<div style="margin-top:6px">📝 ${esc(o.notes)}</div>`:""}<div style="margin-top:9px"><button class="secondary" data-detail="${o.id}">Lihat Detail</button> <a href="https://wa.me/${String(o.customer_phone||"").replace(/^0/,"62").replace(/\\D/g,"")}" target="_blank"><button type="button">WhatsApp</button></a> <select data-status="${o.id}" style="max-width:180px"><option value="new" ${o.status==="new"?"selected":""}>New</option><option value="processing" ${o.status==="processing"?"selected":""}>Processing</option><option value="completed" ${o.status==="completed"?"selected":""}>Completed</option><option value="cancelled" ${o.status==="cancelled"?"selected":""}>Cancelled</option></select></div><div id="detail-${o.id}" class="detail hidden"></div></div>`).join("")||'<p class="muted">Tidak ada pesanan.</p>';document.querySelectorAll("[data-status]").forEach(s=>s.onchange=async()=>{const r=await db.from("orders").update({status:s.value}).eq("id",s.dataset.status);if(r.error)alert(r.error.message);else{const o=orders.find(x=>x.id===s.dataset.status);if(o)o.status=s.value;updateStats();loadReport();renderOrders()}});document.querySelectorAll("[data-detail]").forEach(b=>b.onclick=()=>showDetail(b.dataset.detail))}
+function renderOrders(){const q=$("orderSearch").value.trim().toLowerCase(),st=$("statusFilter").value;const a=orders.filter(o=>(st==="all"||o.status===st)&&(!q||String(o.customer_name||"").toLowerCase().includes(q)||String(o.customer_phone||"").includes(q)));$("orders").innerHTML=a.map(o=>`<div class="order"><div class="top"><div><b>${esc(o.customer_name)}</b><span class="badge ${esc(o.status)}">${esc(o.status)}</span></div><b>${rp(o.total)}</b></div><div class="muted" style="margin-top:5px">${esc(o.order_type||"")} · ${esc(o.customer_phone||"")} · ${new Date(o.created_at).toLocaleString("id-ID")}</div>
+<div style="margin-top:6px"><b>Pembayaran:</b> ${esc(o.payment_method==="qris"?"QRIS":"Cash / Bayar di Tempat")} · <b>${esc(o.payment_status==="paid"?"Sudah Bayar":"Belum Bayar")}</b></div>${o.notes?`<div style="margin-top:6px">📝 ${esc(o.notes)}</div>`:""}<div style="margin-top:9px"><button class="secondary" data-detail="${o.id}">Lihat Detail</button> <a href="https://wa.me/${String(o.customer_phone||"").replace(/^0/,"62").replace(/\\D/g,"")}" target="_blank"><button type="button">WhatsApp</button></a> <select data-status="${o.id}" style="max-width:180px"><option value="new" ${o.status==="new"?"selected":""}>New</option><option value="processing" ${o.status==="processing"?"selected":""}>Processing</option><option value="completed" ${o.status==="completed"?"selected":""}>Completed</option><option value="cancelled" ${o.status==="cancelled"?"selected":""}>Cancelled</option></select>
+<select data-payment="${o.id}" style="max-width:180px"><option value="unpaid" ${o.payment_status!=="paid"?"selected":""}>Belum Bayar</option><option value="paid" ${o.payment_status==="paid"?"selected":""}>Sudah Bayar</option></select></div><div id="detail-${o.id}" class="detail hidden"></div></div>`).join("")||'<p class="muted">Tidak ada pesanan.</p>';document.querySelectorAll("[data-status]").forEach(s=>s.onchange=async()=>{const r=await db.from("orders").update({status:s.value}).eq("id",s.dataset.status);if(r.error)alert(r.error.message);else{const o=orders.find(x=>x.id===s.dataset.status);if(o)o.status=s.value;updateStats();loadReport();renderOrders()}});document.querySelectorAll("[data-detail]").forEach(b=>b.onclick=()=>showDetail(b.dataset.detail));
+document.querySelectorAll("[data-payment]").forEach(s=>s.onchange=async()=>{const r=await db.from("orders").update({payment_status:s.value}).eq("id",s.dataset.payment);if(r.error)alert(r.error.message);else{const o=orders.find(x=>x.id===s.dataset.payment);if(o)o.payment_status=s.value;renderOrders();loadReport()}});
+}
 async function showDetail(id){const box=$("detail-"+id);if(!box)return;if(!box.classList.contains("hidden")){box.classList.add("hidden");return}box.classList.remove("hidden");box.innerHTML="Memuat detail...";const {data,error}=await db.from("order_items").select("*").eq("order_id",id);if(error){box.textContent=error.message;return}box.innerHTML=(data||[]).map(i=>`<div class="item"><span>${esc(i.product_name)} × ${i.quantity}</span><b>${rp(i.subtotal)}</b></div>`).join("")||"Tidak ada detail item.";details[id]=data||[]}
 $("orderSearch").oninput=renderOrders;$("statusFilter").onchange=renderOrders;$("refresh").onclick=refreshAll;
 
@@ -88,6 +98,23 @@ $("reportRange").onchange=loadReport;$("reportRefresh").onclick=loadReport;
 async function loadReport(){let from=null;const range=$("reportRange").value;if(range==="today"){from=new Date();from.setHours(0,0,0,0)}else if(range!=="all"){from=new Date(Date.now()-Number(range)*86400000);from.setHours(0,0,0,0)}const list=orders.filter(o=>(!from||new Date(o.created_at)>=from)&&o.status!=="cancelled");$("reportOrders").textContent=list.length;$("reportSales").textContent=rp(list.reduce((s,o)=>s+Number(o.total||0),0));
 const ids=list.map(o=>o.id);if(!ids.length){$("topProducts").innerHTML='<p class="muted">Belum ada penjualan pada periode ini.</p>';return}
 const {data}=await db.from("order_items").select("product_name,quantity,subtotal,order_id").in("order_id",ids);const map={};(data||[]).forEach(i=>{map[i.product_name]??={qty:0,sales:0};map[i.product_name].qty+=Number(i.quantity||0);map[i.product_name].sales+=Number(i.subtotal||0)});const top=Object.entries(map).sort((a,b)=>b[1].qty-a[1].qty).slice(0,5);$("topProducts").innerHTML="<h3>Produk Terlaris</h3>"+(top.length?top.map(([n,v],i)=>`<div class="item"><span>${i+1}. ${esc(n)} × ${v.qty}</span><b>${rp(v.sales)}</b></div>`).join(""):'<p class="muted">Belum ada data.</p>')}
+async function loadQris(){
+ const {data}=await db.from("payment_settings").select("qris_image_url").eq("id",1).maybeSingle();
+ $("qrisPreview").innerHTML=data?.qris_image_url?'<img src="'+esc(data.qris_image_url)+'" style="max-width:260px;max-height:260px;border-radius:12px;border:1px solid #eee">':'<span class="muted">QRIS belum diupload.</span>';
+}
+$("qrisFile").onchange=()=>{const f=$("qrisFile").files[0];if(!f)return;if(!f.type.startsWith("image/"))return alert("File harus berupa gambar.");if(f.size>5*1024*1024)return alert("Ukuran maksimal 5 MB.");$("qrisPreview").innerHTML='<img src="'+window.URL.createObjectURL(f)+'" style="max-width:260px;max-height:260px;border-radius:12px">'};
+$("saveQris").onclick=async()=>{
+ const f=$("qrisFile").files[0]; if(!f){await loadQris();return}
+ if(!f.type.startsWith("image/")||f.size>5*1024*1024)return alert("File QRIS tidak valid atau terlalu besar.");
+ const ext=(f.name.split(".").pop()||"png").toLowerCase().replace(/[^a-z0-9]/g,"")||"png";
+ const path="qris/"+crypto.randomUUID()+"."+ext;
+ const up=await db.storage.from("payment-assets").upload(path,f,{cacheControl:"3600",upsert:false,contentType:f.type});
+ if(up.error)return alert("Upload QRIS gagal: "+up.error.message);
+ const url=db.storage.from("payment-assets").getPublicUrl(path).data.publicUrl;
+ const r=await db.from("payment_settings").upsert({id:1,qris_image_url:url,updated_at:new Date().toISOString()});
+ if(r.error)return alert(r.error.message);
+ $("qrisFile").value=""; alert("QRIS berhasil disimpan."); loadQris();
+};
 init();
 })();
 </script>
