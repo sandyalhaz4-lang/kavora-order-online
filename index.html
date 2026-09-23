@@ -56,6 +56,7 @@ footer{text-align:center;color:#8a7a70;font-size:12px;padding:10px 0 30px}
 <p class="muted">Masukkan nomor HP yang pernah digunakan saat order.</p>
 <div style="display:flex;gap:8px"><input id="pointsPhone" placeholder="08xxxxxxxxxx" style="flex:1"><button type="button" id="checkPoints">Cek Point</button></div>
 <div id="pointsResult" style="margin-top:10px"></div>
+<div id="rewardsBox" style="margin-top:14px"></div>
 </section>
 <section class="cart-section" id="cartSection">
 <h2>Keranjang</h2><div id="cart" style="margin-top:8px"></div>
@@ -67,7 +68,7 @@ footer{text-align:center;color:#8a7a70;font-size:12px;padding:10px 0 30px}
 <div><label>Tipe Order</label><select id="orderType"><option>Take Away</option><option>Delivery</option></select></div>
 <div class="full" id="deliveryBox" style="display:none"><label>Alamat Delivery</label><textarea id="deliveryAddress" rows="3" placeholder="Masukkan alamat lengkap delivery"></textarea>
 <div id="deliveryFeeInfo" style="font-size:13px;color:#8a7a70;margin-top:-5px">Ongkir: Rp 0</div></div>
-<div class="full"><label>Promo / Voucher</label><div style="display:flex;gap:8px"><input id="promoCode" placeholder="Contoh: KAVORA10" style="flex:1"><button type="button" id="applyPromo" style="white-space:nowrap">Pakai Promo</button></div><div id="promoMsg" style="font-size:13px;margin-top:6px;color:#8a7a70"></div></div>
+<div class="full"><label>Promo / Voucher</label><div style="display:flex;gap:8px"><input id="promoCode" placeholder="Contoh: KAVORA10" style="flex:1"><button type="button" id="applyPromo" style="white-space:nowrap">Pakai Promo</button></div><div id="promoMsg" style="font-size:13px;margin-top:6px;color:#8a7a70"></div></div><div class="full"><label>🎁 Kode Reward Point</label><div style="display:flex;gap:8px"><input id="rewardCode" placeholder="Kode dari penukaran point" style="flex:1"><button type="button" id="checkReward" style="white-space:nowrap">Gunakan</button></div><div id="rewardMsg" style="font-size:13px;margin-top:6px;color:#8a7a70"></div></div>
 <div><label>Metode Pembayaran</label><select id="paymentMethod"><option value="cash">Cash / Bayar di Tempat</option><option value="qris">QRIS</option></select></div>
 <div class="full" id="qrisBox" style="display:none;border:1px solid #eadfd5;border-radius:12px;padding:12px;background:#fbf7f2">
 <strong>Bayar dengan QRIS</strong>
@@ -88,7 +89,7 @@ let qrisImageUrl=null, deliveryEnabled=true, deliveryFee=0, appliedPromo=null;
 const SUPABASE_URL="https://gooawhtldgefmiwplxzs.supabase.co";
 const SUPABASE_KEY="sb_publishable_sD0QPAk-uDg5cveBKtwePA_dWV5Q8GH";
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-let products=[],cart=JSON.parse(localStorage.getItem("kavora_cart")||"{}"),activeCat="All";
+let rewardData=null, products=[],cart=JSON.parse(localStorage.getItem("kavora_cart")||"{}"),activeCat="All";
 const menu=document.getElementById("menu"),cartEl=document.getElementById("cart"),cartCount=document.getElementById("cartCount"),totalEl=document.getElementById("total"),checkoutArea=document.getElementById("checkoutArea"),search=document.getElementById("search");
 function rupiah(n){return new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(n)}
 function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
@@ -155,8 +156,37 @@ document.getElementById("checkPoints").onclick=async()=>{
  box.textContent="Mengecek point...";
  const {data,error}=await db.rpc("get_customer_points",{p_phone:raw});
  if(error){console.error(error);box.innerHTML='<span style="color:#a33">Point belum bisa dicek. Silakan coba lagi.</span>';return}
- box.innerHTML='<div style="background:#fbf7f2;border-radius:14px;padding:15px"><div style="font-size:13px;color:#8a7a70">Total transaksi selesai</div><b style="font-size:24px">'+(data.orders||0)+'</b><div style="font-size:13px;color:#8a7a70;margin-top:8px">Point Kavora</div><b style="font-size:30px">'+(data.points||0)+' ⭐</b></div>';
+ box.innerHTML='<div style="background:#fbf7f2;border-radius:14px;padding:15px"><div style="font-size:13px;color:#8a7a70">Total transaksi</div><b style="font-size:24px">'+(data.orders||0)+'</b><div style="font-size:13px;color:#8a7a70;margin-top:8px">Point Kavora</div><b style="font-size:30px">'+(data.points||0)+' ⭐</b></div>';
+ await loadRewards(raw);
 };
+
+async function loadRewards(phone){
+ const box=document.getElementById("rewardsBox");
+ box.innerHTML='<div style="background:#fbf7f2;border-radius:14px;padding:14px"><b>🎁 Tukar Point</b><div style="font-size:12px;color:#8a7a70;margin-top:4px">Masukkan nomor HP lalu pilih reward yang tersedia.</div><div id="rewardsList" style="margin-top:10px">Memuat reward...</div></div>';
+ const {data,error}=await db.from("rewards").select("*").eq("is_active",true).order("points_cost",{ascending:true});
+ if(error){box.innerHTML+='<div style="color:#a33;margin-top:8px">Reward belum dapat dimuat.</div>';return}
+ const list=document.getElementById("rewardsList");
+ if(!data?.length){list.innerHTML='<div style="color:#8a7a70">Belum ada reward tersedia.</div>';return}
+ list.innerHTML=data.map(r=>'<div style="border-top:1px solid #eadfd5;padding:10px 0"><b>'+esc(r.name)+'</b><div style="font-size:12px;color:#8a7a70">'+esc(r.description||"")+'</div><div style="margin:6px 0"><b>'+Number(r.points_cost||0)+' ⭐</b> → '+(r.reward_type==="fixed_discount"?rupiah(r.reward_value):r.reward_type==="percent_discount"?Number(r.reward_value)+'% diskon':"Reward")+'</div><button type="button" data-redeem="'+r.id+'">Tukar Point</button></div>').join("");
+ list.querySelectorAll("[data-redeem]").forEach(b=>b.onclick=async()=>{
+   if(!phone){alert("Masukkan nomor HP pada bagian Cek Point terlebih dahulu.");return}
+   if(!confirm("Tukar point untuk reward ini?"))return
+   b.disabled=true;b.textContent="Memproses...";
+   const {data:code,error}=await db.rpc("redeem_reward",{p_phone:phone,p_reward_id:b.dataset.redeem});
+   if(error){alert(error.message||"Redeem gagal.");b.disabled=false;b.textContent="Tukar Point";return}
+   const rewardCode=String(code||"");
+   document.getElementById("pointsPhone").value=phone;
+   document.getElementById("rewardCode").value=rewardCode;
+   document.getElementById("rewardMsg").textContent="Reward berhasil ditukar. Kode: "+rewardCode;
+   document.getElementById("rewardMsg").style.color="#4f7a45";
+   const cp=await db.rpc("get_customer_points",{p_phone:phone});
+   if(!cp.error && cp.data) {
+     document.getElementById("pointsResult").innerHTML='<div style="background:#fbf7f2;border-radius:14px;padding:15px"><div style="font-size:13px;color:#8a7a70">Transaksi</div><b style="font-size:24px">'+(cp.data.orders||0)+'</b><div style="font-size:13px;color:#8a7a70;margin-top:8px">Point Kavora</div><b style="font-size:30px">'+(cp.data.points||0)+' ⭐</b></div>';
+   }
+   b.disabled=false;b.textContent="Sudah Ditukar";
+ });
+}
+
 function renderCategories(){const cats=["All","Coffee","Non Coffee","Snack"];document.getElementById("categories").innerHTML=cats.map(c=>'<button class="cat '+(activeCat===c?'active':'')+'" data-cat="'+c+'" type="button">'+(c==="All"?"Semua":c)+'</button>').join("");document.querySelectorAll("[data-cat]").forEach(b=>b.onclick=()=>{activeCat=b.dataset.cat;renderCategories();renderMenu()})}
 function renderMenu(){
  const q=search.value.trim().toLowerCase();
@@ -210,6 +240,17 @@ document.getElementById("applyPromo").onclick=async()=>{
  renderCart();
 };
 
+
+document.getElementById("checkReward").onclick=async()=>{
+ const code=document.getElementById("rewardCode").value.trim().toUpperCase();
+ const phone=document.getElementById("customerPhone").value.trim() || document.getElementById("pointsPhone").value.trim();
+ const msg=document.getElementById("rewardMsg");
+ if(!code||!phone){msg.textContent="Masukkan nomor HP dan kode reward.";msg.style.color="#a33";return}
+ const {data,error}=await db.rpc("check_reward_code",{p_code:code,p_phone:phone});
+ if(error){msg.textContent=error.message||"Kode reward tidak valid.";msg.style.color="#a33";rewardData=null;return}
+ rewardData=data;msg.textContent="Reward aktif: "+(data.reward_name||"")+" ("+(data.reward_type==="fixed_discount"?rupiah(data.reward_value):data.reward_value+"%")+")";msg.style.color="#4f7a45";
+};
+
 document.getElementById("orderBtn").onclick=async()=>{
  try{
    const keys=Object.keys(cart).filter(id=>cart[id]>0);
@@ -232,7 +273,7 @@ document.getElementById("orderBtn").onclick=async()=>{
      return p.name+" x "+cart[id]+" = "+rupiah(sub);
    });
    const ongkir=type==="Delivery"?Number(deliveryFee||0):0;
-   const discount=Number(appliedPromo?.discount||0); const total=Math.max(0,subtotal-discount)+ongkir;
+   const discount=Number(appliedPromo?.discount||0) + Number(rewardData?.reward_type==="fixed_discount"?Math.min(subtotal,Number(rewardData.reward_value||0)):rewardData?.reward_type==="percent_discount"?Math.floor(subtotal*Number(rewardData.reward_value||0)/100):0); const total=Math.max(0,subtotal-discount)+ongkir;
    const paymentLabel=paymentMethod==="qris"?"QRIS":"Cash / Bayar di Tempat";
    const deliveryText=type==="Delivery"?"\nAlamat Delivery: "+deliveryAddress+"\nOngkir: "+rupiah(ongkir):"";
    const plain="Halo Kavora, saya ingin order:\n\n"+lines.join("\n")+
@@ -244,7 +285,7 @@ document.getElementById("orderBtn").onclick=async()=>{
    const btn=document.getElementById("orderBtn");
    btn.disabled=true; btn.textContent="Memproses...";
 
-   const orderPayload={customer_name:name,customer_phone:phone,order_type:type,delivery_address:type==="Delivery"?deliveryAddress:null,delivery_fee:ongkir,notes:note,payment_method:paymentMethod,promo_code:appliedPromo?.code||null,whatsapp_message:plain};
+   const orderPayload={customer_name:name,customer_phone:phone,order_type:type,delivery_address:type==="Delivery"?deliveryAddress:null,delivery_fee:ongkir,notes:note,payment_method:paymentMethod,promo_code:appliedPromo?.code||null,reward_code:rewardData?.code||null,whatsapp_message:plain};
    const rpcItems=keys.map(id=>({product_id:id,quantity:cart[id]}));
    const {data:orderId,error}=await db.rpc("create_order_with_stock",{p_order:orderPayload,p_items:rpcItems});
    if(error){
@@ -253,7 +294,7 @@ document.getElementById("orderBtn").onclick=async()=>{
      btn.disabled=false;btn.textContent="Pesan via WhatsApp";
      return;
    }
-   cart={};localStorage.removeItem("kavora_cart");appliedPromo=null;document.getElementById("promoCode").value="";document.getElementById("promoMsg").textContent="";renderCart();
+   cart={};localStorage.removeItem("kavora_cart");appliedPromo=null;rewardData=null;document.getElementById("promoCode").value="";document.getElementById("promoMsg").textContent="";renderCart();
    btn.disabled=false;btn.textContent="Pesan via WhatsApp";
    window.location.href="https://api.whatsapp.com/send?phone="+WA_NUMBER+"&text="+encodeURIComponent(plain);
  }catch(err){
