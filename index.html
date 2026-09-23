@@ -51,6 +51,12 @@ footer{text-align:center;color:#8a7a70;font-size:12px;padding:10px 0 30px}
 <div class="categories" id="categories"></div>
 <div class="grid" id="menu"></div>
 
+<section class="cart-section" id="pointsSection">
+<h2>⭐ Cek Point Kavora</h2>
+<p class="muted">Masukkan nomor HP yang pernah digunakan saat order.</p>
+<div style="display:flex;gap:8px"><input id="pointsPhone" placeholder="08xxxxxxxxxx" style="flex:1"><button type="button" id="checkPoints">Cek Point</button></div>
+<div id="pointsResult" style="margin-top:10px"></div>
+</section>
 <section class="cart-section" id="cartSection">
 <h2>Keranjang</h2><div id="cart" style="margin-top:8px"></div>
 <div id="checkoutArea" style="display:none">
@@ -142,6 +148,15 @@ async function loadProducts(){
  renderMenu();
  renderCart();
 }
+document.getElementById("checkPoints").onclick=async()=>{
+ const raw=document.getElementById("pointsPhone").value.trim();
+ const box=document.getElementById("pointsResult");
+ if(!raw){box.innerHTML='<span style="color:#a33">Masukkan nomor HP terlebih dahulu.</span>';return}
+ box.textContent="Mengecek point...";
+ const {data,error}=await db.rpc("get_customer_points",{p_phone:raw});
+ if(error){console.error(error);box.innerHTML='<span style="color:#a33">Point belum bisa dicek. Silakan coba lagi.</span>';return}
+ box.innerHTML='<div style="background:#fbf7f2;border-radius:14px;padding:15px"><div style="font-size:13px;color:#8a7a70">Total transaksi selesai</div><b style="font-size:24px">'+(data.orders||0)+'</b><div style="font-size:13px;color:#8a7a70;margin-top:8px">Point Kavora</div><b style="font-size:30px">'+(data.points||0)+' ⭐</b></div>';
+};
 function renderCategories(){const cats=["All","Coffee","Non Coffee","Snack"];document.getElementById("categories").innerHTML=cats.map(c=>'<button class="cat '+(activeCat===c?'active':'')+'" data-cat="'+c+'" type="button">'+(c==="All"?"Semua":c)+'</button>').join("");document.querySelectorAll("[data-cat]").forEach(b=>b.onclick=()=>{activeCat=b.dataset.cat;renderCategories();renderMenu()})}
 function renderMenu(){
  const q=search.value.trim().toLowerCase();
@@ -158,23 +173,14 @@ function renderMenu(){
 function renderCart(){
  const valid=Object.keys(cart).filter(id=>products.some(p=>p.id===id));
  valid.forEach(id=>{if(!cart[id])delete cart[id]});
- const count=Object.values(cart).reduce((a,b)=>a+b,0);
- cartCount.textContent=count;
- if(!valid.length){
-   cartEl.innerHTML='<div class="cart-empty">Keranjang masih kosong. Pilih menu di atas untuk mulai order.</div>';
-   checkoutArea.style.display="none";
-   totalEl.textContent=rupiah(0);
-   return;
- }
+ cartCount.textContent=Object.values(cart).reduce((x,y)=>x+y,0);
+ if(!valid.length){cartEl.innerHTML='<div class="cart-empty">Keranjang masih kosong.</div>';checkoutArea.style.display="none";totalEl.textContent=rupiah(0);return}
  let subtotal=0;
- cartEl.innerHTML=valid.map(id=>{
-   const p=products.find(x=>x.id===id), sub=p.price*cart[id];
-   subtotal+=sub;
-   return '<div class="cart-row"><div class="cart-info"><strong>'+esc(p.name)+'</strong><small>'+rupiah(p.price)+' / item</small></div><div class="qty"><button type="button" data-minus="'+id+'">−</button><b>'+cart[id]+'</b><button type="button" data-plus="'+id+'">+</button></div></div>';
- }).join("");
- const delivery=document.getElementById("orderType")?.value==="Delivery" ? Number(deliveryFee||0) : 0;
- const grandTotal=subtotal+delivery;
- totalEl.innerHTML=rupiah(grandTotal)+(delivery?'<div style="font-size:12px;font-weight:400;color:#8a7a70;margin-top:4px">Subtotal '+rupiah(subtotal)+' + Ongkir '+rupiah(delivery)+'</div>':'');
+ cartEl.innerHTML=valid.map(id=>{const p=products.find(x=>x.id===id),sub=p.price*cart[id];subtotal+=sub;return '<div class="cart-row"><div class="cart-info"><strong>'+esc(p.name)+'</strong><small>'+rupiah(p.price)+' / item</small></div><div class="qty"><button type="button" data-minus="'+id+'">−</button><b>'+cart[id]+'</b><button type="button" data-plus="'+id+'">+</button></div></div>'}).join("");
+ const delivery=document.getElementById("orderType")?.value==="Delivery"?Number(deliveryFee||0):0;
+ const discount=Math.min(Number(appliedPromo?.discount||0),subtotal);
+ const grand=Math.max(0,subtotal-discount)+delivery;
+ totalEl.innerHTML='<div>Subtotal '+rupiah(subtotal)+'</div>'+(discount?'<div style="font-size:14px;color:#4f7a45">Diskon '+rupiah(discount)+(appliedPromo?' ('+esc(appliedPromo.code)+')':'')+'</div>':'')+(delivery?'<div style="font-size:14px;color:#8a7a70">Ongkir '+rupiah(delivery)+'</div>':'')+'<div style="margin-top:5px">'+rupiah(grand)+'</div>';
  checkoutArea.style.display="block";
  document.querySelectorAll("[data-minus]").forEach(x=>x.onclick=()=>minus(x.dataset.minus));
  document.querySelectorAll("[data-plus]").forEach(x=>x.onclick=()=>add(x.dataset.plus));
@@ -184,17 +190,26 @@ search.oninput=renderMenu;
 document.getElementById("paymentMethod").onchange=updateQrisBox;
 document.getElementById("orderType").onchange=updateDeliveryBox;
 document.getElementById("applyPromo").onclick=async()=>{
- const code=document.getElementById("promoCode").value.trim();
+ const code=document.getElementById("promoCode").value.trim().toUpperCase();
  const msg=document.getElementById("promoMsg");
- if(!code){appliedPromo=null;msg.textContent="Masukkan kode promo.";renderCart();return}
+ if(!code){appliedPromo=null;msg.textContent="Masukkan kode promo.";msg.style.color="#a33";renderCart();return}
  const subtotal=Object.keys(cart).reduce((sum,id)=>{const p=products.find(x=>x.id===id);return sum+(p?p.price*cart[id]:0)},0);
+ if(subtotal<=0){msg.textContent="Tambahkan produk terlebih dahulu.";msg.style.color="#a33";return}
  const {data,error}=await db.rpc("validate_promo",{p_code:code,p_subtotal:subtotal});
- if(error||!data?.valid){appliedPromo=null;msg.textContent=data?.message||"Promo tidak dapat digunakan.";msg.style.color="#a33";renderCart();return}
- appliedPromo={code:data.code,discount:Number(data.discount||0)};
- msg.textContent=data.message+" Diskon "+rupiah(appliedPromo.discount)+".";
+ if(error||!data?.valid){
+   console.error(error);
+   appliedPromo=null;
+   msg.textContent=data?.message||"Kode promo tidak berlaku.";
+   msg.style.color="#a33";
+   renderCart();
+   return;
+ }
+ appliedPromo={code:String(data.code||code).toUpperCase(),discount:Number(data.discount||0)};
+ msg.textContent="Promo berhasil: -"+rupiah(appliedPromo.discount);
  msg.style.color="#4f7a45";
  renderCart();
 };
+
 document.getElementById("orderBtn").onclick=async()=>{
  try{
    const keys=Object.keys(cart).filter(id=>cart[id]>0);
