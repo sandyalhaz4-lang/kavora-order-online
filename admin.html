@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kavora Admin V16</title>
+<title>Kavora Admin V21</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box}
@@ -229,10 +229,34 @@ if(page==="products")renderProducts(); if(page==="orders")renderOrders(); if(pag
 document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>nav(b.dataset.page));
 $("menuBtn").onclick=()=>$("sidebar").classList.toggle("open");
 
+let appShown=false;
 async function showApp(user){
-if(!user||String(user.email||"").toLowerCase()!==ADMIN){await db.auth.signOut();alert("Email ini bukan akun admin Kavora.");return}
-$("loginPage").classList.add("hidden");$("app").classList.remove("hidden");await refreshAll();
-showPasswordSetup();
+if(!user||String(user.email||"").toLowerCase()!==ADMIN){await db.auth.signOut();msg("loginMsg","Email ini bukan akun admin Kavora.",true);return}
+if(appShown)return;
+appShown=true;
+$("loginPage").classList.add("hidden");$("app").classList.remove("hidden");
+await refreshAll();
+}
+async function handleAuthCallback(){
+try{
+  const url=new URL(window.location.href);
+  const errorDesc=url.searchParams.get("error_description")||url.searchParams.get("error");
+  if(errorDesc){
+    history.replaceState({},document.title,url.origin+url.pathname);
+    msg("loginMsg",decodeURIComponent(errorDesc.replace(/\+/g," ")),true);
+    return false;
+  }
+  const code=url.searchParams.get("code");
+  if(code){
+    const {error}=await db.auth.exchangeCodeForSession(code);
+    history.replaceState({},document.title,url.origin+url.pathname);
+    if(error){msg("loginMsg","Link login tidak dapat diproses: "+error.message,true);return false;}
+  }
+  return true;
+}catch(e){
+  msg("loginMsg","Gagal memproses link login: "+(e?.message||e),true);
+  return false;
+}
 }
 function showPasswordSetup(){
 if(document.getElementById("passwordSetup")) return;
@@ -250,12 +274,20 @@ $("passwordLoginBtn").disabled=false;
 };
 $("loginBtn").onclick=async()=>{
 const e=$("email").value.trim();if(e.toLowerCase()!==ADMIN){msg("loginMsg","Gunakan email admin yang terdaftar.",true);return}
-$("loginBtn").disabled=true;const {error}=await db.auth.signInWithOtp({email:e,options:{emailRedirectTo:location.href}});
-msg("loginMsg",error?error.message:"Link login sudah dikirim. Cek Gmail.");$("loginBtn").disabled=false
+$("loginBtn").disabled=true;
+const redirectUrl=location.origin+location.pathname;
+const {error}=await db.auth.signInWithOtp({email:e,options:{emailRedirectTo:redirectUrl}});
+msg("loginMsg",error?error.message:"Link login sudah dikirim. Setelah klik link di Gmail, Anda akan otomatis masuk ke Dashboard Admin.",!!error);
+$("loginBtn").disabled=false
 };
 $("logout").onclick=()=>db.auth.signOut().then(()=>location.reload());
-db.auth.onAuthStateChange((_e,s)=>{if(s)showApp(s.user)});
-async function init(){const {data}=await db.auth.getSession();if(data.session)showApp(data.session.user)}
+db.auth.onAuthStateChange((_event,session)=>{if(session?.user)showApp(session.user)});
+async function init(){
+  const callbackOk=await handleAuthCallback();
+  const {data}=await db.auth.getSession();
+  if(data.session) await showApp(data.session.user);
+  else if(callbackOk && !location.search.includes("code=")) msg("loginMsg","Silakan login dengan password atau gunakan Login via Email Link.");
+}
 async function loadCategories(){const {data,error}=await db.from("product_categories").select("*").order("sort_order").order("name");if(error){msg("categoryMsg",error.message,true);return}categories=data||[];renderCategoryControls();renderCategoriesAdmin()}
 function renderCategoryControls(){const f=$("productFilter"),p=$("pcat");if(f)f.innerHTML='<option value="all">Semua kategori</option>'+categories.map(c=>`<option value="${esc(c.name)}">${esc(c.name)}</option>`).join("");if(p)p.innerHTML=categories.map(c=>`<option value="${esc(c.name)}">${esc(c.name)}</option>`).join("")}
 function renderCategoriesAdmin(){$("categoriesList").innerHTML=categories.map(c=>`<div class="item"><div class="top"><b>${esc(c.name)}</b><span class="badge ${c.is_active?'active':'inactive'}">${c.is_active?'Aktif':'Nonaktif'}</span></div><div class="row-actions"><button class="secondary" data-ct="${c.id}">${c.is_active?'Nonaktifkan':'Aktifkan'}</button><button class="danger" data-cd="${c.id}">Hapus</button></div></div>`).join("")||'<div class="muted">Belum ada kategori.</div>';document.querySelectorAll('[data-ct]').forEach(b=>b.onclick=async()=>{const c=categories.find(x=>x.id===b.dataset.ct);if(!c)return;const r=await db.from('product_categories').update({is_active:!c.is_active}).eq('id',c.id);if(r.error)return alert(r.error.message);await loadCategories()});document.querySelectorAll('[data-cd]').forEach(b=>b.onclick=()=>deleteCategory(b.dataset.cd))}
