@@ -57,37 +57,15 @@ footer{text-align:center;color:#8a7a70;font-size:12px;padding:10px 0 30px}
 <div class="total"><span>Total</span><span id="total">Rp 0</span></div>
 <div class="form-grid">
 <div><label>Nama</label><input id="customerName" placeholder="Nama customer"></div>
-<div><label>No. HP</label><input id="customerPhone" placeholder="08xxxxxxxxxx">
-<div style="margin-top:6px;padding:10px 12px;border:1px solid #eadfd5;border-radius:10px;background:#fbf7f2">
-<div style="font-weight:700">☕ Kavora Member</div>
-<div id="memberInfo" style="font-size:13px;color:#7d6c61;margin-top:4px">Cek poin berdasarkan nomor HP. Nomor akan otomatis menjadi member setelah transaksi pertama.</div>
-<button id="checkMember" type="button" style="margin-top:7px;border:0;border-radius:9px;padding:8px 12px;background:#e7ddd4;color:#4d3425">Cek Poin</button>
-</div></div>
-<div class="full" style="border:1px solid #eadfd5;border-radius:12px;padding:12px;background:#fbf7f2">
-<strong>🎁 Reward Member</strong>
-<div id="rewardInfo" style="font-size:13px;color:#7d6c61;margin-top:5px">Cek nomor HP untuk melihat poin dan reward yang tersedia.</div>
-<div id="rewardList" style="margin-top:8px"></div>
-<div style="display:flex;gap:8px;margin-top:9px">
-<input id="rewardCode" placeholder="Kode reward" style="flex:1">
-<button id="applyReward" type="button" style="border:0;border-radius:10px;padding:10px 14px;background:#2f6f45;color:#fff;font-weight:700">Pakai</button>
-</div>
-<div id="rewardMsg" style="font-size:13px;margin-top:7px;color:#7d6c61"></div>
-</div>
+<div><label>No. HP</label><input id="customerPhone" placeholder="08xxxxxxxxxx"></div>
 <div><label>Tipe Order</label><select id="orderType"><option>Take Away</option><option>Delivery</option></select></div>
 <div class="full" id="deliveryBox" style="display:none"><label>Alamat Delivery</label><textarea id="deliveryAddress" rows="3" placeholder="Masukkan alamat lengkap delivery"></textarea>
 <div id="deliveryFeeInfo" style="font-size:13px;color:#8a7a70;margin-top:-5px">Ongkir: Rp 0</div></div>
+<div class="full"><label>Promo / Voucher</label><div style="display:flex;gap:8px"><input id="promoCode" placeholder="Contoh: KAVORA10" style="flex:1"><button type="button" id="applyPromo" style="white-space:nowrap">Pakai Promo</button></div><div id="promoMsg" style="font-size:13px;margin-top:6px;color:#8a7a70"></div></div>
 <div><label>Metode Pembayaran</label><select id="paymentMethod"><option value="cash">Cash / Bayar di Tempat</option><option value="qris">QRIS</option></select></div>
 <div class="full" id="qrisBox" style="display:none;border:1px solid #eadfd5;border-radius:12px;padding:12px;background:#fbf7f2">
 <strong>Bayar dengan QRIS</strong>
 <div id="qrisContent" style="margin-top:8px;color:#8a7a70">Memuat QRIS...</div>
-</div>
-<div class="full" style="border:1px solid #eadfd5;border-radius:12px;padding:12px;background:#fbf7f2">
-<label>Kode Promo / Voucher</label>
-<div style="display:flex;gap:8px">
-<input id="voucherCode" placeholder="Contoh: KAVORA10" style="flex:1">
-<button id="applyVoucher" type="button" style="border:0;border-radius:10px;padding:10px 14px;background:#6b4226;color:#fff;font-weight:700">Pakai</button>
-</div>
-<div id="voucherMsg" style="font-size:13px;margin-top:7px;color:#8a7a70"></div>
 </div>
 <div class="full"><label>Catatan / Alamat Delivery</label><textarea id="orderNote" placeholder="Contoh: less ice, tanpa gula, alamat delivery, dll."></textarea></div>
 </div>
@@ -100,7 +78,7 @@ footer{text-align:center;color:#8a7a70;font-size:12px;padding:10px 0 30px}
 (function(){
 "use strict";
 const WA_NUMBER="6282262877440";
-let qrisImageUrl=null, deliveryEnabled=true, deliveryFee=0, appliedVoucher=null, voucherDiscount=0, appliedReward=null, rewardDiscount=0;
+let qrisImageUrl=null, deliveryEnabled=true, deliveryFee=0, appliedPromo=null;
 const SUPABASE_URL="https://gooawhtldgefmiwplxzs.supabase.co";
 const SUPABASE_KEY="sb_publishable_sD0QPAk-uDg5cveBKtwePA_dWV5Q8GH";
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
@@ -177,100 +155,6 @@ function renderMenu(){
  }).join("");
  document.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>add(b.dataset.add))
 }
-async function checkMember(){
- const el=document.getElementById("memberInfo"), phone=document.getElementById("customerPhone").value.trim();
- const normalized=phone.replace(/\D/g,"");
- if(!normalized){el.textContent="Masukkan nomor HP terlebih dahulu.";return}
- el.textContent="Mengecek poin...";
- const {data,error}=await db.from("members").select("name,points,total_orders,total_spent").eq("phone",normalized).eq("is_active",true).maybeSingle();
- if(error){el.textContent="Tidak dapat mengecek member saat ini.";return}
- if(!data){el.textContent="Belum terdaftar. Kamu akan otomatis menjadi member setelah transaksi pertama.";return}
- el.innerHTML="Member: <b>"+esc(data.name)+"</b> · Poin: <b>"+Number(data.points||0)+"</b> · "+Number(data.total_orders||0)+" transaksi";
-}
-document.getElementById("checkMember").onclick=checkMember;
-async function checkMember(){
- const el=document.getElementById("memberInfo"), phone=document.getElementById("customerPhone").value.trim(), normalized=phone.replace(/\D/g,"");
- if(!normalized){el.textContent="Masukkan nomor HP terlebih dahulu.";return}
- el.textContent="Mengecek poin...";
- const {data,error}=await db.from("members").select("name,points,total_orders,total_spent").eq("phone",normalized).eq("is_active",true).maybeSingle();
- if(error){el.textContent="Tidak dapat mengecek member saat ini.";return}
- if(!data){el.textContent="Belum terdaftar. Kamu akan otomatis menjadi member setelah transaksi pertama.";return}
- el.innerHTML="Member: <b>"+esc(data.name)+"</b> · Poin: <b>"+Number(data.points||0)+"</b> · "+Number(data.total_orders||0)+" transaksi";
-}
-document.getElementById("checkMember").onclick=checkMember;
-
-async function checkMember(){
- const el=document.getElementById("memberInfo");
- const phone=document.getElementById("customerPhone").value.trim();
- const normalized=phone.replace(/\D/g,"");
- if(!normalized){el.textContent="Masukkan nomor HP terlebih dahulu.";return}
- el.textContent="Mengecek poin...";
- const {data,error}=await db.from("members").select("id,name,points,total_orders,total_spent").eq("phone",normalized).eq("is_active",true).maybeSingle();
- if(error){console.error(error);el.textContent="Tidak dapat mengecek member saat ini.";return}
- if(!data){el.textContent="Belum terdaftar. Kamu akan otomatis menjadi member setelah transaksi pertama.";document.getElementById("rewardInfo").textContent="Belum menjadi member.";document.getElementById("rewardList").innerHTML="";return}
- el.innerHTML="Member: <b>"+esc(data.name)+"</b> · Poin: <b>"+Number(data.points||0)+"</b> · "+Number(data.total_orders||0)+" transaksi";
- await loadRewards(data);
-}
-async function loadRewards(member){
- const info=document.getElementById("rewardInfo"), list=document.getElementById("rewardList");
- const {data,error}=await db.from("rewards").select("id,name,description,points_cost,reward_type,reward_value").eq("is_active",true).order("points_cost",{ascending:true});
- if(error){info.textContent="Reward belum dapat dimuat.";list.innerHTML="";return}
- const pts=Number(member?.points||0);
- info.textContent="Saldo poin: "+pts+" poin";
- list.innerHTML=(data||[]).map(r=>{
-   const desc=r.reward_type==="percent_discount"?r.reward_value+"% diskon":r.reward_type==="fixed_discount"?rupiah(r.reward_value)+" diskon":"Free product";
-   const ok=pts>=Number(r.points_cost);
-   return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px solid #eadfd5;border-radius:10px;padding:9px;margin-top:7px"><div><b>'+esc(r.name)+'</b><div style="font-size:12px;color:#8a7a70">'+esc(r.description||desc)+' · '+Number(r.points_cost)+' poin</div></div><button type="button" data-reward="'+r.id+'" '+(ok?'':'disabled')+' style="border:0;border-radius:9px;padding:8px 10px;background:#6b4226;color:#fff;font-weight:700;opacity:'+(ok?'1':'.45')+'">'+(ok?'Tukar':'Poin kurang')+'</button></div>';
- }).join("")||'<div style="font-size:12px;color:#8a7a70">Belum ada reward aktif.</div>';
- list.querySelectorAll("[data-reward]").forEach(btn=>btn.onclick=async()=>{
-   btn.disabled=true; btn.textContent="Memproses...";
-   const {data,error}=await db.rpc("redeem_reward",{p_phone:phoneForMember(),p_reward_id:btn.dataset.reward});
-   if(error){alert(error.message||"Redeem gagal.");btn.disabled=false;btn.textContent="Tukar";return}
-   document.getElementById("rewardCode").value=data;
-   document.getElementById("rewardMsg").textContent="✅ Berhasil ditukar. Kode reward: "+data;
-   await checkMember();
- });
-}
-function phoneForMember(){return document.getElementById("customerPhone").value.trim()}
-async function applyRewardCode(){
- const code=document.getElementById("rewardCode").value.trim().toUpperCase();
- const msg=document.getElementById("rewardMsg");
- if(!code){appliedReward=null;rewardDiscount=0;msg.textContent="Masukkan kode reward.";renderCart();return}
- const phone=phoneForMember().replace(/\D/g,"");
- if(!phone){msg.textContent="Masukkan nomor HP terlebih dahulu.";return}
- const {data,error}=await db.rpc("check_reward_code",{p_code:code,p_phone:phone});
- if(error||!data?.id){appliedReward=null;rewardDiscount=0;msg.textContent="❌ "+(error?.message||"Kode reward tidak valid atau bukan milik member ini.");renderCart();return}
- if(data.reward_type==="free_product"){msg.textContent="❌ Reward free product belum didukung pada checkout ini.";return}
- appliedReward=data;
- msg.textContent="✅ Reward "+data.reward_name+" siap digunakan.";
- renderCart();
-}
-
-function calcRewardDiscount(subtotal){if(!appliedReward)return 0;if(appliedReward.reward_type==="percent_discount")return Math.min(subtotal,Math.floor(subtotal*Number(appliedReward.reward_value||0)/100));if(appliedReward.reward_type==="fixed_discount")return Math.min(subtotal,Number(appliedReward.reward_value||0));return 0;}
-function calcVoucherDiscount(subtotal){
- if(!appliedVoucher)return 0;
- let d=appliedVoucher.discount_type==="percent"
-   ? Math.floor(subtotal*Number(appliedVoucher.discount_value)/100)
-   : Number(appliedVoucher.discount_value);
- if(appliedVoucher.max_discount!=null)d=Math.min(d,Number(appliedVoucher.max_discount));
- return Math.min(d,subtotal);
-}
-async function applyVoucherCode(){
- const input=document.getElementById("voucherCode"), msg=document.getElementById("voucherMsg");
- const code=input.value.trim().toUpperCase();
- if(!code){appliedVoucher=null;voucherDiscount=0;msg.textContent="Masukkan kode voucher.";renderCart();return}
- const {data,error}=await db.from("vouchers").select("*").eq("code",code).eq("is_active",true).maybeSingle();
- if(error||!data){appliedVoucher=null;voucherDiscount=0;msg.textContent="❌ Kode voucher tidak valid.";renderCart();return}
- const subtotal=Object.keys(cart).reduce((sum,id)=>{const p=products.find(x=>x.id===id);return sum+(p?p.price*cart[id]:0)},0);
- const now=Date.now();
- if(data.starts_at && now<new Date(data.starts_at).getTime()){msg.textContent="❌ Voucher belum berlaku.";return}
- if(data.ends_at && now>new Date(data.ends_at).getTime()){msg.textContent="❌ Voucher sudah berakhir.";return}
- if(data.usage_limit!=null && Number(data.usage_count)>=Number(data.usage_limit)){msg.textContent="❌ Kuota voucher sudah habis.";return}
- if(subtotal<Number(data.min_order||0)){msg.textContent="❌ Minimum pembelian "+rupiah(data.min_order||0)+".";return}
- appliedVoucher=data;voucherDiscount=calcVoucherDiscount(subtotal);
- msg.textContent="✅ Voucher "+data.code+" aktif. Hemat "+rupiah(voucherDiscount)+".";
- renderCart();
-}
 function renderCart(){
  const valid=Object.keys(cart).filter(id=>products.some(p=>p.id===id));
  valid.forEach(id=>{if(!cart[id])delete cart[id]});
@@ -289,9 +173,8 @@ function renderCart(){
    return '<div class="cart-row"><div class="cart-info"><strong>'+esc(p.name)+'</strong><small>'+rupiah(p.price)+' / item</small></div><div class="qty"><button type="button" data-minus="'+id+'">−</button><b>'+cart[id]+'</b><button type="button" data-plus="'+id+'">+</button></div></div>';
  }).join("");
  const delivery=document.getElementById("orderType")?.value==="Delivery" ? Number(deliveryFee||0) : 0;
- voucherDiscount=appliedVoucher?calcVoucherDiscount(subtotal):0; rewardDiscount=appliedReward?calcRewardDiscount(subtotal):0;
- const grandTotal=Math.max(0,subtotal+delivery-voucherDiscount-rewardDiscount);
- totalEl.innerHTML='<div style="width:100%"><div>Subtotal <span>'+rupiah(subtotal)+'</span></div>'+(voucherDiscount?'<div style="font-size:13px;font-weight:500;color:#2f7d32;margin-top:5px">Diskon '+esc(appliedVoucher.code)+': −'+rupiah(voucherDiscount)+'</div>':'')+(delivery?'<div style="font-size:13px;font-weight:500;color:#8a7a70;margin-top:5px">Ongkir: '+rupiah(delivery)+'</div>':'')+'<div style="margin-top:7px">Total <span>'+rupiah(grandTotal)+'</span></div></div>';
+ const grandTotal=subtotal+delivery;
+ totalEl.innerHTML=rupiah(grandTotal)+(delivery?'<div style="font-size:12px;font-weight:400;color:#8a7a70;margin-top:4px">Subtotal '+rupiah(subtotal)+' + Ongkir '+rupiah(delivery)+'</div>':'');
  checkoutArea.style.display="block";
  document.querySelectorAll("[data-minus]").forEach(x=>x.onclick=()=>minus(x.dataset.minus));
  document.querySelectorAll("[data-plus]").forEach(x=>x.onclick=()=>add(x.dataset.plus));
@@ -300,9 +183,18 @@ document.getElementById("goCart").onclick=()=>document.getElementById("cartSecti
 search.oninput=renderMenu;
 document.getElementById("paymentMethod").onchange=updateQrisBox;
 document.getElementById("orderType").onchange=updateDeliveryBox;
-document.getElementById("applyVoucher").onclick=applyVoucherCode;
-document.getElementById("checkMember").onclick=checkMember;
-document.getElementById("applyReward").onclick=applyRewardCode;
+document.getElementById("applyPromo").onclick=async()=>{
+ const code=document.getElementById("promoCode").value.trim();
+ const msg=document.getElementById("promoMsg");
+ if(!code){appliedPromo=null;msg.textContent="Masukkan kode promo.";renderCart();return}
+ const subtotal=Object.keys(cart).reduce((sum,id)=>{const p=products.find(x=>x.id===id);return sum+(p?p.price*cart[id]:0)},0);
+ const {data,error}=await db.rpc("validate_promo",{p_code:code,p_subtotal:subtotal});
+ if(error||!data?.valid){appliedPromo=null;msg.textContent=data?.message||"Promo tidak dapat digunakan.";msg.style.color="#a33";renderCart();return}
+ appliedPromo={code:data.code,discount:Number(data.discount||0)};
+ msg.textContent=data.message+" Diskon "+rupiah(appliedPromo.discount)+".";
+ msg.style.color="#4f7a45";
+ renderCart();
+};
 document.getElementById("orderBtn").onclick=async()=>{
  try{
    const keys=Object.keys(cart).filter(id=>cart[id]>0);
@@ -325,11 +217,11 @@ document.getElementById("orderBtn").onclick=async()=>{
      return p.name+" x "+cart[id]+" = "+rupiah(sub);
    });
    const ongkir=type==="Delivery"?Number(deliveryFee||0):0;
-   voucherDiscount=appliedVoucher?calcVoucherDiscount(subtotal):0; rewardDiscount=appliedReward?calcRewardDiscount(subtotal):0; const total=Math.max(0,subtotal+ongkir-voucherDiscount-rewardDiscount);
+   const discount=Number(appliedPromo?.discount||0); const total=Math.max(0,subtotal-discount)+ongkir;
    const paymentLabel=paymentMethod==="qris"?"QRIS":"Cash / Bayar di Tempat";
    const deliveryText=type==="Delivery"?"\nAlamat Delivery: "+deliveryAddress+"\nOngkir: "+rupiah(ongkir):"";
    const plain="Halo Kavora, saya ingin order:\n\n"+lines.join("\n")+
-     "\n\nSubtotal: "+rupiah(subtotal)+"\nOngkir: "+rupiah(ongkir)+
+     "\n\nSubtotal: "+rupiah(subtotal)+"\nDiskon: "+rupiah(discount)+(appliedPromo?" ("+appliedPromo.code+")":"")+"\nOngkir: "+rupiah(ongkir)+
      "\nTotal: "+rupiah(total)+"\nNama: "+name+"\nNo HP: "+phone+
      "\nTipe: "+type+deliveryText+"\nPembayaran: "+paymentLabel+
      "\nStatus Pembayaran: Belum Bayar\nCatatan: "+note;
@@ -337,16 +229,16 @@ document.getElementById("orderBtn").onclick=async()=>{
    const btn=document.getElementById("orderBtn");
    btn.disabled=true; btn.textContent="Memproses...";
 
-   const orderPayload={customer_name:name,customer_phone:phone,order_type:type,delivery_address:type==="Delivery"?deliveryAddress:null,delivery_fee:ongkir,notes:note,payment_method:paymentMethod,whatsapp_message:plain,voucher_code:appliedVoucher?.code||""};
+   const orderPayload={customer_name:name,customer_phone:phone,order_type:type,delivery_address:type==="Delivery"?deliveryAddress:null,delivery_fee:ongkir,notes:note,payment_method:paymentMethod,promo_code:appliedPromo?.code||null,whatsapp_message:plain};
    const rpcItems=keys.map(id=>({product_id:id,quantity:cart[id]}));
-   const {data:orderId,error}=await db.rpc("create_order_with_stock",{p_order:orderPayload,p_items:rpcItems,p_reward_code:appliedReward?.code||null});
+   const {data:orderId,error}=await db.rpc("create_order_with_stock",{p_order:orderPayload,p_items:rpcItems});
    if(error){
      console.error(error);
      alert(error.message||"Pesanan gagal dibuat. Silakan coba lagi.");
      btn.disabled=false;btn.textContent="Pesan via WhatsApp";
      return;
    }
-   cart={};localStorage.removeItem("kavora_cart");appliedReward=null;rewardDiscount=0;renderCart();
+   cart={};localStorage.removeItem("kavora_cart");appliedPromo=null;document.getElementById("promoCode").value="";document.getElementById("promoMsg").textContent="";renderCart();
    btn.disabled=false;btn.textContent="Pesan via WhatsApp";
    window.location.href="https://api.whatsapp.com/send?phone="+WA_NUMBER+"&text="+encodeURIComponent(plain);
  }catch(err){
