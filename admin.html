@@ -20,9 +20,9 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .brand h1{margin:0;font-size:24px}.brand small{opacity:.7}
 .nav button{display:block;width:100%;text-align:left;background:transparent;color:#fff;margin:4px 0;padding:12px;border-radius:10px}
 .nav button:hover,.nav button.active{background:#6b4226}
-.main{margin-left:250px;width:calc(100% - 250px);padding:24px}
+.main{margin-left:250px;width:calc(100% - 250px);padding:24px;align-self:flex-start}
 .mobile-head{display:none}
-.page{display:none}.page.active{display:block}.quick-point-panel{display:none!important}.page.active#page-customers .quick-point-panel{display:block!important}
+.page{display:none!important;position:relative;margin:0;padding:0}.page.active{display:block!important}.quick-point-panel{display:none!important}.page.active#page-customers .quick-point-panel{display:block!important}
 .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 h2{margin:0 0 6px}h3{margin:0 0 12px}
 .muted{color:#756a62}.panel{background:#fff;border-radius:16px;padding:18px;margin:14px 0;box-shadow:0 3px 16px #0000000b}
@@ -226,9 +226,15 @@ const esc=s=>String(s??"").replace(/[&<>\"']/g,m=>({"&":"&amp;","<":"&lt;",">":"
 function msg(id,text,error=false){$(id).innerHTML=text?'<div class="notice" style="color:'+(error?'#a33':'#4f463f')+'">'+esc(text)+'</div>':''}
 function nav(page){
 document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
-$("page-"+page).classList.add("active");
+const target=$("page-"+page);
+if(!target)return;
+target.classList.add("active");
 document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
 $("sidebar").classList.remove("open");
+// Reset scroll whenever switching submenu so short pages never appear at the bottom.
+window.scrollTo(0,0);
+document.documentElement.scrollTop=0;
+document.body.scrollTop=0;
 if(page==="products")renderProducts(); if(page==="orders")renderOrders(); if(page==="promos")loadPromos(); if(page==="customers")loadCustomers(); if(page==="membership"){loadCustomers().then(loadMembershipLevels)}
 }
 document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>nav(b.dataset.page));
@@ -236,7 +242,7 @@ $("menuBtn").onclick=()=>$("sidebar").classList.toggle("open");
 
 async function showApp(user){
 if(!user||String(user.email||"").toLowerCase()!==ADMIN){await db.auth.signOut();alert("Email ini bukan akun admin Kavora.");return}
-$("loginPage").classList.add("hidden");$("app").classList.remove("hidden");await refreshAll();
+$("loginPage").classList.add("hidden");$("app").classList.remove("hidden");window.scrollTo(0,0);await refreshAll();
 }
 async function refreshAll(){await loadCategories();await Promise.all([loadProducts(),loadOrders(),loadPromos(),loadRewardsAdmin(),loadSettings(),loadCustomers()]);updateDashboard();updateReports()}
 $("loginBtn").onclick=async()=>{
