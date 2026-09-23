@@ -3,191 +3,249 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kavora Admin</title>
-<style>
-*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f7f2ea;color:#2b211b}
-header{background:#241a15;color:#fff;padding:22px 18px}.wrap{max-width:1100px;margin:auto;padding:18px}
-.top{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}h1,h2,h3{margin:0}.sub{opacity:.8;margin-top:5px}
-button{border:0;border-radius:10px;padding:11px 15px;background:#6b4226;color:#fff;cursor:pointer}.secondary{background:#e4e0dc;color:#332b26}
-.panel{background:#fff;border-radius:18px;padding:18px;margin:15px 0;box-shadow:0 4px 18px #0000000d}.hidden{display:none!important}
-.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.stat{padding:17px;border-radius:15px;background:#f7f2ea}.stat small{color:#786b63}.stat b{display:block;font-size:24px;margin-top:7px}
-.toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}.toolbar input{flex:1;min-width:180px;margin:0}
-input,select,textarea{width:100%;padding:11px;border:1px solid #ddd3cb;border-radius:10px;margin:5px 0 10px;background:#fff;font:inherit}
-.product,.order{border-top:1px solid #eee;padding:15px 0}.product:first-child,.order:first-child{border-top:0}
-.badge{display:inline-block;padding:5px 9px;border-radius:20px;background:#eee;margin-left:5px;font-size:12px}.new{background:#efe0d2}.processing{background:#e4e9ef}.completed{background:#dcebdc}.cancelled{background:#f1dddd}
-.muted{color:#766c66}.price{font-weight:700}.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.editor{background:#fbf8f4;border-radius:14px;padding:15px;margin-top:12px}
-.report{display:grid;grid-template-columns:1fr 1fr;gap:12px}.reportbox{padding:16px;border:1px solid #eee;border-radius:14px}.reportbox b{font-size:22px;display:block;margin-top:6px}
-.detail{background:#faf8f5;border-radius:12px;padding:12px;margin-top:10px}.item{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #eee}.item:last-child{border-bottom:0}
-@media(max-width:700px){.grid4{grid-template-columns:1fr 1fr}.two,.report{grid-template-columns:1fr}}
-</style>
+<title>Kavora Admin V16</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,Arial,sans-serif;background:#f6f2ed;color:#2b211b}
+button,input,select,textarea{font:inherit}
+button{border:0;border-radius:10px;padding:10px 14px;background:#6b4226;color:#fff;cursor:pointer}
+button.secondary{background:#e7e0d9;color:#332a24}
+button.danger{background:#a33}
+button:disabled{opacity:.55;cursor:not-allowed}
+.hidden{display:none!important}
+.layout{display:flex;min-height:100vh}
+.sidebar{width:250px;background:#241a15;color:#fff;position:fixed;inset:0 auto 0 0;padding:20px 14px;overflow:auto}
+.brand{padding:8px 12px 20px;border-bottom:1px solid #ffffff22;margin-bottom:14px}
+.brand h1{margin:0;font-size:24px}.brand small{opacity:.7}
+.nav button{display:block;width:100%;text-align:left;background:transparent;color:#fff;margin:4px 0;padding:12px;border-radius:10px}
+.nav button:hover,.nav button.active{background:#6b4226}
+.main{margin-left:250px;width:calc(100% - 250px);padding:24px}
+.mobile-head{display:none}
+.page{display:none}.page.active{display:block}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+h2{margin:0 0 6px}h3{margin:0 0 12px}
+.muted{color:#756a62}.panel{background:#fff;border-radius:16px;padding:18px;margin:14px 0;box-shadow:0 3px 16px #0000000b}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.stat{background:#fff;border-radius:16px;padding:18px;box-shadow:0 3px 16px #0000000b}
+.stat small{color:#756a62}.stat b{display:block;font-size:25px;margin-top:7px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+label{font-size:13px;font-weight:600}input,select,textarea{width:100%;padding:11px;border:1px solid #ddd3cb;border-radius:10px;margin:5px 0 12px;background:#fff}
+.toolbar{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0}.toolbar>*{flex:1;min-width:160px}
+.item{border-top:1px solid #eee;padding:14px 0}.item:first-child{border-top:0}
+.badge{display:inline-block;padding:5px 9px;border-radius:20px;background:#eee;font-size:12px}
+.active{background:#dcebdc}.inactive{background:#eee}.warning{background:#fff0cf}.sold{background:#f1dddd}
+.row-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.table{width:100%;border-collapse:collapse}.table th,.table td{padding:10px;border-bottom:1px solid #eee;text-align:left;vertical-align:top}
+.notice{padding:11px;border-radius:10px;background:#f4eee8;margin-top:10px}
+.login{max-width:460px;margin:70px auto}
+.order-card{border:1px solid #eee;border-radius:12px;padding:14px;margin:10px 0}
+.kpi{font-size:20px;font-weight:700}
+@media(max-width:800px){
+.sidebar{transform:translateX(-100%);transition:.2s;z-index:10}.sidebar.open{transform:translateX(0)}
+.main{margin-left:0;width:100%;padding:14px}.mobile-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.stats{grid-template-columns:1fr 1fr}.grid,.grid3{grid-template-columns:1fr}
+}
+</style>
 </head>
 <body>
-<header><div class="wrap"><div class="top"><div><h1>KAVORA ADMIN</h1><div class="sub">Dashboard • Menu • Pesanan • Laporan</div></div><button id="logout" class="secondary hidden">Logout</button></div></div></header>
-<div class="wrap">
-<section id="login" class="panel"><h2>Login Admin</h2><p class="muted">Masukkan email admin. Supabase akan mengirim link login.</p><input id="email" type="email" value="sandyalhaz79@gmail.com"><button id="send">Kirim Link Login</button><p id="loginMsg" class="muted"></p></section>
 
-<section id="app" class="hidden">
-<div class="grid4">
-<div class="stat"><small>Pesanan Hari Ini</small><b id="todayOrders">0</b></div><div class="stat"><small>Omzet Hari Ini</small><b id="todaySales">Rp 0</b></div>
-<div class="stat"><small>Pesanan Baru</small><b id="newOrders">0</b></div><div class="stat"><small>Menu Aktif</small><b id="activeProducts">0</b></div>
+<div id="loginPage" class="login panel">
+<h2>KAVORA ADMIN</h2>
+<p class="muted">Login menggunakan email admin Supabase.</p>
+<input id="email" type="email" value="sandyalhaz79@gmail.com" placeholder="Email admin">
+<button id="loginBtn">Kirim Link Login</button>
+<div id="loginMsg" class="muted" style="margin-top:10px"></div>
 </div>
 
-<div class="panel"><div class="top"><h2>🎟️ Promo & Voucher</h2><button id="newPromo">+ Tambah Promo</button></div>
-<div id="promoEditor" class="editor hidden"><h3 id="promoTitle">Tambah Promo</h3>
-<div class="two"><div><label>Kode Promo</label><input id="promoCodeAdmin" placeholder="KAVORA10"></div><div><label>Deskripsi</label><input id="promoDesc"></div></div>
-<div class="two"><div><label>Tipe Diskon</label><select id="promoType"><option value="percent">Persentase (%)</option><option value="fixed">Nominal (Rp)</option></select></div><div><label>Nilai Diskon</label><input id="promoValue" type="number" min="0"></div></div>
-<div class="two"><div><label>Minimum Pembelian</label><input id="promoMin" type="number" min="0" value="0"></div><div><label>Maksimum Diskon (opsional)</label><input id="promoMax" type="number" min="0" placeholder="Kosong = tanpa batas"></div></div>
-<div class="two"><div><label>Mulai</label><input id="promoStart" type="datetime-local"></div><div><label>Berakhir</label><input id="promoEnd" type="datetime-local"></div></div>
-<div class="two"><div><label>Batas Penggunaan</label><input id="promoLimit" type="number" min="1" placeholder="Kosong = tanpa batas"></div><div><label><input id="promoActive" type="checkbox" checked style="width:auto"> Aktif</label></div></div>
-<button id="savePromo">Simpan</button> <button id="cancelPromo" class="secondary">Batal</button>
-</div><div id="promos"></div></div>
-<div class="panel"><div class="top"><h2>Menu Produk</h2><button id="newProduct">+ Tambah Produk</button></div>
-<div class="toolbar"><input id="productSearch" placeholder="Cari produk..."><select id="productFilter"><option value="all">Semua kategori</option><option>Coffee</option><option>Non Coffee</option><option>Snack</option></select></div>
-<div id="products"></div>
-<div id="editor" class="editor hidden"><h3 id="editorTitle">Tambah Produk</h3>
-<div class="two"><div><label>Nama</label><input id="pname"></div><div><label>Harga</label><input id="price" type="number" min="0"></div></div>
-<div class="two"><div><label>Kategori</label><select id="cat"><option>Coffee</option><option>Non Coffee</option><option>Snack</option></select></div><div><label>Urutan</label><input id="sort" type="number" min="0"></div></div><div class="two"><div><label>Stok</label><input id="stock" type="number" min="0" step="1" value="999"></div><div></div></div>
-<label>Deskripsi</label><textarea id="desc" rows="3"></textarea><label>Foto Produk</label>
-<input id="imageFile" type="file" accept="image/*">
-<div id="imagePreview" style="margin:6px 0 12px"></div>
-<input id="image" type="hidden">
-<label><input id="active" type="checkbox" checked style="width:auto"> Produk aktif</label><br>
-<button id="save">Simpan</button> <button id="cancel" class="secondary">Batal</button></div></div>
+<div id="app" class="layout hidden">
+<aside id="sidebar" class="sidebar">
+<div class="brand"><h1>KAVORA</h1><small>Admin Dashboard V16</small></div>
+<nav class="nav">
+<button data-page="dashboard" class="active">🏠 Dashboard</button>
+<button data-page="products">☕ Menu Produk</button>
+<button data-page="promos">🎟️ Promo & Voucher</button>
+<button data-page="orders">📦 Pesanan</button>
+<button data-page="reports">📊 Laporan Penjualan</button>
+<button data-page="payments">💳 Pembayaran</button>
+<button data-page="delivery">🚚 Delivery</button>
+<button data-page="customers">⭐ Customer & Point</button>
+<button data-page="settings">⚙️ Pengaturan</button>
+</nav>
+<button id="logout" class="secondary" style="width:100%;margin-top:18px">Logout</button>
+</aside>
 
-<div class="panel"><h2>Pengaturan Pembayaran</h2><p class="muted">Upload QRIS yang akan tampil di halaman customer saat memilih pembayaran QRIS.</p>
-<input id="qrisFile" type="file" accept="image/*">
-<div id="qrisPreview" style="margin:8px 0"></div>
-<button id="saveQris" type="button">Simpan QRIS</button>
+<main class="main">
+<div class="mobile-head"><b>KAVORA ADMIN</b><button id="menuBtn" class="secondary">☰ Menu</button></div>
+
+<section id="page-dashboard" class="page active">
+<div class="top"><div><h2>Dashboard</h2><div class="muted">Ringkasan operasional Kavora</div></div><button id="dashRefresh" class="secondary">Refresh</button></div>
+<div class="stats" style="margin-top:14px">
+<div class="stat"><small>Pesanan Hari Ini</small><b id="sOrders">0</b></div>
+<div class="stat"><small>Omzet Hari Ini</small><b id="sSales">Rp 0</b></div>
+<div class="stat"><small>Pesanan Baru</small><b id="sNew">0</b></div>
+<div class="stat"><small>Menu Aktif</small><b id="sProducts">0</b></div>
 </div>
+<div class="panel"><h3>Pesanan Terbaru</h3><div id="dashOrders"></div></div>
+</section>
 
-<div class="panel"><h2>Pengaturan Delivery</h2>
-<label><input id="deliveryEnabled" type="checkbox" checked style="width:auto"> Aktifkan Delivery</label>
-<label>Ongkir Default</label><input id="deliveryFee" type="number" min="0" value="0" placeholder="Contoh: 10000">
-<button id="saveDelivery" type="button">Simpan Pengaturan Delivery</button>
-<p id="deliveryMsg" class="muted"></p>
+<section id="page-products" class="page">
+<div class="top"><div><h2>Menu Produk</h2><div class="muted">Kelola menu, harga, foto, kategori, dan stok.</div></div><button id="newProduct">+ Tambah Produk</button></div>
+<div class="panel"><div class="toolbar"><input id="productSearch" placeholder="Cari produk..."><select id="productFilter"><option value="all">Semua kategori</option><option>Coffee</option><option>Non Coffee</option><option>Snack</option></select></div><div id="productsList"></div></div>
+<div id="productEditor" class="panel hidden">
+<h3 id="productEditorTitle">Tambah Produk</h3>
+<div class="grid"><div><label>Nama</label><input id="pname"></div><div><label>Harga</label><input id="price" type="number" min="0"></div></div>
+<div class="grid"><div><label>Kategori</label><select id="pcat"><option>Coffee</option><option>Non Coffee</option><option>Snack</option></select></div><div><label>Urutan</label><input id="sort" type="number" min="0"></div></div>
+<label>Deskripsi</label><textarea id="desc" rows="3"></textarea>
+<label>URL Foto</label><input id="image">
+<label>Stok</label><input id="stock" type="number" min="0" value="999">
+<label><input id="active" type="checkbox" checked style="width:auto"> Produk aktif</label>
+<div class="row-actions"><button id="saveProduct">Simpan</button><button id="cancelProduct" class="secondary">Batal</button></div>
+<div id="productMsg"></div>
 </div>
-<div class="panel"><div class="top"><h2>Pesanan</h2><button id="refresh" class="secondary">Refresh</button></div>
-<div class="toolbar"><input id="orderSearch" placeholder="Cari nama / nomor HP..."><select id="statusFilter"><option value="all">Semua status</option><option value="new">New</option><option value="processing">Processing</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></div>
-<div id="orders"></div></div>
+</section>
 
-<div class="panel"><h2>Laporan Penjualan</h2>
-<div class="toolbar"><select id="reportRange"><option value="today">Hari Ini</option><option value="7">7 Hari Terakhir</option><option value="30">30 Hari Terakhir</option><option value="all">Semua Data</option></select><button id="reportRefresh" class="secondary">Refresh Laporan</button></div>
-<div class="report" style="margin-top:12px"><div class="reportbox"><small>Total Transaksi</small><b id="reportOrders">0</b></div><div class="reportbox"><small>Total Omzet</small><b id="reportSales">Rp 0</b></div></div>
-<div id="topProducts" style="margin-top:15px"></div></div>
-</section></div>
+<section id="page-promos" class="page">
+<div class="top"><div><h2>Promo & Voucher</h2><div class="muted">Buat dan kelola kode promo customer.</div></div><button id="newPromo">+ Tambah Voucher</button></div>
+<div class="panel"><div id="promosList"></div></div>
+<div id="promoEditor" class="panel hidden">
+<h3 id="promoEditorTitle">Tambah Voucher</h3>
+<div class="grid"><div><label>Kode Voucher</label><input id="promoCode" placeholder="KAVORA10"></div><div><label>Deskripsi</label><input id="promoDesc"></div></div>
+<div class="grid"><div><label>Tipe Diskon</label><select id="promoType"><option value="percent">Persen (%)</option><option value="fixed">Nominal (Rp)</option></select></div><div><label>Nilai Diskon</label><input id="promoValue" type="number" min="0"></div></div>
+<div class="grid3"><div><label>Min. Pembelian</label><input id="promoMin" type="number" min="0" value="0"></div><div><label>Max. Diskon</label><input id="promoMax" type="number" min="0"></div><div><label>Limit Penggunaan</label><input id="promoLimit" type="number" min="0"></div></div>
+<div class="grid"><div><label>Mulai</label><input id="promoStart" type="datetime-local"></div><div><label>Berakhir</label><input id="promoEnd" type="datetime-local"></div></div>
+<label><input id="promoActive" type="checkbox" checked style="width:auto"> Voucher aktif</label>
+<div class="row-actions"><button id="savePromo">Simpan Voucher</button><button id="cancelPromo" class="secondary">Batal</button></div>
+<div id="promoMsg"></div>
+</div>
+</section>
+
+<section id="page-orders" class="page">
+<div class="top"><div><h2>Pesanan</h2><div class="muted">Kelola seluruh order customer.</div></div><button id="refreshOrders" class="secondary">Refresh</button></div>
+<div class="panel"><div class="toolbar"><select id="orderStatusFilter"><option value="all">Semua status</option><option value="new">Baru</option><option value="processing">Diproses</option><option value="completed">Selesai</option><option value="cancelled">Dibatalkan</option></select></div><div id="ordersList"></div></div>
+</section>
+
+<section id="page-reports" class="page">
+<h2>Laporan Penjualan</h2><div class="muted">Ringkasan berdasarkan data pesanan.</div>
+<div class="stats" style="margin-top:14px"><div class="stat"><small>Total Transaksi</small><b id="rOrders">0</b></div><div class="stat"><small>Total Omzet</small><b id="rSales">Rp 0</b></div><div class="stat"><small>Rata-rata Order</small><b id="rAvg">Rp 0</b></div><div class="stat"><small>Produk Terjual</small><b id="rItems">0</b></div></div>
+<div class="panel"><h3>Rekap Status</h3><div id="reportStatus"></div></div>
+</section>
+
+<section id="page-payments" class="page">
+<h2>Pembayaran</h2><div class="muted">Pengaturan QRIS dan metode pembayaran.</div>
+<div class="panel"><h3>QRIS</h3><label>URL QRIS</label><input id="qrisUrl" placeholder="URL gambar QRIS"><button id="saveQris">Simpan QRIS</button><div id="qrisMsg" class="notice"></div></div>
+<div class="panel"><h3>Metode</h3><div class="notice">Customer dapat memilih Cash / Bayar di Tempat atau QRIS pada checkout.</div></div>
+</section>
+
+<section id="page-delivery" class="page">
+<h2>Delivery</h2><div class="muted">Pengaturan pengiriman customer.</div>
+<div class="panel"><label><input id="deliveryEnabled" type="checkbox" style="width:auto"> Aktifkan Delivery</label><label>Biaya Delivery</label><input id="deliveryFee" type="number" min="0"><button id="saveDelivery">Simpan Pengaturan</button><div id="deliveryMsg" class="notice"></div></div>
+</section>
+
+<section id="page-customers" class="page">
+<h2>Customer & Point</h2><div class="muted">Cek transaksi dan point berdasarkan nomor HP.</div>
+<div class="panel"><label>No. HP Customer</label><input id="pointPhone" placeholder="08xxxxxxxxxx"><button id="checkPoint">Cek Point</button><div id="pointResult" style="margin-top:14px"></div></div>
+</section>
+
+<section id="page-settings" class="page">
+<h2>Pengaturan</h2><div class="muted">Informasi dasar sistem Kavora.</div>
+<div class="panel"><div class="grid"><div><label>WhatsApp Order</label><input value="082262877440" id="waNumber"></div><div><label>Email Admin</label><input value="sandyalhaz79@gmail.com" disabled></div></div><div class="notice">WhatsApp order dan email admin digunakan oleh sistem customer/admin yang sudah terhubung.</div></div>
+</section>
+</main>
+</div>
 
 <script>
-(()=>{"use strict";
-const SUPABASE_URL="https://gooawhtldgefmiwplxzs.supabase.co",KEY="sb_publishable_sD0QPAk-uDg5cveBKtwePA_dWV5Q8GH",ADMIN="sandyalhaz79@gmail.com";
-const db=supabase.createClient(SUPABASE_URL,KEY);let products=[],orders=[],editing=null,details={},oldImageUrl=null;
-const $=id=>document.getElementById(id),rp=n=>new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(n||0);
-const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
-function showApp(u){if(!u||(u.email||"").toLowerCase()!==ADMIN){db.auth.signOut();alert("Email ini bukan akun admin Kavora.");return}$("login").classList.add("hidden");$("app").classList.remove("hidden");$("logout").classList.remove("hidden");refreshAll()}
+(()=>{
+"use strict";
+const URL="https://gooawhtldgefmiwplxzs.supabase.co";
+const KEY="sb_publishable_sD0QPAk-uDg5cveBKtwePA_dWV5Q8GH";
+const ADMIN="sandyalhaz79@gmail.com";
+const db=supabase.createClient(URL,KEY);
+let products=[],orders=[],editingProduct=null,editingPromo=null;
+const $=id=>document.getElementById(id);
+const rp=n=>new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(Number(n||0));
+const esc=s=>String(s??"").replace(/[&<>\"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]));
+function msg(id,text,error=false){$(id).innerHTML=text?'<div class="notice" style="color:'+(error?'#a33':'#4f463f')+'">'+esc(text)+'</div>':''}
+function nav(page){
+document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+$("page-"+page).classList.add("active");
+document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
+$("sidebar").classList.remove("open");
+if(page==="products")renderProducts(); if(page==="orders")renderOrders(); if(page==="promos")loadPromos();
+}
+document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>nav(b.dataset.page));
+$("menuBtn").onclick=()=>$("sidebar").classList.toggle("open");
+
+async function showApp(user){
+if(!user||String(user.email||"").toLowerCase()!==ADMIN){await db.auth.signOut();alert("Email ini bukan akun admin Kavora.");return}
+$("loginPage").classList.add("hidden");$("app").classList.remove("hidden");await refreshAll();
+}
+async function refreshAll(){await Promise.all([loadProducts(),loadOrders(),loadPromos(),loadSettings()]);updateDashboard();updateReports()}
+$("loginBtn").onclick=async()=>{
+const e=$("email").value.trim();if(e.toLowerCase()!==ADMIN){msg("loginMsg","Gunakan email admin yang terdaftar.",true);return}
+$("loginBtn").disabled=true;const {error}=await db.auth.signInWithOtp({email:e,options:{emailRedirectTo:location.href}});
+msg("loginMsg",error?error.message:"Link login sudah dikirim. Cek Gmail.");$("loginBtn").disabled=false
+};
+$("logout").onclick=()=>db.auth.signOut().then(()=>location.reload());
+db.auth.onAuthStateChange((_e,s)=>{if(s)showApp(s.user)});
 async function init(){const {data}=await db.auth.getSession();if(data.session)showApp(data.session.user)}
-$("send").onclick=async()=>{const e=$("email").value.trim();if(e.toLowerCase()!==ADMIN){$("loginMsg").textContent="Gunakan email admin yang terdaftar.";return}$("send").disabled=true;const {error}=await db.auth.signInWithOtp({email:e,options:{emailRedirectTo:location.href}});$("loginMsg").textContent=error?error.message:"Link login sudah dikirim. Cek Gmail."; $("send").disabled=false}
-$("logout").onclick=()=>db.auth.signOut().then(()=>location.reload());db.auth.onAuthStateChange((_e,s)=>{if(s)showApp(s.user)});
-
-let promoEditing=null;
-async function loadPromos(){
- const {data,error}=await db.from("promos").select("*").order("created_at",{ascending:false});
- if(error){$("promos").innerHTML='<p class="muted">'+esc(error.message)+'</p>';return}
- const list=data||[];
- $("promos").innerHTML=list.map(p=>`<div class="product"><div class="top"><div><b>${esc(p.code)}</b><div class="muted">${esc(p.description||"")} · ${p.discount_type==="percent"?p.discount_value+"%":rp(p.discount_value)} · Min ${rp(p.min_purchase||0)}</div></div><span>${p.is_active?"🟢 Aktif":"⚪ Nonaktif"}</span></div><div class="top" style="margin-top:8px"><span class="muted">Dipakai ${p.usage_count||0}${p.usage_limit?"/"+p.usage_limit:""} kali</span><span><button type="button" data-promo-edit="${p.id}">Edit</button> <button type="button" class="secondary" data-promo-toggle="${p.id}">${p.is_active?"Nonaktifkan":"Aktifkan"}</button></span></div></div>`).join("")||'<p class="muted">Belum ada promo.</p>';
- document.querySelectorAll("[data-promo-edit]").forEach(b=>b.onclick=()=>editPromo(b.dataset.promoEdit));
- document.querySelectorAll("[data-promo-toggle]").forEach(b=>b.onclick=()=>togglePromo(b.dataset.promoToggle));
+async function loadProducts(){const {data,error}=await db.from("products").select("*").order("sort_order");if(error)return msg("productMsg",error.message,true);products=data||[];renderProducts()}
+function renderProducts(){
+const q=$("productSearch").value.toLowerCase(),cat=$("productFilter").value;
+const list=products.filter(p=>(cat==="all"||p.category===cat)&&(!q||String(p.name).toLowerCase().includes(q)));
+$("productsList").innerHTML=list.map(p=>`<div class="item"><div class="top"><div><b>${esc(p.name)}</b><div class="muted">${esc(p.category)} · ${esc(p.description||"")}</div></div><b>${rp(p.price)}</b></div><div class="row-actions"><span class="badge ${p.stock<=0?'sold':p.stock<=5?'warning':'active'}">Stok: ${p.stock??999}</span><span class="badge ${p.is_active?'active':'inactive'}">${p.is_active?'Aktif':'Nonaktif'}</span><button data-pe="${p.id}">Edit</button><button class="secondary" data-pt="${p.id}">${p.is_active?'Nonaktifkan':'Aktifkan'}</button></div></div>`).join("")||'<div class="muted">Belum ada produk.</div>';
+document.querySelectorAll("[data-pe]").forEach(b=>b.onclick=()=>editProduct(b.dataset.pe));
+document.querySelectorAll("[data-pt]").forEach(b=>b.onclick=()=>toggleProduct(b.dataset.pt));
 }
-function clearPromoEditor(){
- promoEditing=null;$("promoTitle").textContent="Tambah Promo";$("promoCodeAdmin").value="";$("promoDesc").value="";$("promoType").value="percent";$("promoValue").value="";$("promoMin").value="0";$("promoMax").value="";$("promoStart").value="";$("promoEnd").value="";$("promoLimit").value="";$("promoActive").checked=true;$("promoEditor").classList.add("hidden");
-}
-$("newPromo").onclick=()=>{clearPromoEditor();$("promoEditor").classList.remove("hidden")};
-$("cancelPromo").onclick=clearPromoEditor;
-async function editPromo(id){
- const {data,error}=await db.from("promos").select("*").eq("id",id).single();if(error)return alert(error.message);
- promoEditing=id;$("promoTitle").textContent="Edit Promo";$("promoCodeAdmin").value=data.code;$("promoDesc").value=data.description||"";$("promoType").value=data.discount_type;$("promoValue").value=data.discount_value;$("promoMin").value=data.min_purchase||0;$("promoMax").value=data.max_discount??"";$("promoStart").value=data.starts_at?new Date(data.starts_at).toISOString().slice(0,16):"";$("promoEnd").value=data.ends_at?new Date(data.ends_at).toISOString().slice(0,16):"";$("promoLimit").value=data.usage_limit??"";$("promoActive").checked=data.is_active;$("promoEditor").classList.remove("hidden");
-}
-$("savePromo").onclick=async()=>{
- const code=$("promoCodeAdmin").value.trim().toUpperCase();
- const value=Number($("promoValue").value||0),min=Number($("promoMin").value||0),max=$("promoMax").value===""?null:Number($("promoMax").value),limit=$("promoLimit").value===""?null:Number($("promoLimit").value);
- if(!code||value<=0)return alert("Kode dan nilai diskon wajib diisi.");
- if($("promoType").value==="percent"&&value>100)return alert("Diskon persentase maksimal 100%.");
- const obj={code,description:$("promoDesc").value.trim(),discount_type:$("promoType").value,discount_value:value,min_purchase:min,max_discount:max,starts_at:$("promoStart").value?new Date($("promoStart").value).toISOString():null,ends_at:$("promoEnd").value?new Date($("promoEnd").value).toISOString():null,usage_limit:limit,is_active:$("promoActive").checked,updated_at:new Date().toISOString()};
- const res=promoEditing?await db.from("promos").update(obj).eq("id",promoEditing):await db.from("promos").insert(obj);
- if(res.error)return alert(res.error.message);
- clearPromoEditor();await loadPromos();
-};
-async function togglePromo(id){const {data,error}=await db.from("promos").select("is_active").eq("id",id).single();if(error)return alert(error.message);const r=await db.from("promos").update({is_active:!data.is_active,updated_at:new Date().toISOString()}).eq("id",id);if(r.error)return alert(r.error.message);loadPromos();}
-async function refreshAll(){await Promise.all([loadProducts(),loadOrders(),loadPromos()]);updateStats();loadReport()}
-async function loadProducts(){const {data,error}=await db.from("products").select("*").order("sort_order");if(error){$("products").textContent=error.message;return}products=data||[];renderProducts()}
-function renderProducts(){const q=$("productSearch").value.trim().toLowerCase(),c=$("productFilter").value;const a=products.filter(p=>(c==="all"||p.category===c)&&(!q||p.name.toLowerCase().includes(q)));$("products").innerHTML=a.map(p=>`<div class="product"><div class="top"><div><b>${esc(p.name)}</b><div class="muted">${esc(p.category)} · ${esc(p.description||"")}</div></div><div class="price">${rp(p.price)}</div></div><div style="margin-top:8px;display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap">
-<span>${p.is_active?"🟢 Aktif":"⚪ Nonaktif"} · ${Number(p.stock??999)<=0?"🔴 Habis":Number(p.stock??999)<=5?"🟠 Stok "+Number(p.stock):"🟢 Stok "+Number(p.stock??999)}</span>
-<span><button type="button" data-stock-minus="${p.id}">−</button><button type="button" data-stock-plus="${p.id}">+</button><button type="button" data-edit="${p.id}">Edit</button> <button type="button" class="secondary" data-toggle="${p.id}">${p.is_active?"Nonaktifkan":"Aktifkan"}</button></span>
-</div></div>`).join("")||'<p class="muted">Produk tidak ditemukan.</p>';$("products").onclick=e=>{
- const edit=e.target.closest("[data-edit]");if(edit){e.preventDefault();window.kavoraEditProduct(edit.dataset.edit);return}
- const toggle=e.target.closest("[data-toggle]");if(toggle){e.preventDefault();toggleProduct(toggle.dataset.toggle);return}
- const plus=e.target.closest("[data-stock-plus]");if(plus){e.preventDefault();changeStock(plus.dataset.stockPlus,1);return}
- const minus=e.target.closest("[data-stock-minus]");if(minus){e.preventDefault();changeStock(minus.dataset.stockMinus,-1);return}
-}}
 $("productSearch").oninput=renderProducts;$("productFilter").onchange=renderProducts;
-$("newProduct").onclick=()=>{editing=null;oldImageUrl=null;$("editorTitle").textContent="Tambah Produk";$("pname").value="";$("price").value="";$("cat").value="Coffee";$("sort").value="0";$("desc").value="";$("image").value="";$("imageFile").value="";$("imagePreview").innerHTML='<span class="muted">Belum ada foto.</span>';$("active").checked=true;$("stock").value="999";$("editor").classList.remove("hidden")};
-$("cancel").onclick=()=>$("editor").classList.add("hidden");
-window.kavoraEditProduct=async function(id){const p=products.find(x=>x.id===id);if(!p)return;editing=id;oldImageUrl=p.image_url||null;$("editorTitle").textContent="Edit Produk";$("pname").value=p.name;$("price").value=p.price;$("cat").value=p.category;$("sort").value=p.sort_order;$("stock").value=Number(p.stock??999);$("desc").value=p.description||"";$("image").value=p.image_url||"";$("imageFile").value="";$("imagePreview").innerHTML=p.image_url?'<img src="'+esc(p.image_url)+'" style="width:110px;height:80px;object-fit:cover;border-radius:10px">':'<span class="muted">Belum ada foto.</span>';$("active").checked=p.is_active;$("editor").classList.remove("hidden")}
-$("imageFile").onchange=()=>{const f=$("imageFile").files[0];if(!f){return}if(!f.type.startsWith("image/"))return alert("File harus berupa gambar.");if(f.size>5*1024*1024)return alert("Ukuran foto maksimal 5 MB.");const u=window.URL.createObjectURL(f);$("imagePreview").innerHTML='<img src="'+u+'" style="width:110px;height:80px;object-fit:cover;border-radius:10px">'};
-$("save").onclick=async()=>{const o={name:$("pname").value.trim(),price:Number($("price").value),category:$("cat").value,sort_order:Number($("sort").value||0),stock:Math.max(0,Number($("stock").value||0)),description:$("desc").value.trim(),image_url:$("image").value.trim()||null,is_active:$("active").checked};if(!o.name||o.price<0)return alert("Nama dan harga wajib diisi.");const file=$("imageFile").files[0];if(file){if(!file.type.startsWith("image/"))return alert("File harus berupa gambar.");if(file.size>5*1024*1024)return alert("Ukuran foto maksimal 5 MB.");const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"");const path="products/"+crypto.randomUUID()+"."+(ext||"jpg");const up=await db.storage.from("product-images").upload(path,file,{cacheControl:"3600",upsert:false,contentType:file.type});if(up.error)return alert("Upload foto gagal: "+up.error.message);o.image_url=db.storage.from("product-images").getPublicUrl(path).data.publicUrl}const r=editing?await db.from("products").update(o).eq("id",editing):await db.from("products").insert(o);if(r.error)return alert(r.error.message);$("editor").classList.add("hidden");await loadProducts();updateStats()};
-async function toggleProduct(id){const p=products.find(x=>x.id===id);const {error}=await db.from("products").update({is_active:!p.is_active}).eq("id",id);if(error)alert(error.message);else{await loadProducts();updateStats()}}
-
-async function changeStock(id,delta){
- const p=products.find(x=>x.id===id);if(!p)return;
- const next=Math.max(0,Number(p.stock??999)+delta);
- const {error}=await db.from("products").update({stock:next,updated_at:new Date().toISOString()}).eq("id",id);
- if(error)alert(error.message);else await loadProducts();
-}
-async function loadOrders(){const {data,error}=await db.from("orders").select("*").order("created_at",{ascending:false}).limit(200);if(error){$("orders").textContent=error.message;return}orders=data||[];renderOrders()}
-function renderOrders(){const q=$("orderSearch").value.trim().toLowerCase(),st=$("statusFilter").value;const a=orders.filter(o=>(st==="all"||o.status===st)&&(!q||String(o.customer_name||"").toLowerCase().includes(q)||String(o.customer_phone||"").includes(q)));$("orders").innerHTML=a.map(o=>`<div class="order"><div class="top"><div><b>${esc(o.customer_name)}</b><span class="badge ${esc(o.status)}">${esc(o.status)}</span></div><b>${rp(o.total)}</b></div><div class="muted" style="margin-top:5px">${esc(o.order_type||"")} · ${esc(o.customer_phone||"")} · ${new Date(o.created_at).toLocaleString("id-ID")}</div>
-<div style="margin-top:6px"><b>Pembayaran:</b> ${esc(o.payment_method==="qris"?"QRIS":"Cash / Bayar di Tempat")} · <b>${esc(o.payment_status==="paid"?"Sudah Bayar":"Belum Bayar")}</b></div>
-${o.order_type==="Delivery"?`<div style="margin-top:6px"><b>Alamat:</b> ${esc(o.delivery_address||"-")} · <b>Ongkir:</b> ${rp(o.delivery_fee||0)}</div>`:""}${o.notes?`<div style="margin-top:6px">📝 ${esc(o.notes)}</div>`:""}<div style="margin-top:9px"><button class="secondary" data-detail="${o.id}">Lihat Detail</button> <a href="https://wa.me/${String(o.customer_phone||"").replace(/^0/,"62").replace(/\\D/g,"")}" target="_blank"><button type="button">WhatsApp</button></a> <select data-status="${o.id}" style="max-width:180px"><option value="new" ${o.status==="new"?"selected":""}>New</option><option value="processing" ${o.status==="processing"?"selected":""}>Processing</option><option value="completed" ${o.status==="completed"?"selected":""}>Completed</option><option value="cancelled" ${o.status==="cancelled"?"selected":""}>Cancelled</option></select>
-<select data-payment="${o.id}" style="max-width:180px"><option value="unpaid" ${o.payment_status!=="paid"?"selected":""}>Belum Bayar</option><option value="paid" ${o.payment_status==="paid"?"selected":""}>Sudah Bayar</option></select></div><div id="detail-${o.id}" class="detail hidden"></div></div>`).join("")||'<p class="muted">Tidak ada pesanan.</p>';document.querySelectorAll("[data-status]").forEach(s=>s.onchange=async()=>{const r=await db.from("orders").update({status:s.value}).eq("id",s.dataset.status);if(r.error)alert(r.error.message);else{const o=orders.find(x=>x.id===s.dataset.status);if(o)o.status=s.value;updateStats();loadReport();renderOrders()}});document.querySelectorAll("[data-detail]").forEach(b=>b.onclick=()=>showDetail(b.dataset.detail));
-document.querySelectorAll("[data-payment]").forEach(s=>s.onchange=async()=>{const r=await db.from("orders").update({payment_status:s.value}).eq("id",s.dataset.payment);if(r.error)alert(r.error.message);else{const o=orders.find(x=>x.id===s.dataset.payment);if(o)o.payment_status=s.value;renderOrders();loadReport()}});
-}
-async function showDetail(id){const box=$("detail-"+id);if(!box)return;if(!box.classList.contains("hidden")){box.classList.add("hidden");return}box.classList.remove("hidden");box.innerHTML="Memuat detail...";const {data,error}=await db.from("order_items").select("*").eq("order_id",id);if(error){box.textContent=error.message;return}box.innerHTML=(data||[]).map(i=>`<div class="item"><span>${esc(i.product_name)} × ${i.quantity}</span><b>${rp(i.subtotal)}</b></div>`).join("")||"Tidak ada detail item.";details[id]=data||[]}
-$("orderSearch").oninput=renderOrders;$("statusFilter").onchange=renderOrders;$("refresh").onclick=refreshAll;
-
-function updateStats(){const d=new Date();d.setHours(0,0,0,0);const a=orders.filter(o=>new Date(o.created_at)>=d);$("todayOrders").textContent=a.length;$("todaySales").textContent=rp(a.filter(o=>o.status!=="cancelled").reduce((s,o)=>s+Number(o.total||0),0));$("newOrders").textContent=orders.filter(o=>o.status==="new").length;$("activeProducts").textContent=products.filter(p=>p.is_active).length}
-$("reportRange").onchange=loadReport;$("reportRefresh").onclick=loadReport;
-async function loadReport(){let from=null;const range=$("reportRange").value;if(range==="today"){from=new Date();from.setHours(0,0,0,0)}else if(range!=="all"){from=new Date(Date.now()-Number(range)*86400000);from.setHours(0,0,0,0)}const list=orders.filter(o=>(!from||new Date(o.created_at)>=from)&&o.status!=="cancelled");$("reportOrders").textContent=list.length;$("reportSales").textContent=rp(list.reduce((s,o)=>s+Number(o.total||0),0));
-const ids=list.map(o=>o.id);if(!ids.length){$("topProducts").innerHTML='<p class="muted">Belum ada penjualan pada periode ini.</p>';return}
-const {data}=await db.from("order_items").select("product_name,quantity,subtotal,order_id").in("order_id",ids);const map={};(data||[]).forEach(i=>{map[i.product_name]??={qty:0,sales:0};map[i.product_name].qty+=Number(i.quantity||0);map[i.product_name].sales+=Number(i.subtotal||0)});const top=Object.entries(map).sort((a,b)=>b[1].qty-a[1].qty).slice(0,5);$("topProducts").innerHTML="<h3>Produk Terlaris</h3>"+(top.length?top.map(([n,v],i)=>`<div class="item"><span>${i+1}. ${esc(n)} × ${v.qty}</span><b>${rp(v.sales)}</b></div>`).join(""):'<p class="muted">Belum ada data.</p>')}
-async function loadQris(){
- const {data}=await db.from("payment_settings").select("qris_image_url").eq("id",1).maybeSingle();
- $("qrisPreview").innerHTML=data?.qris_image_url?'<img src="'+esc(data.qris_image_url)+'" style="max-width:260px;max-height:260px;border-radius:12px;border:1px solid #eee">':'<span class="muted">QRIS belum diupload.</span>';
-}
-$("qrisFile").onchange=()=>{const f=$("qrisFile").files[0];if(!f)return;if(!f.type.startsWith("image/"))return alert("File harus berupa gambar.");if(f.size>5*1024*1024)return alert("Ukuran maksimal 5 MB.");$("qrisPreview").innerHTML='<img src="'+window.URL.createObjectURL(f)+'" style="max-width:260px;max-height:260px;border-radius:12px">'};
-$("saveQris").onclick=async()=>{
- const f=$("qrisFile").files[0]; if(!f){await loadQris();return}
- if(!f.type.startsWith("image/")||f.size>5*1024*1024)return alert("File QRIS tidak valid atau terlalu besar.");
- const ext=(f.name.split(".").pop()||"png").toLowerCase().replace(/[^a-z0-9]/g,"")||"png";
- const path="qris/"+crypto.randomUUID()+"."+ext;
- const up=await db.storage.from("payment-assets").upload(path,f,{cacheControl:"3600",upsert:false,contentType:f.type});
- if(up.error)return alert("Upload QRIS gagal: "+up.error.message);
- const url=db.storage.from("payment-assets").getPublicUrl(path).data.publicUrl;
- const r=await db.from("payment_settings").upsert({id:1,qris_image_url:url,updated_at:new Date().toISOString()});
- if(r.error)return alert(r.error.message);
- $("qrisFile").value=""; alert("QRIS berhasil disimpan."); loadQris();
+$("newProduct").onclick=()=>{editingProduct=null;$("productEditorTitle").textContent="Tambah Produk";["pname","price","desc","image"].forEach(x=>$(x).value="");$("pcat").value="Coffee";$("sort").value=0;$("stock").value=999;$("active").checked=true;$("productEditor").classList.remove("hidden")};
+async function editProduct(id){const p=products.find(x=>x.id===id);if(!p)return;editingProduct=id;$("productEditorTitle").textContent="Edit Produk";$("pname").value=p.name;$("price").value=p.price;$("pcat").value=p.category;$("sort").value=p.sort_order||0;$("desc").value=p.description||"";$("image").value=p.image_url||"";$("stock").value=p.stock??999;$("active").checked=!!p.is_active;$("productEditor").classList.remove("hidden")}
+$("cancelProduct").onclick=()=>$("productEditor").classList.add("hidden");
+$("saveProduct").onclick=async()=>{
+const payload={name:$("pname").value.trim(),price:Number($("price").value),category:$("pcat").value,sort_order:Number($("sort").value||0),description:$("desc").value.trim(),image_url:$("image").value.trim()||null,stock:Number($("stock").value||0),is_active:$("active").checked};
+if(!payload.name||payload.price<0)return msg("productMsg","Nama dan harga wajib diisi.",true);
+const r=editingProduct?await db.from("products").update(payload).eq("id",editingProduct):await db.from("products").insert(payload);
+if(r.error)return msg("productMsg",r.error.message,true);$("productEditor").classList.add("hidden");await loadProducts();updateDashboard();msg("productMsg","Produk berhasil disimpan.")
 };
-async function loadDeliverySettings(){
- const {data,error}=await db.from("store_settings").select("delivery_enabled,delivery_fee").eq("id",1).maybeSingle();
- if(error)return;
- $("deliveryEnabled").checked=data?.delivery_enabled!==false;
- $("deliveryFee").value=Number(data?.delivery_fee||0);
+async function toggleProduct(id){const p=products.find(x=>x.id===id);if(!p)return;const {error}=await db.from("products").update({is_active:!p.is_active}).eq("id",id);if(error)return alert(error.message);await loadProducts();updateDashboard()}
+
+async function loadPromos(){const {data,error}=await db.from("promos").select("*").order("created_at",{ascending:false});if(error){msg("promoMsg",error.message,true);return}renderPromos(data||[])}
+function renderPromos(list){
+$("promosList").innerHTML=list.map(p=>`<div class="item"><div class="top"><div><b>${esc(p.code)}</b><div class="muted">${esc(p.description||"")}</div></div><span class="badge ${p.is_active?'active':'inactive'}">${p.is_active?'Aktif':'Nonaktif'}</span></div><div style="margin-top:8px">Diskon: <b>${p.discount_type==="percent"?p.discount_value+"%":rp(p.discount_value)}</b> · Min. ${rp(p.min_purchase||0)} · Dipakai ${p.usage_count||0}${p.usage_limit?' / '+p.usage_limit:''}</div><div class="row-actions"><button data-pe2="${p.id}">Edit</button><button class="secondary" data-pt2="${p.id}">${p.is_active?'Nonaktifkan':'Aktifkan'}</button></div></div>`).join("")||'<div class="muted">Belum ada voucher.</div>';
+document.querySelectorAll("[data-pe2]").forEach(b=>b.onclick=()=>editPromo(b.dataset.pe2));document.querySelectorAll("[data-pt2]").forEach(b=>b.onclick=()=>togglePromo(b.dataset.pt2))
 }
-$("saveDelivery").onclick=async()=>{
- const fee=Math.max(0,Number($("deliveryFee").value||0));
- const enabled=$("deliveryEnabled").checked;
- const r=await db.from("store_settings").upsert({id:1,delivery_enabled:enabled,delivery_fee:fee,updated_at:new Date().toISOString()});
- if(r.error)return alert(r.error.message);
- $("deliveryMsg").textContent="Pengaturan delivery berhasil disimpan.";
+$("newPromo").onclick=()=>{editingPromo=null;$("promoEditorTitle").textContent="Tambah Voucher";["promoCode","promoDesc","promoValue","promoMin","promoMax","promoLimit","promoStart","promoEnd"].forEach(x=>$(x).value="");$("promoType").value="percent";$("promoActive").checked=true;$("promoEditor").classList.remove("hidden")};
+$("cancelPromo").onclick=()=>$("promoEditor").classList.add("hidden");
+async function editPromo(id){const {data,error}=await db.from("promos").select("*").eq("id",id).single();if(error)return alert(error.message);editingPromo=id;$("promoEditorTitle").textContent="Edit Voucher";$("promoCode").value=data.code;$("promoDesc").value=data.description||"";$("promoType").value=data.discount_type;$("promoValue").value=data.discount_value;$("promoMin").value=data.min_purchase||0;$("promoMax").value=data.max_discount||"";$("promoLimit").value=data.usage_limit||"";$("promoStart").value=data.starts_at?new Date(data.starts_at).toISOString().slice(0,16):"";$("promoEnd").value=data.ends_at?new Date(data.ends_at).toISOString().slice(0,16):"";$("promoActive").checked=!!data.is_active;$("promoEditor").classList.remove("hidden")}
+$("savePromo").onclick=async()=>{
+const code=$("promoCode").value.trim().toUpperCase();const start=$("promoStart").value?new Date($("promoStart").value).toISOString():null;const end=$("promoEnd").value?new Date($("promoEnd").value).toISOString():null;
+if(!code)return msg("promoMsg","Kode voucher wajib diisi.",true);if(end&&start&&new Date(end)<=new Date(start))return msg("promoMsg","Tanggal berakhir harus setelah tanggal mulai.",true);
+const payload={code,description:$("promoDesc").value.trim(),discount_type:$("promoType").value,discount_value:Number($("promoValue").value||0),min_purchase:Number($("promoMin").value||0),max_discount:$("promoMax").value?Number($("promoMax").value):null,usage_limit:$("promoLimit").value?Number($("promoLimit").value):null,starts_at:start,ends_at:end,is_active:$("promoActive").checked};
+let r;if(editingPromo)r=await db.from("promos").update(payload).eq("id",editingPromo);else r=await db.from("promos").insert(payload);
+if(r.error)return msg("promoMsg",r.error.message,true);$("promoEditor").classList.add("hidden");await loadPromos();msg("promoMsg","Voucher berhasil disimpan.")
 };
-init().then(()=>loadDeliverySettings());
+async function togglePromo(id){const {data,error}=await db.from("promos").select("is_active").eq("id",id).single();if(error)return alert(error.message);const r=await db.from("promos").update({is_active:!data.is_active}).eq("id",id);if(r.error)return alert(r.error.message);loadPromos()}
+
+async function loadOrders(){const {data,error}=await db.from("orders").select("*").order("created_at",{ascending:false}).limit(100);if(error)return;orders=data||[];renderOrders();updateDashboard();updateReports()}
+function statusLabel(s){return ({new:"Baru",processing:"Diproses",completed:"Selesai",cancelled:"Dibatalkan"})[s]||s||"-"}
+function renderOrders(){const f=$("orderStatusFilter").value;const list=orders.filter(o=>f==="all"||o.status===f);$("ordersList").innerHTML=list.map(o=>`<div class="order-card"><div class="top"><div><b>${esc(o.customer_name||"Customer")}</b><div class="muted">${new Date(o.created_at).toLocaleString("id-ID")}</div></div><span class="badge">${statusLabel(o.status)}</span></div><div style="margin-top:8px">${rp(o.total)} · ${esc(o.order_type||"-")} · ${esc(o.payment_method||"-")}</div><div class="row-actions"><select data-os="${o.id}"><option value="new" ${o.status==="new"?"selected":""}>Baru</option><option value="processing" ${o.status==="processing"?"selected":""}>Diproses</option><option value="completed" ${o.status==="completed"?"selected":""}>Selesai</option><option value="cancelled" ${o.status==="cancelled"?"selected":""}>Dibatalkan</option></select></div></div>`).join("")||'<div class="muted">Tidak ada pesanan.</div>';document.querySelectorAll("[data-os]").forEach(s=>s.onchange=()=>updateOrder(s.dataset.os,s.value))}
+$("orderStatusFilter").onchange=renderOrders;
+$("refreshOrders").onclick=async()=>{await loadOrders();updateDashboard();updateReports()};
+async function updateOrder(id,status){const {error}=await db.from("orders").update({status}).eq("id",id);if(error)return alert(error.message);await loadOrders()}
+function updateDashboard(){const today=new Date().toISOString().slice(0,10);const td=orders.filter(o=>String(o.created_at).slice(0,10)===today);$("sOrders").textContent=td.length;$("sSales").textContent=rp(td.filter(o=>o.status==="completed").reduce((a,o)=>a+Number(o.total||0),0));$("sNew").textContent=orders.filter(o=>o.status==="new").length;$("sProducts").textContent=products.filter(p=>p.is_active).length;$("dashOrders").innerHTML=orders.slice(0,5).map(o=>`<div class="item"><b>${esc(o.customer_name||"Customer")}</b> · ${rp(o.total)} · <span class="badge">${statusLabel(o.status)}</span></div>`).join("")||'<div class="muted">Belum ada pesanan.</div>'}
+$("dashRefresh").onclick=refreshAll;
+function updateReports(){const completed=orders.filter(o=>o.status==="completed");const sales=completed.reduce((a,o)=>a+Number(o.total||0),0);$("rOrders").textContent=completed.length;$("rSales").textContent=rp(sales);$("rAvg").textContent=rp(completed.length?sales/completed.length:0);$("rItems").textContent="—";const counts={};orders.forEach(o=>counts[o.status]=(counts[o.status]||0)+1);$("reportStatus").innerHTML=Object.entries(counts).map(([k,v])=>`<div class="item">${statusLabel(k)}: <b>${v}</b></div>`).join("")||'<div class="muted">Belum ada data.</div>'}
+
+async function loadSettings(){
+const {data:q}=await db.from("payment_settings").select("*").limit(1).maybeSingle();if(q)$("qrisUrl").value=q.qris_image_url||"";
+const {data:d}=await db.from("store_settings").select("*").limit(1).maybeSingle();if(d){$("deliveryEnabled").checked=!!d.delivery_enabled;$("deliveryFee").value=d.delivery_fee||0}
+}
+$("saveQris").onclick=async()=>{const {data}=await db.from("payment_settings").select("id").limit(1).maybeSingle();const r=data?await db.from("payment_settings").update({qris_image_url:$("qrisUrl").value.trim()}).eq("id",data.id):await db.from("payment_settings").insert({qris_image_url:$("qrisUrl").value.trim()});msg("qrisMsg",r.error?r.error.message:"QRIS berhasil disimpan.",!!r.error)}
+$("saveDelivery").onclick=async()=>{const {data}=await db.from("store_settings").select("id").limit(1).maybeSingle();const payload={delivery_enabled:$("deliveryEnabled").checked,delivery_fee:Number($("deliveryFee").value||0)};const r=data?await db.from("store_settings").update(payload).eq("id",data.id):await db.from("store_settings").insert(payload);msg("deliveryMsg",r.error?r.error.message:"Pengaturan delivery berhasil disimpan.",!!r.error)}
+$("checkPoint").onclick=async()=>{const phone=$("pointPhone").value.trim();if(!phone)return msg("pointResult","Masukkan nomor HP customer.",true);const {data,error}=await db.rpc("get_customer_points",{p_phone:phone});if(error)return msg("pointResult",error.message,true);const x=Array.isArray(data)?data[0]:data;if(!x)return msg("pointResult","Data customer tidak ditemukan.");$("pointResult").innerHTML=`<div class="stats"><div class="stat"><small>Transaksi Selesai</small><b>${x.orders||0}</b></div><div class="stat"><small>Total Belanja</small><b>${rp(x.spend||0)}</b></div><div class="stat"><small>Point Kavora</small><b>⭐ ${x.points||0}</b></div></div>`}
+init();
 })();
 </script>
-</body></html>
+</body>
+</html>
