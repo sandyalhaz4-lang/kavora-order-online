@@ -20,9 +20,9 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .brand h1{margin:0;font-size:24px}.brand small{opacity:.7}
 .nav button{display:block;width:100%;text-align:left;background:transparent;color:#fff;margin:4px 0;padding:12px;border-radius:10px}
 .nav button:hover,.nav button.active{background:#6b4226}
-.main{margin-left:250px;width:calc(100% - 250px);padding:24px;align-self:flex-start}
+.main{margin-left:250px;width:calc(100% - 250px);padding:24px}
 .mobile-head{display:none}
-.page{display:none!important;position:relative;margin:0;padding:0}.page.active{display:block!important}.quick-point-panel{display:none!important}.page.active#page-customers .quick-point-panel{display:block!important}
+.page{display:none}.page.active{display:block}.quick-point-panel{display:none!important}.page.active#page-customers .quick-point-panel{display:block!important}
 .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 h2{margin:0 0 6px}h3{margin:0 0 12px}
 .muted{color:#756a62}.panel{background:#fff;border-radius:16px;padding:18px;margin:14px 0;box-shadow:0 3px 16px #0000000b}
@@ -56,7 +56,7 @@ label{font-size:13px;font-weight:600}input,select,textarea{width:100%;padding:11
 <p class="muted">Login menggunakan email admin Supabase.</p>
 <input id="email" type="email" value="sandyalhaz79@gmail.com" placeholder="Email admin">
 <button id="loginBtn">Kirim Link Login</button>
-<div id="loginMsg" class="muted" style="margin-top:10px"></div>
+<div id="loginMsg" class="muted" style="margin-top:10px"></div><div id="loginHelp" class="notice" style="margin-top:12px;display:none">Setelah klik link di email, buka kembali halaman Admin Kavora pada browser yang sama. Sesi login akan terbaca otomatis.</div>
 </div>
 
 <div id="app" class="layout hidden">
@@ -72,7 +72,6 @@ label{font-size:13px;font-weight:600}input,select,textarea{width:100%;padding:11
 <button data-page="delivery">🚚 Delivery</button>
 <button data-page="customers">⭐ Customer & Point</button>
 <button data-page="membership">🏆 Membership</button>
-<button data-page="loyalty">🎯 Loyalty</button>
 <button data-page="settings">⚙️ Pengaturan</button>
 </nav>
 <button id="logout" class="secondary" style="width:100%;margin-top:18px">Logout</button>
@@ -206,13 +205,6 @@ label{font-size:13px;font-weight:600}input,select,textarea{width:100%;padding:11
 </div>
 </section>
 
-<section id="page-loyalty" class="page">
-<div class="top"><div><h2>🎯 Loyalty Engine</h2><div class="muted">Atur aturan point dan campaign loyalty tanpa mengubah alur order Fase 1.</div></div><button id="refreshLoyalty" class="secondary">Refresh</button></div>
-<div class="panel"><h3>Pengaturan Point</h3><div class="grid3"><div><label>Belanja per 1 Point</label><input id="loyaltyBase" type="number" min="1" value="10000"></div><div><label>Bonus Point Ulang Tahun</label><input id="loyaltyBirthday" type="number" min="0" value="50"></div><div><label>Bonus Point Referral</label><input id="loyaltyReferral" type="number" min="0" value="50"></div></div><label><input id="loyaltyActive" type="checkbox" checked style="width:auto"> Loyalty aktif</label><div class="row-actions"><button id="saveLoyaltySettings">Simpan Pengaturan</button></div><div id="loyaltySettingsMsg"></div></div>
-<div class="panel"><div class="top"><h3>Campaign Loyalty</h3><button id="newLoyaltyCampaign">+ Tambah Campaign</button></div><div id="loyaltyCampaignsList"></div></div>
-<div id="loyaltyCampaignEditor" class="panel hidden"><h3 id="loyaltyCampaignTitle">Tambah Campaign</h3><input type="hidden" id="loyaltyCampaignId"><div class="grid"><div><label>Nama Campaign</label><input id="loyaltyCampaignName" placeholder="Double Point Weekend"></div><div><label>Deskripsi</label><input id="loyaltyCampaignDesc" placeholder="Bonus point akhir pekan"></div></div><div class="grid3"><div><label>Tipe</label><select id="loyaltyCampaignType"><option value="double_points">Double Point</option><option value="bonus_points">Bonus Point</option></select></div><div><label>Multiplier</label><input id="loyaltyCampaignMultiplier" type="number" min="1" step="0.05" value="2"></div><div><label>Bonus Point</label><input id="loyaltyCampaignBonus" type="number" min="0" value="0"></div></div><div class="grid"><div><label>Mulai</label><input id="loyaltyCampaignStart" type="datetime-local"></div><div><label>Selesai</label><input id="loyaltyCampaignEnd" type="datetime-local"></div></div><label><input id="loyaltyCampaignActive" type="checkbox" checked style="width:auto"> Campaign aktif</label><div class="row-actions"><button id="saveLoyaltyCampaign">Simpan Campaign</button><button id="cancelLoyaltyCampaign" class="secondary">Batal</button></div><div id="loyaltyCampaignMsg"></div></div>
-</section>
-
 <section id="page-settings" class="page">
 <h2>Pengaturan</h2><div class="muted">Informasi dasar sistem Kavora.</div>
 <div class="panel"><div class="grid"><div><label>WhatsApp Order</label><input value="082262877440" id="waNumber"></div><div><label>Email Admin</label><input value="sandyalhaz79@gmail.com" disabled></div></div><div class="notice">WhatsApp order dan email admin digunakan oleh sistem customer/admin yang sudah terhubung.</div></div>
@@ -226,51 +218,62 @@ label{font-size:13px;font-weight:600}input,select,textarea{width:100%;padding:11
 const URL="https://gooawhtldgefmiwplxzs.supabase.co";
 const KEY="sb_publishable_sD0QPAk-uDg5cveBKtwePA_dWV5Q8GH";
 const ADMIN="sandyalhaz79@gmail.com";
-const db=supabase.createClient(URL,KEY);
+const db=supabase.createClient(URL,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:"implicit"}});
 let products=[],orders=[],categories=[],editingProduct=null,editingPromo=null,editingReward=null,crmCustomers=[],selectedCustomer=null,membershipLevels=[];
 const $=id=>document.getElementById(id);
 const rp=n=>new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(Number(n||0));
 const esc=s=>String(s??"").replace(/[&<>\"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]));
 function msg(id,text,error=false){$(id).innerHTML=text?'<div class="notice" style="color:'+(error?'#a33':'#4f463f')+'">'+esc(text)+'</div>':''}
 function nav(page){
+window.scrollTo({top:0,left:0,behavior:"instant"});
+if(document.querySelector(".main")) document.querySelector(".main").scrollTop=0;
 document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
-const target=$("page-"+page);
-if(!target)return;
-target.classList.add("active");
+$("page-"+page).classList.add("active");
 document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
 $("sidebar").classList.remove("open");
-// Reset scroll whenever switching submenu so short pages never appear at the bottom.
-window.scrollTo(0,0);
-document.documentElement.scrollTop=0;
-document.body.scrollTop=0;
-if(page==="products")renderProducts(); if(page==="orders")renderOrders(); if(page==="promos")loadPromos(); if(page==="customers")loadCustomers(); if(page==="membership"){loadCustomers().then(loadMembershipLevels)} if(page==="loyalty"){loadLoyalty()}
+if(page==="products")renderProducts(); if(page==="orders")renderOrders(); if(page==="promos")loadPromos(); if(page==="customers")loadCustomers(); if(page==="membership"){loadCustomers().then(loadMembershipLevels)}
 }
 document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>nav(b.dataset.page));
 $("menuBtn").onclick=()=>$("sidebar").classList.toggle("open");
 
 async function showApp(user){
 if(!user||String(user.email||"").toLowerCase()!==ADMIN){await db.auth.signOut();alert("Email ini bukan akun admin Kavora.");return}
-$("loginPage").classList.add("hidden");$("app").classList.remove("hidden");window.scrollTo(0,0);await refreshAll();
+$("loginPage").classList.add("hidden");$("app").classList.remove("hidden");await refreshAll();
 }
-async function refreshAll(){await loadCategories();await Promise.all([loadProducts(),loadOrders(),loadPromos(),loadRewardsAdmin(),loadSettings(),loadCustomers(),loadLoyalty()]);updateDashboard();updateReports()}
+async function refreshAll(){await loadCategories();await Promise.all([loadProducts(),loadOrders(),loadPromos(),loadRewardsAdmin(),loadSettings(),loadCustomers()]);updateDashboard();updateReports()}
+function authErrorFromUrl(){
+  const h=window.location.hash||"";
+  if(!h.includes("error")) return;
+  const p=new URLSearchParams(h.replace(/^#/,'?'));
+  const desc=p.get("error_description")||p.get("error")||"Login gagal.";
+  msg("loginMsg",decodeURIComponent(desc.replace(/\+/g," ")),true);
+  history.replaceState(null,"",window.location.pathname+window.location.search);
+}
 $("loginBtn").onclick=async()=>{
-const e=$("email").value.trim(),p=$("password").value;
-if(e.toLowerCase()!==ADMIN){msg("loginMsg","Gunakan email admin yang terdaftar.",true);return}
-if(!p){msg("loginMsg","Masukkan password admin.",true);return}
-$("loginBtn").disabled=true;
-const {data,error}=await db.auth.signInWithPassword({email:e,password:p});
-if(error){msg("loginMsg",error.message+" Jika password belum pernah dibuat, gunakan Login dengan Link Email satu kali untuk masuk lalu buat password.",true)}
-else if(data.session){showApp(data.user)}
-$("loginBtn").disabled=false
-}
-$("magicBtn").onclick=async()=>{
-const e=$("email").value.trim();if(e.toLowerCase()!==ADMIN){msg("loginMsg","Gunakan email admin yang terdaftar.",true);return}
-$("magicBtn").disabled=true;const {error}=await db.auth.signInWithOtp({email:e,options:{emailRedirectTo:location.href}});
-msg("loginMsg",error?error.message:"Link login sudah dikirim. Gunakan ini hanya untuk setup/reset akses password.");$("magicBtn").disabled=false
+  const e=$("email").value.trim().toLowerCase();
+  if(e!==ADMIN){msg("loginMsg","Gunakan email admin yang terdaftar.",true);return}
+  $("loginBtn").disabled=true;
+  msg("loginMsg","Mengirim link login...");
+  const redirectTo=window.location.origin+window.location.pathname;
+  const {error}=await db.auth.signInWithOtp({email:e,options:{emailRedirectTo:redirectTo,shouldCreateUser:false}});
+  if(error){
+    msg("loginMsg",error.message,true);
+    $("loginHelp").style.display="none";
+  }else{
+    msg("loginMsg","Link login berhasil dikirim. Buka Gmail dan klik link tersebut.");
+    $("loginHelp").style.display="block";
+  }
+  $("loginBtn").disabled=false;
 };
 $("logout").onclick=()=>db.auth.signOut().then(()=>location.reload());
-db.auth.onAuthStateChange((_e,s)=>{if(s)showApp(s.user)});
-async function init(){const {data}=await db.auth.getSession();if(data.session)showApp(data.session.user)}
+db.auth.onAuthStateChange((_e,s)=>{if(s&&s.user)setTimeout(()=>showApp(s.user),0)});
+async function init(){
+  authErrorFromUrl();
+  const {data,error}=await db.auth.getSession();
+  if(error){msg("loginMsg",error.message,true);return}
+  if(data.session&&data.session.user) await showApp(data.session.user);
+}
+init();
 async function loadCategories(){const {data,error}=await db.from("product_categories").select("*").order("sort_order").order("name");if(error){msg("categoryMsg",error.message,true);return}categories=data||[];renderCategoryControls();renderCategoriesAdmin()}
 function renderCategoryControls(){const f=$("productFilter"),p=$("pcat");if(f)f.innerHTML='<option value="all">Semua kategori</option>'+categories.map(c=>`<option value="${esc(c.name)}">${esc(c.name)}</option>`).join("");if(p)p.innerHTML=categories.map(c=>`<option value="${esc(c.name)}">${esc(c.name)}</option>`).join("")}
 function renderCategoriesAdmin(){$("categoriesList").innerHTML=categories.map(c=>`<div class="item"><div class="top"><b>${esc(c.name)}</b><span class="badge ${c.is_active?'active':'inactive'}">${c.is_active?'Aktif':'Nonaktif'}</span></div><div class="row-actions"><button class="secondary" data-ct="${c.id}">${c.is_active?'Nonaktifkan':'Aktifkan'}</button><button class="danger" data-cd="${c.id}">Hapus</button></div></div>`).join("")||'<div class="muted">Belum ada kategori.</div>';document.querySelectorAll('[data-ct]').forEach(b=>b.onclick=async()=>{const c=categories.find(x=>x.id===b.dataset.ct);if(!c)return;const r=await db.from('product_categories').update({is_active:!c.is_active}).eq('id',c.id);if(r.error)return alert(r.error.message);await loadCategories()});document.querySelectorAll('[data-cd]').forEach(b=>b.onclick=()=>deleteCategory(b.dataset.cd))}
@@ -340,30 +343,12 @@ function renderCustomers(){const q=($("customerSearch")?.value||"").toLowerCase(
 async function selectCustomer(id){const c=crmCustomers.find(x=>x.id===id);if(!c)return;selectedCustomer=c;$("customerEmpty").classList.add("hidden");$("customerDetail").classList.remove("hidden");$("crmName").value=c.name||"";$("crmPhone").value=c.phone||"";$("crmEmail").value=c.email||"";$("crmBirthday").value=c.birthday||"";$("crmAddress").value=c.address||"";$("crmNotes").value=c.notes||"";$("crmMarketing").checked=c.marketing_opt_in!==false;$("customerStats").innerHTML=`<div class="stats"><div class="stat"><small>Point</small><b>⭐ ${c.points||0}</b></div><div class="stat"><small>Transaksi</small><b>${c.total_orders||0}</b></div><div class="stat"><small>Total Belanja</small><b>${rp(c.total_spent||0)}</b></div><div class="stat"><small>Bergabung</small><b style="font-size:14px">${c.created_at?new Date(c.created_at).toLocaleDateString("id-ID"):"-"}</b></div></div>`;await loadCustomerHistory(c)}
 async function loadCustomerHistory(c){const [or,tx]=await Promise.all([db.from("orders").select("id,created_at,status,total,order_type,payment_method,payment_status").eq("member_id",c.id).order("created_at",{ascending:false}).limit(50),db.from("member_transactions").select("id,created_at,type,points,note,order_id").eq("member_id",c.id).order("created_at",{ascending:false}).limit(50)]);if(or.error){$("customerOrders").innerHTML='<div class="notice" style="color:#a33">'+esc(or.error.message)+'</div>'}else{$("customerOrders").innerHTML=(or.data||[]).map(o=>`<div class="item"><b>${new Date(o.created_at).toLocaleString("id-ID")}</b><div>${rp(o.total)} · ${statusLabel(o.status)} · ${esc(o.payment_method||"-")}</div></div>`).join("")||'<div class="muted">Belum ada transaksi.</div>'}if(tx.error){$("customerPointHistory").innerHTML='<div class="notice" style="color:#a33">'+esc(tx.error.message)+'</div>'}else{$("customerPointHistory").innerHTML=(tx.data||[]).map(t=>`<div class="item"><b>${t.points>0?"+":""}${t.points} point</b> · ${esc(t.type||"")}<div class="muted">${new Date(t.created_at).toLocaleString("id-ID")} · ${esc(t.note||"")}</div></div>`).join("")||'<div class="muted">Belum ada riwayat point.</div>'}}
 $("customerSearch").oninput=renderCustomers;$("refreshCustomers").onclick=loadCustomers;$("saveCustomer").onclick=async()=>{if(!selectedCustomer)return;const payload={name:$("crmName").value.trim(),email:$("crmEmail").value.trim()||null,birthday:$("crmBirthday").value||null,address:$("crmAddress").value.trim()||null,notes:$("crmNotes").value.trim()||null,marketing_opt_in:$("crmMarketing").checked,updated_at:new Date().toISOString()};if(!payload.name)return msg("customerMsg","Nama customer wajib diisi.",true);const r=await db.from("members").update(payload).eq("id",selectedCustomer.id);if(r.error)return msg("customerMsg",r.error.message,true);msg("customerMsg","Profil customer berhasil disimpan.");await loadCustomers();selectedCustomer=crmCustomers.find(x=>x.id===selectedCustomer.id);await selectCustomer(selectedCustomer.id)}
-async function loadLoyalty(){
-const {data:settings,error:se}=await db.from("loyalty_settings").select("*").limit(1).maybeSingle();
-if(!se&&settings){$("loyaltyBase").value=settings.base_points_per||10000;$("loyaltyBirthday").value=settings.birthday_bonus_points||0;$("loyaltyReferral").value=settings.referral_bonus_points||0;$("loyaltyActive").checked=!!settings.is_active}
-const {data,error}=await db.from("loyalty_campaigns").select("*").order("created_at",{ascending:false});
-if(error){msg("loyaltyCampaignMsg",error.message,true);return}
-const now=new Date();
-$("loyaltyCampaignsList").innerHTML=(data||[]).map(c=>{const active=c.is_active&&(!c.starts_at||new Date(c.starts_at)<=now)&&(!c.ends_at||new Date(c.ends_at)>=now);return `<div class="item"><div class="top"><div><b>${esc(c.name)}</b><div class="muted">${esc(c.campaign_type)} · ${c.campaign_type==='double_points'?Number(c.multiplier||2)+'x point':('+'+Number(c.bonus_points||0)+' point')}</div></div><div class="row-actions"><button class="secondary" data-loyalty-edit="${c.id}">Edit</button><button class="danger" data-loyalty-toggle="${c.id}">${c.is_active?'Nonaktifkan':'Aktifkan'}</button></div></div><div>${esc(c.description||'')}</div><div class="muted" style="margin-top:6px">${active?'Sedang aktif':'Tidak aktif'}${c.starts_at?' · '+new Date(c.starts_at).toLocaleString('id-ID'):''}${c.ends_at?' → '+new Date(c.ends_at).toLocaleString('id-ID'):''}</div></div>`}).join('')||'<div class="muted">Belum ada campaign.</div>';
-document.querySelectorAll('[data-loyalty-edit]').forEach(b=>b.onclick=()=>editLoyaltyCampaign(b.dataset.loyaltyEdit));
-document.querySelectorAll('[data-loyalty-toggle]').forEach(b=>b.onclick=()=>toggleLoyaltyCampaign(b.dataset.loyaltyToggle));
-}
-$("saveLoyaltySettings").onclick=async()=>{const {data:existing}=await db.from("loyalty_settings").select("id").limit(1).maybeSingle();const payload={base_points_per:Number($("loyaltyBase").value||10000),birthday_bonus_points:Number($("loyaltyBirthday").value||0),referral_bonus_points:Number($("loyaltyReferral").value||0),is_active:$("loyaltyActive").checked,updated_at:new Date().toISOString()};if(existing?.id)await db.from("loyalty_settings").update(payload).eq("id",existing.id);else await db.from("loyalty_settings").insert(payload);msg("loyaltySettingsMsg","Pengaturan loyalty berhasil disimpan.");await loadLoyalty()};
-function clearLoyaltyCampaign(){$("loyaltyCampaignId").value='';$("loyaltyCampaignName").value='';$("loyaltyCampaignDesc").value='';$("loyaltyCampaignType").value='double_points';$("loyaltyCampaignMultiplier").value='2';$("loyaltyCampaignBonus").value='0';$("loyaltyCampaignStart").value='';$("loyaltyCampaignEnd").value='';$("loyaltyCampaignActive").checked=true;msg("loyaltyCampaignMsg",'')}
-function editLoyaltyCampaign(id){db.from('loyalty_campaigns').select('*').eq('id',id).single().then(({data,error})=>{if(error)return msg('loyaltyCampaignMsg',error.message,true);$("loyaltyCampaignId").value=data.id;$("loyaltyCampaignName").value=data.name;$("loyaltyCampaignDesc").value=data.description||'';$("loyaltyCampaignType").value=data.campaign_type;$("loyaltyCampaignMultiplier").value=data.multiplier||2;$("loyaltyCampaignBonus").value=data.bonus_points||0;$("loyaltyCampaignStart").value=data.starts_at?new Date(data.starts_at).toISOString().slice(0,16):'';$("loyaltyCampaignEnd").value=data.ends_at?new Date(data.ends_at).toISOString().slice(0,16):'';$("loyaltyCampaignActive").checked=!!data.is_active;$("loyaltyCampaignEditor").classList.remove('hidden')})}
-$("newLoyaltyCampaign").onclick=()=>{clearLoyaltyCampaign();$("loyaltyCampaignEditor").classList.remove('hidden')};$("cancelLoyaltyCampaign").onclick=()=>{$("loyaltyCampaignEditor").classList.add('hidden')};
-$("saveLoyaltyCampaign").onclick=async()=>{const id=$("loyaltyCampaignId").value;const payload={name:$("loyaltyCampaignName").value.trim(),description:$("loyaltyCampaignDesc").value.trim()||null,campaign_type:$("loyaltyCampaignType").value,multiplier:Number($("loyaltyCampaignMultiplier").value||1),bonus_points:Number($("loyaltyCampaignBonus").value||0),starts_at:$("loyaltyCampaignStart").value?new Date($("loyaltyCampaignStart").value).toISOString():null,ends_at:$("loyaltyCampaignEnd").value?new Date($("loyaltyCampaignEnd").value).toISOString():null,is_active:$("loyaltyCampaignActive").checked,updated_at:new Date().toISOString()};if(!payload.name)return msg('loyaltyCampaignMsg','Nama campaign wajib diisi.',true);const r=id?await db.from('loyalty_campaigns').update(payload).eq('id',id):await db.from('loyalty_campaigns').insert(payload);if(r.error)return msg('loyaltyCampaignMsg',r.error.message,true);msg('loyaltyCampaignMsg','Campaign berhasil disimpan.');$("loyaltyCampaignEditor").classList.add('hidden');await loadLoyalty()};
-async function toggleLoyaltyCampaign(id){const {data}=await db.from('loyalty_campaigns').select('is_active').eq('id',id).single();if(!data)return;await db.from('loyalty_campaigns').update({is_active:!data.is_active,updated_at:new Date().toISOString()}).eq('id',id);await loadLoyalty()}
-
 async function loadMembershipLevels(){const {data,error}=await db.from("membership_levels").select("*").order("sort_order",{ascending:true});if(error){msg("membershipMsg",error.message,true);return}membershipLevels=data||[];["Bronze","Silver","Gold","Platinum"].forEach(n=>{const el=$("m"+n);if(el)el.textContent=crmCustomers.filter(c=>membershipForSpend(Number(c.total_spent||0)).name===n).length});$("membershipLevelsList").innerHTML=membershipLevels.map(l=>`<div class="item"><div class="top"><div><b>${esc(l.name)}</b><div class="muted">Mulai ${rp(l.min_spent)} · ${Number(l.bonus_point_multiplier||1)}x point</div></div><button class="secondary" data-membership-edit="${l.id}">Edit</button></div><div style="margin-top:7px">${esc(l.description||"")}</div></div>`).join("")||'<div class="muted">Belum ada level.</div>';document.querySelectorAll("[data-membership-edit]").forEach(b=>b.onclick=()=>editMembership(b.dataset.membershipEdit))}
 function membershipForSpend(spend){let list=membershipLevels.filter(x=>x.is_active&&Number(x.min_spent||0)<=spend).sort((a,b)=>Number(b.min_spent)-Number(a.min_spent));return list[0]||{name:"Bronze",min_spent:0,bonus_point_multiplier:1}}
 function editMembership(id){const x=membershipLevels.find(v=>v.id===id);if(!x)return;$("membershipId").value=x.id;$("membershipName").value=x.name;$("membershipMinSpent").value=x.min_spent;$("membershipMultiplier").value=x.bonus_point_multiplier;$("membershipDescription").value=x.description||""}
 $("clearMembership").onclick=()=>{$("membershipId").value="";$("membershipName").value="";$("membershipMinSpent").value="0";$("membershipMultiplier").value="1";$("membershipDescription").value="";msg("membershipMsg","")}
 $("saveMembership").onclick=async()=>{const id=$("membershipId").value;const payload={name:$("membershipName").value.trim(),min_spent:Number($("membershipMinSpent").value||0),bonus_point_multiplier:Number($("membershipMultiplier").value||1),description:$("membershipDescription").value.trim()||null,updated_at:new Date().toISOString()};if(!payload.name)return msg("membershipMsg","Nama level wajib diisi.",true);if(payload.min_spent<0||payload.bonus_point_multiplier<1)return msg("membershipMsg","Nilai membership tidak valid.",true);const r=id?await db.from("membership_levels").update(payload).eq("id",id):await db.from("membership_levels").insert(payload);if(r.error)return msg("membershipMsg",r.error.message,true);msg("membershipMsg","Level membership berhasil disimpan.");await loadMembershipLevels()}
 $("checkPoint").onclick=async()=>{const phone=$("pointPhone").value.trim();if(!phone)return msg("pointResult","Masukkan nomor HP customer.",true);const {data,error}=await db.rpc("get_customer_points",{p_phone:phone});if(error)return msg("pointResult",error.message,true);const x=Array.isArray(data)?data[0]:data;if(!x)return msg("pointResult","Data customer tidak ditemukan.");$("pointResult").innerHTML=`<div class="stats"><div class="stat"><small>Transaksi Selesai</small><b>${x.orders||0}</b></div><div class="stat"><small>Total Belanja</small><b>${rp(x.spend||0)}</b></div><div class="stat"><small>Point Kavora</small><b>⭐ ${x.points||0}</b></div></div>`}
-init();
 })();
 </script>
 </body>
