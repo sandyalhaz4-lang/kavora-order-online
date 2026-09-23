@@ -78,7 +78,7 @@ footer{text-align:center;color:#8a7a70;font-size:12px;padding:10px 0 30px}
 <div><label>Tipe Order</label><select id="orderType"><option>Take Away</option><option>Delivery</option></select></div>
 <div class="full" id="deliveryBox" style="display:none"><label>Alamat Delivery</label><textarea id="deliveryAddress" rows="3" placeholder="Masukkan alamat lengkap delivery"></textarea>
 <div id="deliveryFeeInfo" style="font-size:13px;color:#8a7a70;margin-top:-5px">Ongkir: Rp 0</div></div>
-<div class="full"><label>Promo / Voucher</label><div style="display:flex;gap:8px"><input id="promoCode" placeholder="Contoh: KAVORA10" style="flex:1"><button type="button" id="applyPromo" style="white-space:nowrap">Pakai Promo</button></div><div id="promoMsg" style="font-size:13px;margin-top:6px;color:#8a7a70"></div></div><div class="full"><label>🎁 Kode Reward Point</label><div style="display:flex;gap:8px"><input id="rewardCode" placeholder="Kode dari penukaran point" style="flex:1"><button type="button" id="checkReward" style="white-space:nowrap">Gunakan</button></div><div id="rewardMsg" style="font-size:13px;margin-top:6px;color:#8a7a70"></div></div>
+<div class="full"><label>Promo / Voucher</label><div style="display:flex;gap:8px"><input id="promoCode" placeholder="Contoh: KAVORA10" style="flex:1"><button type="button" id="applyPromo" style="white-space:nowrap">Pakai Promo</button></div><div id="promoMsg" style="font-size:13px;margin-top:6px;color:#8a7a70"></div></div><div class="full" id="membershipBenefitBox" style="display:none;border:1px solid #eadfd5;border-radius:12px;padding:12px;background:#fbf7f2"><strong>🏆 Benefit Membership</strong><div id="membershipBenefitContent" style="margin-top:7px;font-size:13px;color:#6f625a">Masukkan nomor HP untuk melihat benefit.</div></div><div class="full"><label>🎁 Kode Reward Point</label><div style="display:flex;gap:8px"><input id="rewardCode" placeholder="Kode dari penukaran point" style="flex:1"><button type="button" id="checkReward" style="white-space:nowrap">Gunakan</button></div><div id="rewardMsg" style="font-size:13px;margin-top:6px;color:#8a7a70"></div></div>
 <div><label>Metode Pembayaran</label><select id="paymentMethod"><option value="cash">Cash / Bayar di Tempat</option><option value="qris">QRIS</option></select></div>
 <div class="full" id="qrisBox" style="display:none;border:1px solid #eadfd5;border-radius:12px;padding:12px;background:#fbf7f2">
 <strong>Bayar dengan QRIS</strong>
@@ -222,6 +222,7 @@ function renderCart(){
  const grand=Math.max(0,subtotal-discount)+delivery;
  totalEl.innerHTML='<div>Subtotal '+rupiah(subtotal)+'</div>'+(discount?'<div style="font-size:14px;color:#4f7a45">Diskon '+rupiah(discount)+(appliedPromo?' ('+esc(appliedPromo.code)+')':'')+'</div>':'')+(delivery?'<div style="font-size:14px;color:#8a7a70">Ongkir '+rupiah(delivery)+'</div>':'')+'<div style="margin-top:5px">'+rupiah(grand)+'</div>';
  checkoutArea.style.display="block";
+ loadMembershipBenefits(document.getElementById("customerPhone")?.value.trim()||"");
  document.querySelectorAll("[data-minus]").forEach(x=>x.onclick=()=>minus(x.dataset.minus));
  document.querySelectorAll("[data-plus]").forEach(x=>x.onclick=()=>add(x.dataset.plus));
 }
@@ -251,6 +252,19 @@ document.getElementById("applyPromo").onclick=async()=>{
 };
 
 
+async function loadMembershipBenefits(phone){
+ const box=document.getElementById('membershipBenefitBox'), content=document.getElementById('membershipBenefitContent');
+ if(!box||!content)return;
+ if(!phone){box.style.display='none';return}
+ const {data,error}=await db.rpc('get_membership_benefits',{p_phone:phone});
+ if(error||!data?.level){box.style.display='none';return}
+ box.style.display='block';
+ const list=(data.benefits||[]).map(b=>'<div style="padding:5px 0">✓ '+esc(b.title)+(b.description?' — '+esc(b.description):'')+'</div>').join('');
+ content.innerHTML='<b>'+esc(data.level.name)+'</b>'+(list||'<div style="margin-top:5px;color:#8a7a70">Belum ada benefit aktif.</div>');
+}
+document.getElementById('customerPhone').addEventListener('blur',e=>loadMembershipBenefits(e.target.value.trim()));
+document.getElementById('pointsPhone').addEventListener('blur',e=>loadMembershipBenefits(e.target.value.trim()));
+
 document.getElementById("checkReward").onclick=async()=>{
  const code=document.getElementById("rewardCode").value.trim().toUpperCase();
  const phone=document.getElementById("customerPhone").value.trim() || document.getElementById("pointsPhone").value.trim();
@@ -272,14 +286,15 @@ async function loadDashboard(phone){
  const orders=(data.orders||[]).map(o=>'<div class="order-item"><div style="display:flex;justify-content:space-between;gap:8px"><b>#'+esc(String(o.id).slice(0,8).toUpperCase())+'</b><span class="status">'+esc(fmtStatus(o.status))+'</span></div><div style="font-size:12px;color:#8a7a70;margin-top:4px">'+new Date(o.created_at).toLocaleString('id-ID')+' • '+esc(o.order_type||'')+'</div><div style="margin-top:7px">'+(o.items||[]).map(i=>esc(i.product_name)+' × '+i.quantity).join(' • ')+'</div><b style="display:block;margin-top:7px">'+rupiah(o.total)+'</b></div>').join('')||'<div class="muted">Belum ada riwayat order.</div>';
  const hist=(data.point_history||[]).map(h=>'<div class="order-item"><div style="display:flex;justify-content:space-between"><b>'+esc(h.type)+'</b><strong style="color:'+(Number(h.points)>=0?'#4f7a45':'#a33')+'">'+(Number(h.points)>=0?'+':'')+Number(h.points)+' ⭐</strong></div><div style="font-size:12px;color:#8a7a70">'+new Date(h.created_at).toLocaleString('id-ID')+'</div><div style="font-size:13px;margin-top:4px">'+esc(h.note||'')+'</div></div>').join('')||'<div class="muted">Belum ada riwayat point.</div>';
  const rewards=(data.rewards||[]).map(r=>'<div class="order-item"><b>'+esc(r.name)+'</b><div style="font-size:12px;color:#8a7a70">'+esc(r.description||'')+'</div><div style="margin-top:5px"><b>'+Number(r.points_cost)+' ⭐</b> → '+(r.reward_type==='fixed_discount'?rupiah(r.reward_value):r.reward_type==='percent_discount'?Number(r.reward_value)+'% diskon':'Reward')+'</div></div>').join('')||'<div class="muted">Belum ada reward aktif.</div>';
+ const benefitRes=await db.rpc('get_membership_benefits',{p_phone:phone}); const benefitData=benefitRes.data||{}; const benefits=(benefitData.benefits||[]).map(b=>'<div class="order-item"><b>'+esc(b.title)+'</b><div style="font-size:13px;color:#6f625a;margin-top:4px">'+esc(b.description||'')+'</div></div>').join('')||'<div class="muted">Belum ada benefit khusus yang aktif untuk level ini.</div>';
  content.innerHTML='<div class="dash-grid"><div class="dash-card"><div class="dash-label">Point</div><div class="dash-value">'+Number(m.points)+' ⭐</div></div><div class="dash-card"><div class="dash-label">Membership</div><div class="dash-value">'+esc(l?.name||'Member')+'</div></div><div class="dash-card"><div class="dash-label">Total Belanja</div><div class="dash-value">'+rupiah(m.total_spent)+'</div></div><div class="dash-card"><div class="dash-label">Total Order</div><div class="dash-value">'+Number(m.total_orders)+'</div></div></div>'+
  '<div class="dash-card" style="margin-top:10px"><b>👋 Halo, '+esc(m.name)+'</b><div style="font-size:13px;color:#8a7a70;margin-top:5px">'+esc(m.phone)+(m.email?' • '+esc(m.email):'')+'</div><div style="margin-top:12px"><b>Level '+esc(l?.name||'Member')+'</b> • '+Number(l?.multiplier||1)+'× point</div>'+(n?'<div style="font-size:12px;color:#8a7a70;margin-top:7px">Menuju '+esc(n.name)+': '+rupiah(n.remaining)+' lagi</div><div class="progress"><i style="width:'+pct+'%"></i></div>':'<div style="font-size:12px;color:#8a7a70;margin-top:7px">Kamu sudah berada di level tertinggi.</div>')+'</div>'+
- '<div class="dash-tabs"><button class="dash-tab active" data-dtab="orders">🧾 Order</button><button class="dash-tab" data-dtab="points">⭐ Point</button><button class="dash-tab" data-dtab="rewards">🎁 Reward</button></div>'+
- '<div class="dash-section active" data-dsection="orders"><div class="dash-card">'+orders+'</div></div><div class="dash-section" data-dsection="points"><div class="dash-card">'+hist+'</div></div><div class="dash-section" data-dsection="rewards"><div class="dash-card">'+rewards+'</div></div>';
+ '<div class="dash-tabs"><button class="dash-tab active" data-dtab="orders">🧾 Order</button><button class="dash-tab" data-dtab="points">⭐ Point</button><button class="dash-tab" data-dtab="rewards">🎁 Reward</button><button class="dash-tab" data-dtab="benefits">🏆 Benefit</button></div>'+
+ '<div class="dash-section active" data-dsection="orders"><div class="dash-card">'+orders+'</div></div><div class="dash-section" data-dsection="points"><div class="dash-card">'+hist+'</div></div><div class="dash-section" data-dsection="rewards"><div class="dash-card">'+rewards+'</div></div><div class="dash-section" data-dsection="benefits"><div class="dash-card"><div style="margin-bottom:8px"><b>Level '+esc(l?.name||'Member')+'</b></div>'+benefits+'</div></div>';
  content.querySelectorAll('[data-dtab]').forEach(b=>b.onclick=()=>{content.querySelectorAll('[data-dtab]').forEach(x=>x.classList.remove('active'));content.querySelectorAll('[data-dsection]').forEach(x=>x.classList.remove('active'));b.classList.add('active');content.querySelector('[data-dsection="'+b.dataset.dtab+'"]').classList.add('active')});
 }
-document.getElementById('openDashboard').onclick=()=>{const s=document.getElementById('dashboardSection');s.style.display='block';s.scrollIntoView({behavior:'smooth',block:'start'});const phone=document.getElementById('customerPhone').value.trim()||document.getElementById('pointsPhone').value.trim();if(phone){document.getElementById('dashboardPhone').value=phone;loadDashboard(phone)}};
-document.getElementById('loadDashboard').onclick=()=>{const p=document.getElementById('dashboardPhone').value.trim();if(!p){alert('Masukkan nomor HP terlebih dahulu.');return}loadDashboard(p)};
+document.getElementById('openDashboard').onclick=()=>{const s=document.getElementById('dashboardSection');s.style.display='block';s.scrollIntoView({behavior:'smooth',block:'start'});const phone=document.getElementById('customerPhone').value.trim()||document.getElementById('pointsPhone').value.trim();if(phone){document.getElementById('dashboardPhone').value=phone;loadDashboard(phone);loadMembershipBenefits(phone)}};
+document.getElementById('loadDashboard').onclick=()=>{const p=document.getElementById('dashboardPhone').value.trim();if(!p){alert('Masukkan nomor HP terlebih dahulu.');return}loadDashboard(p);loadMembershipBenefits(p)};
 
 document.getElementById("orderBtn").onclick=async()=>{
  try{
