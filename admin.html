@@ -159,8 +159,29 @@ label{font-size:13px;font-weight:600}input,select,textarea{width:100%;padding:11
 </section>
 
 <section id="page-customers" class="page">
-<h2>Customer & Point</h2><div class="muted">Cek transaksi dan point berdasarkan nomor HP.</div>
-<div class="panel"><label>No. HP Customer</label><input id="pointPhone" placeholder="08xxxxxxxxxx"><button id="checkPoint">Cek Point</button><div id="pointResult" style="margin-top:14px"></div></div>
+<div class="top"><div><h2>Customer & CRM</h2><div class="muted">Database customer, profil, point, dan riwayat transaksi. Ini adalah tahap pertama Fase 2.</div></div><button id="refreshCustomers" class="secondary">Refresh</button></div>
+<div class="stats" style="margin-top:14px">
+<div class="stat"><small>Total Customer</small><b id="crmTotal">0</b></div>
+<div class="stat"><small>Customer Aktif</small><b id="crmActive">0</b></div>
+<div class="stat"><small>Total Point</small><b id="crmPoints">0</b></div>
+<div class="stat"><small>Total Belanja</small><b id="crmSpend">Rp 0</b></div>
+</div>
+<div class="grid" style="margin-top:14px">
+<div class="panel"><h3>Daftar Customer</h3><input id="customerSearch" placeholder="Cari nama atau nomor HP..."><div id="customersList" style="margin-top:12px"></div></div>
+<div class="panel"><h3>Profil Customer</h3><div id="customerEmpty" class="muted">Pilih customer dari daftar.</div>
+<div id="customerDetail" class="hidden">
+<div class="grid"><div><label>Nama</label><input id="crmName"></div><div><label>No. HP</label><input id="crmPhone" disabled></div></div>
+<div class="grid"><div><label>Email</label><input id="crmEmail" type="email" placeholder="customer@email.com"></div><div><label>Tanggal Lahir</label><input id="crmBirthday" type="date"></div></div>
+<label>Alamat</label><textarea id="crmAddress" rows="2" placeholder="Alamat customer (opsional)"></textarea>
+<label>Catatan Customer</label><textarea id="crmNotes" rows="2" placeholder="Catatan internal admin"></textarea>
+<label><input id="crmMarketing" type="checkbox" style="width:auto"> Bersedia menerima informasi/promosi Kavora</label>
+<div class="row-actions"><button id="saveCustomer">Simpan Profil</button></div><div id="customerMsg"></div>
+<div id="customerStats" style="margin-top:14px"></div>
+<h3 style="margin-top:18px">Riwayat Transaksi</h3><div id="customerOrders"></div>
+<h3 style="margin-top:18px">Riwayat Point</h3><div id="customerPointHistory"></div>
+</div></div></div>
+</div>
+<div class="panel"><h3>Cek Point Cepat</h3><div class="grid"><div><label>No. HP Customer</label><input id="pointPhone" placeholder="08xxxxxxxxxx"></div><div style="display:flex;align-items:end"><button id="checkPoint">Cek Point</button></div></div><div id="pointResult" style="margin-top:14px"></div></div>
 </section>
 
 <section id="page-rewards" class="page">
@@ -190,7 +211,7 @@ const URL="https://gooawhtldgefmiwplxzs.supabase.co";
 const KEY="sb_publishable_sD0QPAk-uDg5cveBKtwePA_dWV5Q8GH";
 const ADMIN="sandyalhaz79@gmail.com";
 const db=supabase.createClient(URL,KEY);
-let products=[],orders=[],categories=[],editingProduct=null,editingPromo=null,editingReward=null;
+let products=[],orders=[],categories=[],editingProduct=null,editingPromo=null,editingReward=null,crmCustomers=[],selectedCustomer=null;
 const $=id=>document.getElementById(id);
 const rp=n=>new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(Number(n||0));
 const esc=s=>String(s??"").replace(/[&<>\"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]));
@@ -200,7 +221,7 @@ document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
 $("page-"+page).classList.add("active");
 document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
 $("sidebar").classList.remove("open");
-if(page==="products")renderProducts(); if(page==="orders")renderOrders(); if(page==="promos")loadPromos();
+if(page==="products")renderProducts(); if(page==="orders")renderOrders(); if(page==="promos")loadPromos(); if(page==="customers")loadCustomers();
 }
 document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>nav(b.dataset.page));
 $("menuBtn").onclick=()=>$("sidebar").classList.toggle("open");
@@ -209,7 +230,7 @@ async function showApp(user){
 if(!user||String(user.email||"").toLowerCase()!==ADMIN){await db.auth.signOut();alert("Email ini bukan akun admin Kavora.");return}
 $("loginPage").classList.add("hidden");$("app").classList.remove("hidden");await refreshAll();
 }
-async function refreshAll(){await loadCategories();await Promise.all([loadProducts(),loadOrders(),loadPromos(),loadRewardsAdmin(),loadSettings()]);updateDashboard();updateReports()}
+async function refreshAll(){await loadCategories();await Promise.all([loadProducts(),loadOrders(),loadPromos(),loadRewardsAdmin(),loadSettings(),loadCustomers()]);updateDashboard();updateReports()}
 $("loginBtn").onclick=async()=>{
 const e=$("email").value.trim();if(e.toLowerCase()!==ADMIN){msg("loginMsg","Gunakan email admin yang terdaftar.",true);return}
 $("loginBtn").disabled=true;const {error}=await db.auth.signInWithOtp({email:e,options:{emailRedirectTo:location.href}});
@@ -282,6 +303,11 @@ async function loadQris(){const {data:q}=await db.from('payment_settings').selec
 $("qrisFile").onchange=()=>{const f=$("qrisFile").files[0];if(!f)return;if(!f.type.startsWith('image/'))return alert('File harus berupa gambar.');if(f.size>5*1024*1024)return alert('Ukuran QRIS maksimal 5 MB.');$("qrisPreview").innerHTML=`<img src="${URL.createObjectURL(f)}" style="max-width:260px;max-height:260px;border-radius:12px">`};
 $("saveQris").onclick=async()=>{const f=$("qrisFile").files[0];if(!f)return msg('qrisMsg','Pilih file QRIS dari device terlebih dahulu.',true);const ext=(f.name.split('.').pop()||'png').toLowerCase().replace(/[^a-z0-9]/g,'')||'png';const path='qris/'+crypto.randomUUID()+'.'+ext;const up=await db.storage.from('payment-assets').upload(path,f,{cacheControl:'3600',upsert:false,contentType:f.type});if(up.error)return msg('qrisMsg','Upload QRIS gagal: '+up.error.message,true);const url=db.storage.from('payment-assets').getPublicUrl(path).data.publicUrl;const {data}=await db.from('payment_settings').select('id').limit(1).maybeSingle();const r=data?await db.from('payment_settings').update({qris_image_url:url,updated_at:new Date().toISOString()}).eq('id',data.id):await db.from('payment_settings').insert({qris_image_url:url});if(r.error)return msg('qrisMsg',r.error.message,true);$("qrisFile").value='';await loadQris();msg('qrisMsg','QRIS berhasil diupload dan disimpan.')}
 $("saveDelivery").onclick=async()=>{const {data}=await db.from("store_settings").select("id").limit(1).maybeSingle();const payload={delivery_enabled:$("deliveryEnabled").checked,delivery_fee:Number($("deliveryFee").value||0)};const r=data?await db.from("store_settings").update(payload).eq("id",data.id):await db.from("store_settings").insert(payload);msg("deliveryMsg",r.error?r.error.message:"Pengaturan delivery berhasil disimpan.",!!r.error)}
+async function loadCustomers(){const {data,error}=await db.from("members").select("*").order("updated_at",{ascending:false});if(error){msg("customerMsg",error.message,true);return}crmCustomers=data||[];$("crmTotal").textContent=crmCustomers.length;$("crmActive").textContent=crmCustomers.filter(x=>x.is_active).length;$("crmPoints").textContent=crmCustomers.reduce((a,x)=>a+Number(x.points||0),0);$("crmSpend").textContent=rp(crmCustomers.reduce((a,x)=>a+Number(x.total_spent||0),0));renderCustomers()}
+function renderCustomers(){const q=($("customerSearch")?.value||"").toLowerCase().trim();const list=crmCustomers.filter(c=>!q||String(c.name||"").toLowerCase().includes(q)||String(c.phone||"").toLowerCase().includes(q));$("customersList").innerHTML=list.map(c=>`<div class="item" style="cursor:pointer" data-customer="${c.id}"><div class="top"><div><b>${esc(c.name)}</b><div class="muted">${esc(c.phone)}</div></div><span class="badge ${c.is_active?'active':'inactive'}">⭐ ${c.points||0}</span></div><div style="margin-top:7px">${c.total_orders||0} transaksi · ${rp(c.total_spent||0)}</div></div>`).join("")||'<div class="muted">Belum ada customer.</div>';document.querySelectorAll("[data-customer]").forEach(b=>b.onclick=()=>selectCustomer(b.dataset.customer))}
+async function selectCustomer(id){const c=crmCustomers.find(x=>x.id===id);if(!c)return;selectedCustomer=c;$("customerEmpty").classList.add("hidden");$("customerDetail").classList.remove("hidden");$("crmName").value=c.name||"";$("crmPhone").value=c.phone||"";$("crmEmail").value=c.email||"";$("crmBirthday").value=c.birthday||"";$("crmAddress").value=c.address||"";$("crmNotes").value=c.notes||"";$("crmMarketing").checked=c.marketing_opt_in!==false;$("customerStats").innerHTML=`<div class="stats"><div class="stat"><small>Point</small><b>⭐ ${c.points||0}</b></div><div class="stat"><small>Transaksi</small><b>${c.total_orders||0}</b></div><div class="stat"><small>Total Belanja</small><b>${rp(c.total_spent||0)}</b></div><div class="stat"><small>Bergabung</small><b style="font-size:14px">${c.created_at?new Date(c.created_at).toLocaleDateString("id-ID"):"-"}</b></div></div>`;await loadCustomerHistory(c)}
+async function loadCustomerHistory(c){const [or,tx]=await Promise.all([db.from("orders").select("id,created_at,status,total,order_type,payment_method,payment_status").eq("member_id",c.id).order("created_at",{ascending:false}).limit(50),db.from("member_transactions").select("id,created_at,type,points,note,order_id").eq("member_id",c.id).order("created_at",{ascending:false}).limit(50)]);if(or.error){$("customerOrders").innerHTML='<div class="notice" style="color:#a33">'+esc(or.error.message)+'</div>'}else{$("customerOrders").innerHTML=(or.data||[]).map(o=>`<div class="item"><b>${new Date(o.created_at).toLocaleString("id-ID")}</b><div>${rp(o.total)} · ${statusLabel(o.status)} · ${esc(o.payment_method||"-")}</div></div>`).join("")||'<div class="muted">Belum ada transaksi.</div>'}if(tx.error){$("customerPointHistory").innerHTML='<div class="notice" style="color:#a33">'+esc(tx.error.message)+'</div>'}else{$("customerPointHistory").innerHTML=(tx.data||[]).map(t=>`<div class="item"><b>${t.points>0?"+":""}${t.points} point</b> · ${esc(t.type||"")}<div class="muted">${new Date(t.created_at).toLocaleString("id-ID")} · ${esc(t.note||"")}</div></div>`).join("")||'<div class="muted">Belum ada riwayat point.</div>'}}
+$("customerSearch").oninput=renderCustomers;$("refreshCustomers").onclick=loadCustomers;$("saveCustomer").onclick=async()=>{if(!selectedCustomer)return;const payload={name:$("crmName").value.trim(),email:$("crmEmail").value.trim()||null,birthday:$("crmBirthday").value||null,address:$("crmAddress").value.trim()||null,notes:$("crmNotes").value.trim()||null,marketing_opt_in:$("crmMarketing").checked,updated_at:new Date().toISOString()};if(!payload.name)return msg("customerMsg","Nama customer wajib diisi.",true);const r=await db.from("members").update(payload).eq("id",selectedCustomer.id);if(r.error)return msg("customerMsg",r.error.message,true);msg("customerMsg","Profil customer berhasil disimpan.");await loadCustomers();selectedCustomer=crmCustomers.find(x=>x.id===selectedCustomer.id);await selectCustomer(selectedCustomer.id)}
 $("checkPoint").onclick=async()=>{const phone=$("pointPhone").value.trim();if(!phone)return msg("pointResult","Masukkan nomor HP customer.",true);const {data,error}=await db.rpc("get_customer_points",{p_phone:phone});if(error)return msg("pointResult",error.message,true);const x=Array.isArray(data)?data[0]:data;if(!x)return msg("pointResult","Data customer tidak ditemukan.");$("pointResult").innerHTML=`<div class="stats"><div class="stat"><small>Transaksi Selesai</small><b>${x.orders||0}</b></div><div class="stat"><small>Total Belanja</small><b>${rp(x.spend||0)}</b></div><div class="stat"><small>Point Kavora</small><b>⭐ ${x.points||0}</b></div></div>`}
 init();
 })();
