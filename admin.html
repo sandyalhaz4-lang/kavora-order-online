@@ -88,6 +88,35 @@ async function init(){const {data}=await db.auth.getSession();if(data.session)sh
 $("send").onclick=async()=>{const e=$("email").value.trim();if(e.toLowerCase()!==ADMIN){$("loginMsg").textContent="Gunakan email admin yang terdaftar.";return}$("send").disabled=true;const {error}=await db.auth.signInWithOtp({email:e,options:{emailRedirectTo:location.href}});$("loginMsg").textContent=error?error.message:"Link login sudah dikirim. Cek Gmail."; $("send").disabled=false}
 $("logout").onclick=()=>db.auth.signOut().then(()=>location.reload());db.auth.onAuthStateChange((_e,s)=>{if(s)showApp(s.user)});
 
+let promoEditing=null;
+async function loadPromos(){
+ const {data,error}=await db.from("promos").select("*").order("created_at",{ascending:false});
+ if(error){$("promos").innerHTML='<p class="muted">'+esc(error.message)+'</p>';return}
+ const list=data||[];
+ $("promos").innerHTML=list.map(p=>`<div class="product"><div class="top"><div><b>${esc(p.code)}</b><div class="muted">${esc(p.description||"")} · ${p.discount_type==="percent"?p.discount_value+"%":rp(p.discount_value)} · Min ${rp(p.min_purchase||0)}</div></div><span>${p.is_active?"🟢 Aktif":"⚪ Nonaktif"}</span></div><div class="top" style="margin-top:8px"><span class="muted">Dipakai ${p.usage_count||0}${p.usage_limit?"/"+p.usage_limit:""} kali</span><span><button type="button" data-promo-edit="${p.id}">Edit</button> <button type="button" class="secondary" data-promo-toggle="${p.id}">${p.is_active?"Nonaktifkan":"Aktifkan"}</button></span></div></div>`).join("")||'<p class="muted">Belum ada promo.</p>';
+ document.querySelectorAll("[data-promo-edit]").forEach(b=>b.onclick=()=>editPromo(b.dataset.promoEdit));
+ document.querySelectorAll("[data-promo-toggle]").forEach(b=>b.onclick=()=>togglePromo(b.dataset.promoToggle));
+}
+function clearPromoEditor(){
+ promoEditing=null;$("promoTitle").textContent="Tambah Promo";$("promoCodeAdmin").value="";$("promoDesc").value="";$("promoType").value="percent";$("promoValue").value="";$("promoMin").value="0";$("promoMax").value="";$("promoStart").value="";$("promoEnd").value="";$("promoLimit").value="";$("promoActive").checked=true;$("promoEditor").classList.add("hidden");
+}
+$("newPromo").onclick=()=>{clearPromoEditor();$("promoEditor").classList.remove("hidden")};
+$("cancelPromo").onclick=clearPromoEditor;
+async function editPromo(id){
+ const {data,error}=await db.from("promos").select("*").eq("id",id).single();if(error)return alert(error.message);
+ promoEditing=id;$("promoTitle").textContent="Edit Promo";$("promoCodeAdmin").value=data.code;$("promoDesc").value=data.description||"";$("promoType").value=data.discount_type;$("promoValue").value=data.discount_value;$("promoMin").value=data.min_purchase||0;$("promoMax").value=data.max_discount??"";$("promoStart").value=data.starts_at?new Date(data.starts_at).toISOString().slice(0,16):"";$("promoEnd").value=data.ends_at?new Date(data.ends_at).toISOString().slice(0,16):"";$("promoLimit").value=data.usage_limit??"";$("promoActive").checked=data.is_active;$("promoEditor").classList.remove("hidden");
+}
+$("savePromo").onclick=async()=>{
+ const code=$("promoCodeAdmin").value.trim().toUpperCase();
+ const value=Number($("promoValue").value||0),min=Number($("promoMin").value||0),max=$("promoMax").value===""?null:Number($("promoMax").value),limit=$("promoLimit").value===""?null:Number($("promoLimit").value);
+ if(!code||value<=0)return alert("Kode dan nilai diskon wajib diisi.");
+ if($("promoType").value==="percent"&&value>100)return alert("Diskon persentase maksimal 100%.");
+ const obj={code,description:$("promoDesc").value.trim(),discount_type:$("promoType").value,discount_value:value,min_purchase:min,max_discount:max,starts_at:$("promoStart").value?new Date($("promoStart").value).toISOString():null,ends_at:$("promoEnd").value?new Date($("promoEnd").value).toISOString():null,usage_limit:limit,is_active:$("promoActive").checked,updated_at:new Date().toISOString()};
+ const res=promoEditing?await db.from("promos").update(obj).eq("id",promoEditing):await db.from("promos").insert(obj);
+ if(res.error)return alert(res.error.message);
+ clearPromoEditor();await loadPromos();
+};
+async function togglePromo(id){const {data,error}=await db.from("promos").select("is_active").eq("id",id).single();if(error)return alert(error.message);const r=await db.from("promos").update({is_active:!data.is_active,updated_at:new Date().toISOString()}).eq("id",id);if(r.error)return alert(r.error.message);loadPromos();}
 async function refreshAll(){await Promise.all([loadProducts(),loadOrders(),loadPromos()]);updateStats();loadReport()}
 async function loadProducts(){const {data,error}=await db.from("products").select("*").order("sort_order");if(error){$("products").textContent=error.message;return}products=data||[];renderProducts()}
 function renderProducts(){const q=$("productSearch").value.trim().toLowerCase(),c=$("productFilter").value;const a=products.filter(p=>(c==="all"||p.category===c)&&(!q||p.name.toLowerCase().includes(q)));$("products").innerHTML=a.map(p=>`<div class="product"><div class="top"><div><b>${esc(p.name)}</b><div class="muted">${esc(p.category)} · ${esc(p.description||"")}</div></div><div class="price">${rp(p.price)}</div></div><div style="margin-top:8px;display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap">
