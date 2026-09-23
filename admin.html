@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kavora Admin V16</title>
+<title>Kavora Admin V18</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box}
@@ -61,7 +61,7 @@ label{font-size:13px;font-weight:600}input,select,textarea{width:100%;padding:11
 
 <div id="app" class="layout hidden">
 <aside id="sidebar" class="sidebar">
-<div class="brand"><h1>KAVORA</h1><small>Admin Dashboard V16</small></div>
+<div class="brand"><h1>KAVORA</h1><small>Admin Dashboard V18</small></div>
 <nav class="nav">
 <button data-page="dashboard" class="active">🏠 Dashboard</button>
 <button data-page="products">☕ Menu Produk</button>
@@ -71,6 +71,7 @@ label{font-size:13px;font-weight:600}input,select,textarea{width:100%;padding:11
 <button data-page="payments">💳 Pembayaran</button>
 <button data-page="delivery">🚚 Delivery</button>
 <button data-page="customers">⭐ Customer & Point</button>
+<button data-page="rewards">🎁 Rewards</button>
 <button data-page="settings">⚙️ Pengaturan</button>
 </nav>
 <button id="logout" class="secondary" style="width:100%;margin-top:18px">Logout</button>
@@ -92,13 +93,14 @@ label{font-size:13px;font-weight:600}input,select,textarea{width:100%;padding:11
 
 <section id="page-products" class="page">
 <div class="top"><div><h2>Menu Produk</h2><div class="muted">Kelola menu, harga, foto, kategori, dan stok.</div></div><button id="newProduct">+ Tambah Produk</button></div>
-<div class="panel"><div class="toolbar"><input id="productSearch" placeholder="Cari produk..."><select id="productFilter"><option value="all">Semua kategori</option><option>Coffee</option><option>Non Coffee</option><option>Snack</option></select></div><div id="productsList"></div></div>
+<div class="panel"><div class="toolbar"><input id="productSearch" placeholder="Cari produk..."><select id="productFilter"><option value="all">Semua kategori</option></select><button id="manageCategories" class="secondary">⚙️ Kelola Kategori</button></div><div id="productsList"></div></div>
+<div id="categoryEditor" class="panel hidden"><h3>Kelola Kategori</h3><div class="grid"><div><label>Nama Kategori Baru</label><input id="newCategoryName" placeholder="Contoh: Coffee Milk"></div><div style="display:flex;align-items:end"><button id="addCategory">+ Tambah Kategori</button></div></div><div id="categoriesList"></div><div id="categoryMsg"></div></div>
 <div id="productEditor" class="panel hidden">
 <h3 id="productEditorTitle">Tambah Produk</h3>
 <div class="grid"><div><label>Nama</label><input id="pname"></div><div><label>Harga</label><input id="price" type="number" min="0"></div></div>
-<div class="grid"><div><label>Kategori</label><select id="pcat"><option>Coffee</option><option>Non Coffee</option><option>Snack</option></select></div><div><label>Urutan</label><input id="sort" type="number" min="0"></div></div>
+<div class="grid"><div><label>Kategori</label><select id="pcat"></select></div><div><label>Urutan</label><input id="sort" type="number" min="0"></div></div>
 <label>Deskripsi</label><textarea id="desc" rows="3"></textarea>
-<label>URL Foto</label><input id="image">
+<label>Foto Produk</label><input id="image" placeholder="URL foto (opsional)"><input id="imageFile" type="file" accept="image/*"><div id="imagePreview" class="notice">Belum ada foto. Pilih file dari device atau gunakan URL.</div>
 <label>Stok</label><input id="stock" type="number" min="0" value="999">
 <label><input id="active" type="checkbox" checked style="width:auto"> Produk aktif</label>
 <div class="row-actions"><button id="saveProduct">Simpan</button><button id="cancelProduct" class="secondary">Batal</button></div>
@@ -134,7 +136,7 @@ label{font-size:13px;font-weight:600}input,select,textarea{width:100%;padding:11
 
 <section id="page-payments" class="page">
 <h2>Pembayaran</h2><div class="muted">Pengaturan QRIS dan metode pembayaran.</div>
-<div class="panel"><h3>QRIS</h3><label>URL QRIS</label><input id="qrisUrl" placeholder="URL gambar QRIS"><button id="saveQris">Simpan QRIS</button><div id="qrisMsg" class="notice"></div></div>
+<div class="panel"><h3>QRIS</h3><label>Upload QRIS dari Device</label><input id="qrisFile" type="file" accept="image/*"><div id="qrisPreview" class="notice">QRIS belum diupload.</div><div class="row-actions"><button id="saveQris">Upload & Simpan QRIS</button></div><div id="qrisMsg" class="notice"></div></div>
 <div class="panel"><h3>Metode</h3><div class="notice">Customer dapat memilih Cash / Bayar di Tempat atau QRIS pada checkout.</div></div>
 </section>
 
@@ -146,6 +148,19 @@ label{font-size:13px;font-weight:600}input,select,textarea{width:100%;padding:11
 <section id="page-customers" class="page">
 <h2>Customer & Point</h2><div class="muted">Cek transaksi dan point berdasarkan nomor HP.</div>
 <div class="panel"><label>No. HP Customer</label><input id="pointPhone" placeholder="08xxxxxxxxxx"><button id="checkPoint">Cek Point</button><div id="pointResult" style="margin-top:14px"></div></div>
+</section>
+
+<section id="page-rewards" class="page">
+<div class="top"><div><h2>Rewards Point</h2><div class="muted">Kelola hadiah yang bisa ditukar customer menggunakan point.</div></div><button id="newReward">+ Tambah Reward</button></div>
+<div class="panel"><div id="rewardsList"></div></div>
+<div id="rewardEditor" class="panel hidden">
+<h3 id="rewardEditorTitle">Tambah Reward</h3>
+<div class="grid"><div><label>Nama Reward</label><input id="rewardName"></div><div><label>Deskripsi</label><input id="rewardDesc"></div></div>
+<div class="grid3"><div><label>Point Dibutuhkan</label><input id="rewardCost" type="number" min="1"></div><div><label>Tipe Reward</label><select id="rewardType"><option value="fixed_discount">Diskon Nominal</option><option value="percent_discount">Diskon Persen</option></select></div><div><label>Nilai Reward</label><input id="rewardValue" type="number" min="0"></div></div>
+<label><input id="rewardActive" type="checkbox" checked style="width:auto"> Reward aktif</label>
+<div class="row-actions"><button id="saveReward">Simpan Reward</button><button id="cancelReward" class="secondary">Batal</button></div>
+<div id="rewardMsg"></div>
+</div>
 </section>
 
 <section id="page-settings" class="page">
@@ -162,7 +177,7 @@ const URL="https://gooawhtldgefmiwplxzs.supabase.co";
 const KEY="sb_publishable_sD0QPAk-uDg5cveBKtwePA_dWV5Q8GH";
 const ADMIN="sandyalhaz79@gmail.com";
 const db=supabase.createClient(URL,KEY);
-let products=[],orders=[],editingProduct=null,editingPromo=null;
+let products=[],orders=[],editingProduct=null,editingPromo=null,editingReward=null;
 const $=id=>document.getElementById(id);
 const rp=n=>new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(Number(n||0));
 const esc=s=>String(s??"").replace(/[&<>\"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]));
@@ -181,7 +196,7 @@ async function showApp(user){
 if(!user||String(user.email||"").toLowerCase()!==ADMIN){await db.auth.signOut();alert("Email ini bukan akun admin Kavora.");return}
 $("loginPage").classList.add("hidden");$("app").classList.remove("hidden");await refreshAll();
 }
-async function refreshAll(){await Promise.all([loadProducts(),loadOrders(),loadPromos(),loadSettings()]);updateDashboard();updateReports()}
+async function refreshAll(){await loadCategories();await Promise.all([loadProducts(),loadOrders(),loadPromos(),loadRewardsAdmin(),loadSettings()]);updateDashboard();updateReports()}
 $("loginBtn").onclick=async()=>{
 const e=$("email").value.trim();if(e.toLowerCase()!==ADMIN){msg("loginMsg","Gunakan email admin yang terdaftar.",true);return}
 $("loginBtn").disabled=true;const {error}=await db.auth.signInWithOtp({email:e,options:{emailRedirectTo:location.href}});
@@ -194,21 +209,46 @@ async function loadProducts(){const {data,error}=await db.from("products").selec
 function renderProducts(){
 const q=$("productSearch").value.toLowerCase(),cat=$("productFilter").value;
 const list=products.filter(p=>(cat==="all"||p.category===cat)&&(!q||String(p.name).toLowerCase().includes(q)));
-$("productsList").innerHTML=list.map(p=>`<div class="item"><div class="top"><div><b>${esc(p.name)}</b><div class="muted">${esc(p.category)} · ${esc(p.description||"")}</div></div><b>${rp(p.price)}</b></div><div class="row-actions"><span class="badge ${p.stock<=0?'sold':p.stock<=5?'warning':'active'}">Stok: ${p.stock??999}</span><span class="badge ${p.is_active?'active':'inactive'}">${p.is_active?'Aktif':'Nonaktif'}</span><button data-pe="${p.id}">Edit</button><button class="secondary" data-pt="${p.id}">${p.is_active?'Nonaktifkan':'Aktifkan'}</button></div></div>`).join("")||'<div class="muted">Belum ada produk.</div>';
+$("productsList").innerHTML=list.map(p=>`<div class="item"><div class="top"><div><b>${esc(p.name)}</b><div class="muted">${esc(p.category)} · ${esc(p.description||"")}</div></div><b>${rp(p.price)}</b></div><div class="row-actions"><span class="badge ${p.stock<=0?'sold':p.stock<=5?'warning':'active'}">Stok: ${p.stock??999}</span><span class="badge ${p.is_active?'active':'inactive'}">${p.is_active?'Aktif':'Nonaktif'}</span><button data-pe="${p.id}">Edit</button><button class="secondary" data-pt="${p.id}">${p.is_active?'Nonaktifkan':'Aktifkan'}</button><button class="danger" data-pd="${p.id}">Hapus</button></div></div>`).join("")||'<div class="muted">Belum ada produk.</div>';
 document.querySelectorAll("[data-pe]").forEach(b=>b.onclick=()=>editProduct(b.dataset.pe));
-document.querySelectorAll("[data-pt]").forEach(b=>b.onclick=()=>toggleProduct(b.dataset.pt));
+document.querySelectorAll("[data-pt]").forEach(b=>b.onclick=()=>toggleProduct(b.dataset.pt));document.querySelectorAll("[data-pd]").forEach(b=>b.onclick=()=>deleteProduct(b.dataset.pd));
+}
+async function loadCategories(){
+ const {data,error}=await db.from("product_categories").select("*").order("sort_order").order("name");
+ if(error){console.warn(error.message);return []}
+ categories=data||[]; renderCategoryControls(); renderCategoriesAdmin(); return categories;
+}
+function renderCategoryControls(){
+ const opts='<option value="all">Semua kategori</option>'+categories.filter(c=>c.is_active).map(c=>`<option value="${esc(c.name)}">${esc(c.name)}</option>`).join("");
+ $("productFilter").innerHTML=opts;
+ const current=$('pcat').value;
+ $("pcat").innerHTML=categories.filter(c=>c.is_active).map(c=>`<option value="${esc(c.name)}">${esc(c.name)}</option>`).join("");
+ if(current && categories.some(c=>c.name===current)) $("pcat").value=current;
+}
+function renderCategoriesAdmin(){
+ $("categoriesList").innerHTML=categories.map(c=>`<div class="item"><div class="top"><div><b>${esc(c.name)}</b><div class="muted">Urutan: ${c.sort_order||0}</div></div><span class="badge ${c.is_active?'active':'inactive'}">${c.is_active?'Aktif':'Nonaktif'}</span></div><div class="row-actions"><button data-ca="${c.id}" class="secondary">${c.is_active?'Nonaktifkan':'Aktifkan'}</button><button data-cd="${c.id}" class="danger">Hapus</button></div></div>`).join("")||'<div class="muted">Belum ada kategori.</div>';
+ document.querySelectorAll("[data-ca]").forEach(b=>b.onclick=()=>toggleCategory(b.dataset.ca));
+ document.querySelectorAll("[data-cd]").forEach(b=>b.onclick=()=>deleteCategory(b.dataset.cd));
+}
+async function loadProducts(){const {data,error}=await db.from("products").select("*").order("sort_order").order("name");if(error)return msg("productMsg",error.message,true);products=data||[];renderProducts()}
+function renderProducts(){
+ const q=$("productSearch").value.toLowerCase(),cat=$("productFilter").value;
+ const list=products.filter(p=>(cat==="all"||p.category===cat)&&(!q||String(p.name).toLowerCase().includes(q)));
+ $("productsList").innerHTML=list.map(p=>`<div class="item"><div class="top"><div><b>${esc(p.name)}</b><div class="muted">${esc(p.category)} · ${esc(p.description||"")}</div></div><b>${rp(p.price)}</b></div><div class="row-actions"><span class="badge ${p.stock<=0?'sold':p.stock<=5?'warning':'active'}">Stok: ${p.stock??999}</span><span class="badge ${p.is_active?'active':'inactive'}">${p.is_active?'Aktif':'Nonaktif'}</span><button data-pe="${p.id}">Edit</button><button class="secondary" data-pt="${p.id}">${p.is_active?'Nonaktifkan':'Aktifkan'}</button><button class="danger" data-pd="${p.id}">Hapus</button></div></div>`).join("")||'<div class="muted">Belum ada produk.</div>';
+ document.querySelectorAll("[data-pe]").forEach(b=>b.onclick=()=>editProduct(b.dataset.pe));document.querySelectorAll("[data-pt]").forEach(b=>b.onclick=()=>toggleProduct(b.dataset.pt));document.querySelectorAll("[data-pd]").forEach(b=>b.onclick=()=>deleteProduct(b.dataset.pd));
 }
 $("productSearch").oninput=renderProducts;$("productFilter").onchange=renderProducts;
-$("newProduct").onclick=()=>{editingProduct=null;$("productEditorTitle").textContent="Tambah Produk";["pname","price","desc","image"].forEach(x=>$(x).value="");$("pcat").value="Coffee";$("sort").value=0;$("stock").value=999;$("active").checked=true;$("productEditor").classList.remove("hidden")};
-async function editProduct(id){const p=products.find(x=>x.id===id);if(!p)return;editingProduct=id;$("productEditorTitle").textContent="Edit Produk";$("pname").value=p.name;$("price").value=p.price;$("pcat").value=p.category;$("sort").value=p.sort_order||0;$("desc").value=p.description||"";$("image").value=p.image_url||"";$("stock").value=p.stock??999;$("active").checked=!!p.is_active;$("productEditor").classList.remove("hidden")}
+$("manageCategories").onclick=()=>$("categoryEditor").classList.toggle("hidden");
+$("addCategory").onclick=async()=>{const name=$("newCategoryName").value.trim();if(!name)return msg("categoryMsg","Nama kategori wajib diisi.",true);const r=await db.from("product_categories").insert({name,sort_order:categories.length});if(r.error)return msg("categoryMsg",r.error.message,true);$("newCategoryName").value="";await loadCategories();msg("categoryMsg","Kategori berhasil ditambahkan.")};
+async function toggleCategory(id){const c=categories.find(x=>x.id===id);if(!c)return;const r=await db.from("product_categories").update({is_active:!c.is_active}).eq("id",id);if(r.error)return alert(r.error.message);await loadCategories();}
+async function deleteCategory(id){const c=categories.find(x=>x.id===id);if(!c)return;if(products.some(p=>p.category===c.name))return alert("Kategori masih digunakan oleh produk. Pindahkan produk ke kategori lain terlebih dahulu.");if(!confirm(`Hapus kategori ${c.name}?`))return;const r=await db.from("product_categories").delete().eq("id",id);if(r.error)return alert(r.error.message);await loadCategories();}
+$("newProduct").onclick=()=>{editingProduct=null;$("productEditorTitle").textContent="Tambah Produk";["pname","price","desc","image"].forEach(x=>$(x).value="");$("imageFile").value="";$("imagePreview").innerHTML='<span class="muted">Belum ada foto.</span>';$('sort').value=0;$('stock').value=999;$('active').checked=true;if(categories.length)$("pcat").value=categories.find(c=>c.is_active)?.name||categories[0].name;$("productEditor").classList.remove("hidden")};
+async function editProduct(id){const p=products.find(x=>x.id===id);if(!p)return;editingProduct=id;$("productEditorTitle").textContent="Edit Produk";$("pname").value=p.name;$("price").value=p.price;$("pcat").value=p.category;$("sort").value=p.sort_order||0;$("desc").value=p.description||"";$("image").value=p.image_url||"";$("imageFile").value="";$("imagePreview").innerHTML=p.image_url?`<img src="${esc(p.image_url)}" style="width:140px;height:100px;object-fit:cover;border-radius:10px">`:'<span class="muted">Belum ada foto.</span>';$("stock").value=p.stock??999;$("active").checked=!!p.is_active;$("productEditor").classList.remove("hidden")}
+$("imageFile").onchange=()=>{const f=$("imageFile").files[0];if(!f)return;if(!f.type.startsWith("image/"))return alert("File harus berupa gambar.");if(f.size>5*1024*1024)return alert("Ukuran foto maksimal 5 MB.");$("imagePreview").innerHTML=`<img src="${URL.createObjectURL(f)}" style="width:140px;height:100px;object-fit:cover;border-radius:10px">`};
 $("cancelProduct").onclick=()=>$("productEditor").classList.add("hidden");
-$("saveProduct").onclick=async()=>{
-const payload={name:$("pname").value.trim(),price:Number($("price").value),category:$("pcat").value,sort_order:Number($("sort").value||0),description:$("desc").value.trim(),image_url:$("image").value.trim()||null,stock:Number($("stock").value||0),is_active:$("active").checked};
-if(!payload.name||payload.price<0)return msg("productMsg","Nama dan harga wajib diisi.",true);
-const r=editingProduct?await db.from("products").update(payload).eq("id",editingProduct):await db.from("products").insert(payload);
-if(r.error)return msg("productMsg",r.error.message,true);$("productEditor").classList.add("hidden");await loadProducts();updateDashboard();msg("productMsg","Produk berhasil disimpan.")
-};
-async function toggleProduct(id){const p=products.find(x=>x.id===id);if(!p)return;const {error}=await db.from("products").update({is_active:!p.is_active}).eq("id",id);if(error)return alert(error.message);await loadProducts();updateDashboard()}
+$("saveProduct").onclick=async()=>{const payload={name:$("pname").value.trim(),price:Number($("price").value),category:$("pcat").value,sort_order:Number($("sort").value||0),description:$("desc").value.trim(),image_url:$("image").value.trim()||null,stock:Math.max(0,Number($("stock").value||0)),is_active:$("active").checked};if(!payload.name||payload.price<0||!payload.category)return msg("productMsg","Nama, harga, dan kategori wajib diisi.",true);const file=$("imageFile").files[0];if(file){if(!file.type.startsWith("image/"))return alert("File harus berupa gambar.");if(file.size>5*1024*1024)return alert("Ukuran foto maksimal 5 MB.");const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg";const path="products/"+crypto.randomUUID()+"."+ext;const up=await db.storage.from("product-images").upload(path,file,{cacheControl:"3600",upsert:false,contentType:file.type});if(up.error)return alert("Upload foto gagal: "+up.error.message);payload.image_url=db.storage.from("product-images").getPublicUrl(path).data.publicUrl}const r=editingProduct?await db.from("products").update(payload).eq("id",editingProduct):await db.from("products").insert(payload);if(r.error)return msg("productMsg",r.error.message,true);$("productEditor").classList.add("hidden");await loadProducts();updateDashboard();msg("productMsg","Produk berhasil disimpan.")};
+async function toggleProduct(id){const p=products.find(x=>x.id===id);if(!p)return;const r=await db.from("products").update({is_active:!p.is_active}).eq("id",id);if(r.error)return alert(r.error.message);await loadProducts();updateDashboard()}
+async function deleteProduct(id){const p=products.find(x=>x.id===id);if(!p)return;if(!confirm(`Hapus menu ${p.name}? Tindakan ini tidak bisa dibatalkan.`))return;const r=await db.from("products").delete().eq("id",id);if(r.error)return alert("Gagal hapus menu: "+r.error.message);await loadProducts();updateDashboard();alert("Menu berhasil dihapus.")}
 
 async function loadPromos(){const {data,error}=await db.from("promos").select("*").order("created_at",{ascending:false});if(error){msg("promoMsg",error.message,true);return}renderPromos(data||[])}
 function renderPromos(list){
@@ -237,11 +277,26 @@ function updateDashboard(){const today=new Date().toISOString().slice(0,10);cons
 $("dashRefresh").onclick=refreshAll;
 function updateReports(){const completed=orders.filter(o=>o.status==="completed");const sales=completed.reduce((a,o)=>a+Number(o.total||0),0);$("rOrders").textContent=completed.length;$("rSales").textContent=rp(sales);$("rAvg").textContent=rp(completed.length?sales/completed.length:0);$("rItems").textContent="—";const counts={};orders.forEach(o=>counts[o.status]=(counts[o.status]||0)+1);$("reportStatus").innerHTML=Object.entries(counts).map(([k,v])=>`<div class="item">${statusLabel(k)}: <b>${v}</b></div>`).join("")||'<div class="muted">Belum ada data.</div>'}
 
+
+async function loadRewardsAdmin(){
+ const {data,error}=await db.from("rewards").select("*").order("points_cost",{ascending:true});
+ if(error){msg("rewardMsg",error.message,true);return}
+ $("rewardsList").innerHTML=(data||[]).map(r=>`<div class="item"><div class="top"><div><b>${esc(r.name)}</b><div class="muted">${esc(r.description||"")}</div></div><span class="badge ${r.is_active?"active":"inactive"}">${r.is_active?"Aktif":"Nonaktif"}</span></div><div style="margin-top:8px">${r.points_cost} ⭐ → ${r.reward_type==="fixed_discount"?rp(r.reward_value):r.reward_value+"%"}</div><div class="row-actions"><button data-re="${r.id}">Edit</button><button class="secondary" data-rt="${r.id}">${r.is_active?"Nonaktifkan":"Aktifkan"}</button></div></div>`).join("")||'<div class="muted">Belum ada reward.</div>';
+ document.querySelectorAll("[data-re]").forEach(b=>b.onclick=()=>editReward(b.dataset.re));
+ document.querySelectorAll("[data-rt]").forEach(b=>b.onclick=()=>toggleReward(b.dataset.rt));
+}
+$("newReward").onclick=()=>{editingReward=null;$("rewardEditorTitle").textContent="Tambah Reward";$("rewardName").value="";$("rewardDesc").value="";$("rewardCost").value="100";$("rewardType").value="fixed_discount";$("rewardValue").value="10000";$("rewardActive").checked=true;$("rewardEditor").classList.remove("hidden")};
+$("cancelReward").onclick=()=>$("rewardEditor").classList.add("hidden");
+async function editReward(id){const {data,error}=await db.from("rewards").select("*").eq("id",id).single();if(error)return alert(error.message);editingReward=id;$("rewardEditorTitle").textContent="Edit Reward";$("rewardName").value=data.name;$("rewardDesc").value=data.description||"";$("rewardCost").value=data.points_cost;$("rewardType").value=data.reward_type;$("rewardValue").value=data.reward_value;$("rewardActive").checked=!!data.is_active;$("rewardEditor").classList.remove("hidden")}
+async function toggleReward(id){const {data,error}=await db.from("rewards").select("is_active").eq("id",id).single();if(error)return alert(error.message);const r=await db.from("rewards").update({is_active:!data.is_active}).eq("id",id);if(r.error)return alert(r.error.message);loadRewardsAdmin()}
+$("saveReward").onclick=async()=>{const payload={name:$("rewardName").value.trim(),description:$("rewardDesc").value.trim(),points_cost:Number($("rewardCost").value||0),reward_type:$("rewardType").value,reward_value:Number($("rewardValue").value||0),is_active:$("rewardActive").checked};if(!payload.name||payload.points_cost<=0||payload.reward_value<0)return msg("rewardMsg","Nama, point, dan nilai reward wajib diisi.",true);const r=editingReward?await db.from("rewards").update(payload).eq("id",editingReward):await db.from("rewards").insert(payload);if(r.error)return msg("rewardMsg",r.error.message,true);$("rewardEditor").classList.add("hidden");await loadRewardsAdmin();msg("rewardMsg","Reward berhasil disimpan.")};
+
 async function loadSettings(){
-const {data:q}=await db.from("payment_settings").select("*").limit(1).maybeSingle();if(q)$("qrisUrl").value=q.qris_image_url||"";
+const {data:q}=await db.from("payment_settings").select("*").limit(1).maybeSingle();if(q)$("qrisPreview").innerHTML=q.qris_image_url?`<img src="${esc(q.qris_image_url)}" style="max-width:260px;max-height:260px;border-radius:12px;border:1px solid #eee">`:'<span class="muted">QRIS belum diupload.</span>';
 const {data:d}=await db.from("store_settings").select("*").limit(1).maybeSingle();if(d){$("deliveryEnabled").checked=!!d.delivery_enabled;$("deliveryFee").value=d.delivery_fee||0}
 }
-$("saveQris").onclick=async()=>{const {data}=await db.from("payment_settings").select("id").limit(1).maybeSingle();const r=data?await db.from("payment_settings").update({qris_image_url:$("qrisUrl").value.trim()}).eq("id",data.id):await db.from("payment_settings").insert({qris_image_url:$("qrisUrl").value.trim()});msg("qrisMsg",r.error?r.error.message:"QRIS berhasil disimpan.",!!r.error)}
+$("qrisFile").onchange=()=>{const f=$("qrisFile").files[0];if(!f)return;if(!f.type.startsWith("image/"))return alert("File harus berupa gambar.");if(f.size>5*1024*1024)return alert("Ukuran QRIS maksimal 5 MB.");$("qrisPreview").innerHTML=`<img src="${URL.createObjectURL(f)}" style="max-width:260px;max-height:260px;border-radius:12px">`};
+$("saveQris").onclick=async()=>{const f=$("qrisFile").files[0];if(!f)return msg("qrisMsg","Pilih file QRIS dari device terlebih dahulu.",true);if(!f.type.startsWith("image/")||f.size>5*1024*1024)return alert("File QRIS tidak valid atau terlalu besar.");const ext=(f.name.split(".").pop()||"png").toLowerCase().replace(/[^a-z0-9]/g,"")||"png";const path="qris/"+crypto.randomUUID()+"."+ext;const up=await db.storage.from("payment-assets").upload(path,f,{cacheControl:"3600",upsert:false,contentType:f.type});if(up.error)return alert("Upload QRIS gagal: "+up.error.message);const url=db.storage.from("payment-assets").getPublicUrl(path).data.publicUrl;const {data}=await db.from("payment_settings").select("id").limit(1).maybeSingle();const r=data?await db.from("payment_settings").update({qris_image_url:url,updated_at:new Date().toISOString()}).eq("id",data.id):await db.from("payment_settings").insert({qris_image_url:url});if(r.error)return alert(r.error.message);$("qrisFile").value="";await loadSettings();msg("qrisMsg","QRIS berhasil diupload dan disimpan.")};
 $("saveDelivery").onclick=async()=>{const {data}=await db.from("store_settings").select("id").limit(1).maybeSingle();const payload={delivery_enabled:$("deliveryEnabled").checked,delivery_fee:Number($("deliveryFee").value||0)};const r=data?await db.from("store_settings").update(payload).eq("id",data.id):await db.from("store_settings").insert(payload);msg("deliveryMsg",r.error?r.error.message:"Pengaturan delivery berhasil disimpan.",!!r.error)}
 $("checkPoint").onclick=async()=>{const phone=$("pointPhone").value.trim();if(!phone)return msg("pointResult","Masukkan nomor HP customer.",true);const {data,error}=await db.rpc("get_customer_points",{p_phone:phone});if(error)return msg("pointResult",error.message,true);const x=Array.isArray(data)?data[0]:data;if(!x)return msg("pointResult","Data customer tidak ditemukan.");$("pointResult").innerHTML=`<div class="stats"><div class="stat"><small>Transaksi Selesai</small><b>${x.orders||0}</b></div><div class="stat"><small>Total Belanja</small><b>${rp(x.spend||0)}</b></div><div class="stat"><small>Point Kavora</small><b>⭐ ${x.points||0}</b></div></div>`}
 init();
