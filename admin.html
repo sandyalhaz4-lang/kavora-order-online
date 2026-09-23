@@ -19,8 +19,6 @@ input,select,textarea{width:100%;padding:11px;border:1px solid #ddd3cb;border-ra
 .report{display:grid;grid-template-columns:1fr 1fr;gap:12px}.reportbox{padding:16px;border:1px solid #eee;border-radius:14px}.reportbox b{font-size:22px;display:block;margin-top:6px}
 .detail{background:#faf8f5;border-radius:12px;padding:12px;margin-top:10px}.item{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #eee}.item:last-child{border-bottom:0}
 @media(max-width:700px){.grid4{grid-template-columns:1fr 1fr}.two,.report{grid-template-columns:1fr}}
-
-.adminnav{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 14px;margin-bottom:4px;position:sticky;top:0;z-index:10;background:#f7f2ea}.navbtn{white-space:nowrap;background:#fff;color:#4a3528;border:1px solid #e7ddd4;padding:10px 13px;border-radius:12px;font-weight:600}.navbtn.active{background:#6b4226;color:#fff;border-color:#6b4226}.sectionhead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:4px 0 14px}.quickgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}.quick{background:#fff;color:#2b211b;text-align:left;border:1px solid #eee0d5;padding:16px;border-radius:15px;box-shadow:0 3px 12px #00000008}.quick b,.quick span{display:block}.quick span{font-size:13px;color:#786b63;margin-top:5px}@media(max-width:760px){.quickgrid{grid-template-columns:repeat(2,1fr)}.grid4{grid-template-columns:repeat(2,1fr)}.adminnav{margin-left:-4px;margin-right:-4px}}@media(max-width:480px){.quickgrid{grid-template-columns:1fr}.grid4{grid-template-columns:1fr 1fr}.navbtn{font-size:13px;padding:9px 11px}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -30,90 +28,68 @@ input,select,textarea{width:100%;padding:11px;border:1px solid #ddd3cb;border-ra
 <section id="login" class="panel"><h2>Login Admin</h2><p class="muted">Masukkan email admin. Supabase akan mengirim link login.</p><input id="email" type="email" value="sandyalhaz79@gmail.com"><button id="send">Kirim Link Login</button><p id="loginMsg" class="muted"></p></section>
 
 <section id="app" class="hidden">
-<div class="adminnav">
-  <button class="navbtn active" data-tab="dashboard">⌂ Dashboard</button>
-  <button class="navbtn" data-tab="ordersTab">🧾 Orderan</button>
-  <button class="navbtn" data-tab="stockTab">📦 Stock & Menu</button>
-  <button class="navbtn" data-tab="memberTab">👥 Member</button>
-  <button class="navbtn" data-tab="discountTab">🎁 Discount & Reward</button>
-  <button class="navbtn" data-tab="settingsTab">⚙️ Pengaturan</button>
-  <button class="navbtn" data-tab="reportTab">📊 Report Sales</button>
+<div class="grid4">
+<div class="stat"><small>Pesanan Hari Ini</small><b id="todayOrders">0</b></div><div class="stat"><small>Omzet Hari Ini</small><b id="todaySales">Rp 0</b></div>
+<div class="stat"><small>Pesanan Baru</small><b id="newOrders">0</b></div><div class="stat"><small>Menu Aktif</small><b id="activeProducts">0</b></div>
 </div>
 
-<div id="dashboard" class="tabpage">
-  <div class="sectionhead"><div><h2>Dashboard</h2><p class="muted">Ringkasan aktivitas Kavora hari ini.</p></div><button id="refresh" class="secondary">↻ Refresh</button></div>
-  <div class="grid4">
-    <div class="stat"><small>Pesanan Hari Ini</small><b id="todayOrders">0</b></div>
-    <div class="stat"><small>Omzet Hari Ini</small><b id="todaySales">Rp 0</b></div>
-    <div class="stat"><small>Pesanan Baru</small><b id="newOrders">0</b></div>
-    <div class="stat"><small>Menu Aktif</small><b id="activeProducts">0</b></div>
-  </div>
-  <div class="panel" style="margin-top:15px">
-  <div class="sectionhead"><div><h3>⚠️ Stok Perlu Perhatian</h3><p class="muted">Produk dengan stok 5 atau kurang.</p></div>
-  <button id="stockAlertRefresh" class="secondary" type="button">↻ Refresh</button></div>
-  <div id="lowStockList" class="muted">Memuat...</div>
-</div>
-<div class="quickgrid">
-    <button class="quick" data-go="ordersTab"><b>🧾 Orderan</b><span>Lihat pesanan masuk</span></button>
-    <button class="quick" data-go="stockTab"><b>📦 Stock & Menu</b><span>Kelola produk dan stok</span></button>
-    <button class="quick" data-go="memberTab"><b>👥 Member</b><span>Poin dan loyalty</span></button>
-    <button class="quick" data-go="discountTab"><b>🎁 Discount & Reward</b><span>Voucher dan reward</span></button>
-  </div>
-</div>
-
-<div id="ordersTab" class="tabpage hidden"><div class="panel"><div class="top"><div><h2>Orderan</h2><p class="muted">Kelola pesanan yang masuk.</p></div><button id="refreshOrders" class="secondary">↻ Refresh</button></div>
-<div class="toolbar"><input id="orderSearch" placeholder="Cari nama / nomor HP..."><select id="statusFilter"><option value="all">Semua status</option><option value="new">New</option><option value="processing">Processing</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select><button id="exportOrders" class="secondary" type="button">⬇ Export CSV</button></div>
-<div id="orders"></div></div></div>
-
-<div id="stockTab" class="tabpage hidden">
-<div class="panel"><div class="top"><div><h2>Stock & Menu</h2><p class="muted">Kelola produk, harga, foto, kategori dan stok.</p></div><button id="newProduct">+ Tambah Produk</button></div>
+<div class="panel"><div class="top"><h2>🎟️ Promo & Voucher</h2><button id="newPromo">+ Tambah Promo</button></div>
+<div id="promoEditor" class="editor hidden"><h3 id="promoTitle">Tambah Promo</h3>
+<div class="two"><div><label>Kode Promo</label><input id="promoCodeAdmin" placeholder="KAVORA10"></div><div><label>Deskripsi</label><input id="promoDesc"></div></div>
+<div class="two"><div><label>Tipe Diskon</label><select id="promoType"><option value="percent">Persentase (%)</option><option value="fixed">Nominal (Rp)</option></select></div><div><label>Nilai Diskon</label><input id="promoValue" type="number" min="0"></div></div>
+<div class="two"><div><label>Minimum Pembelian</label><input id="promoMin" type="number" min="0" value="0"></div><div><label>Maksimum Diskon (opsional)</label><input id="promoMax" type="number" min="0" placeholder="Kosong = tanpa batas"></div></div>
+<div class="two"><div><label>Mulai</label><input id="promoStart" type="datetime-local"></div><div><label>Berakhir</label><input id="promoEnd" type="datetime-local"></div></div>
+<div class="two"><div><label>Batas Penggunaan</label><input id="promoLimit" type="number" min="1" placeholder="Kosong = tanpa batas"></div><div><label><input id="promoActive" type="checkbox" checked style="width:auto"> Aktif</label></div></div>
+<button id="savePromo">Simpan</button> <button id="cancelPromo" class="secondary">Batal</button>
+</div><div id="promos"></div></div>
+<div class="panel"><div class="top"><h2>Menu Produk</h2><button id="newProduct">+ Tambah Produk</button></div>
 <div class="toolbar"><input id="productSearch" placeholder="Cari produk..."><select id="productFilter"><option value="all">Semua kategori</option><option>Coffee</option><option>Non Coffee</option><option>Snack</option></select></div>
 <div id="products"></div>
 <div id="editor" class="editor hidden"><h3 id="editorTitle">Tambah Produk</h3>
 <div class="two"><div><label>Nama</label><input id="pname"></div><div><label>Harga</label><input id="price" type="number" min="0"></div></div>
 <div class="two"><div><label>Kategori</label><select id="cat"><option>Coffee</option><option>Non Coffee</option><option>Snack</option></select></div><div><label>Urutan</label><input id="sort" type="number" min="0"></div></div><div class="two"><div><label>Stok</label><input id="stock" type="number" min="0" step="1" value="999"></div><div></div></div>
-<label>Deskripsi</label><textarea id="desc" rows="3"></textarea><label>Foto Produk</label><input id="imageFile" type="file" accept="image/*"><div id="imagePreview" style="margin:6px 0 12px"></div><input id="image" type="hidden">
-<label><input id="active" type="checkbox" checked style="width:auto"> Produk aktif</label><br><button id="save">Simpan</button> <button id="cancel" class="secondary">Batal</button></div></div>
+<label>Deskripsi</label><textarea id="desc" rows="3"></textarea><label>Foto Produk</label>
+<input id="imageFile" type="file" accept="image/*">
+<div id="imagePreview" style="margin:6px 0 12px"></div>
+<input id="image" type="hidden">
+<label><input id="active" type="checkbox" checked style="width:auto"> Produk aktif</label><br>
+<button id="save">Simpan</button> <button id="cancel" class="secondary">Batal</button></div></div>
+
+<div class="panel"><h2>Pengaturan Pembayaran</h2><p class="muted">Upload QRIS yang akan tampil di halaman customer saat memilih pembayaran QRIS.</p>
+<input id="qrisFile" type="file" accept="image/*">
+<div id="qrisPreview" style="margin:8px 0"></div>
+<button id="saveQris" type="button">Simpan QRIS</button>
 </div>
 
-<div id="memberTab" class="tabpage hidden"><div class="panel"><div class="top"><div><h2>Member & Loyalty</h2><p class="muted">Kelola member, poin dan riwayat loyalty.</p></div><button id="memberRefresh" class="secondary" type="button">↻ Refresh</button></div>
-<div class="toolbar"><input id="memberSearch" placeholder="Cari nama / nomor HP..."></div><div id="members"></div></div></div>
-
-<div id="discountTab" class="tabpage hidden">
-<div class="panel"><h2>Promo & Voucher</h2><p class="muted">Buat kode promo yang bisa digunakan customer saat checkout.</p>
-<div class="two"><div><label>Kode Voucher</label><input id="vCode" placeholder="KAVORA10"></div><div><label>Tipe Diskon</label><select id="vType"><option value="percent">Persen (%)</option><option value="fixed">Nominal (Rp)</option></select></div></div>
-<div class="two"><div><label>Nilai Diskon</label><input id="vValue" type="number" min="1"></div><div><label>Minimum Pembelian</label><input id="vMin" type="number" min="0" value="0"></div></div>
-<div class="two"><div><label>Maksimum Diskon (opsional)</label><input id="vMax" type="number" min="0" placeholder="Kosongkan jika tidak ada"></div><div><label>Batas Pemakaian (opsional)</label><input id="vLimit" type="number" min="1" placeholder="Kosongkan jika tidak dibatasi"></div></div>
-<div class="two"><div><label>Mulai</label><input id="vStart" type="datetime-local"></div><div><label>Berakhir</label><input id="vEnd" type="datetime-local"></div></div>
-<button id="saveVoucher" type="button">Simpan Voucher</button><div id="voucherMsgAdmin" class="muted" style="margin-top:8px"></div><div id="voucherList" style="margin-top:15px"></div></div>
-<div class="panel"><div class="top"><div><h2>🎁 Reward Member</h2><p class="muted">Reward yang dapat ditukar member menggunakan poin.</p></div><button id="rewardRefresh" class="secondary" type="button">↻ Refresh</button></div>
-<div class="toolbar" style="flex-wrap:wrap"><input id="rName" placeholder="Nama reward" style="flex:1;min-width:180px"><input id="rPoints" type="number" min="1" placeholder="Poin" style="width:120px"><select id="rType" style="width:180px"><option value="fixed_discount">Diskon Nominal</option><option value="percent_discount">Diskon Persen</option><option value="free_product">Free Product</option></select><input id="rValue" type="number" min="0" placeholder="Nilai diskon" style="width:140px"></div>
-<input id="rDesc" placeholder="Deskripsi reward (opsional)"><button id="saveReward" type="button" style="margin-top:8px">+ Buat Reward</button><p id="rewardMsgAdmin" class="muted"></p><div id="rewardListAdmin" style="margin-top:12px"></div><h3 style="margin-top:22px">Riwayat Redeem</h3><div id="redemptionList" style="margin-top:10px"></div></div>
+<div class="panel"><h2>Pengaturan Delivery</h2>
+<label><input id="deliveryEnabled" type="checkbox" checked style="width:auto"> Aktifkan Delivery</label>
+<label>Ongkir Default</label><input id="deliveryFee" type="number" min="0" value="0" placeholder="Contoh: 10000">
+<button id="saveDelivery" type="button">Simpan Pengaturan Delivery</button>
+<p id="deliveryMsg" class="muted"></p>
 </div>
+<div class="panel"><div class="top"><h2>Pesanan</h2><button id="refresh" class="secondary">Refresh</button></div>
+<div class="toolbar"><input id="orderSearch" placeholder="Cari nama / nomor HP..."><select id="statusFilter"><option value="all">Semua status</option><option value="new">New</option><option value="processing">Processing</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></div>
+<div id="orders"></div></div>
 
-<div id="settingsTab" class="tabpage hidden">
-<div class="panel"><h2>Pengaturan Pembayaran</h2><p class="muted">Upload QRIS yang tampil di halaman customer.</p><input id="qrisFile" type="file" accept="image/*"><div id="qrisPreview" style="margin:8px 0"></div><button id="saveQris" type="button">Simpan QRIS</button></div>
-<div class="panel"><h2>Pengaturan Delivery</h2><label><input id="deliveryEnabled" type="checkbox" checked style="width:auto"> Aktifkan Delivery</label><label>Ongkir Default</label><input id="deliveryFee" type="number" min="0" value="0" placeholder="Contoh: 10000"><button id="saveDelivery" type="button">Simpan Pengaturan Delivery</button><p id="deliveryMsg" class="muted"></p></div>
-</div>
-
-<div id="reportTab" class="tabpage hidden"><div class="panel"><h2>Report Sales</h2><p class="muted">Lihat ringkasan penjualan berdasarkan periode.</p><div class="toolbar"><div style="flex:1;min-width:150px"><label>Dari Tanggal</label><input id="reportFrom" type="date"></div><div style="flex:1;min-width:150px"><label>Sampai Tanggal</label><input id="reportTo" type="date"></div><button id="reportToday" class="secondary" type="button">Hari Ini</button><button id="reportRefresh" class="secondary" type="button">Tampilkan</button></div><p class="muted">Kosongkan kedua tanggal untuk melihat semua data.</p><div class="report" style="margin-top:12px"><div class="reportbox"><small>Total Transaksi</small><b id="reportOrders">0</b></div><div class="reportbox"><small>Total Omzet</small><b id="reportSales">Rp 0</b></div><div class="reportbox"><small>Item Terjual</small><b id="reportItems">0</b></div></div><div id="topProducts" style="margin-top:15px"></div></div></div>
+<div class="panel"><h2>Laporan Penjualan</h2>
+<div class="toolbar"><select id="reportRange"><option value="today">Hari Ini</option><option value="7">7 Hari Terakhir</option><option value="30">30 Hari Terakhir</option><option value="all">Semua Data</option></select><button id="reportRefresh" class="secondary">Refresh Laporan</button></div>
+<div class="report" style="margin-top:12px"><div class="reportbox"><small>Total Transaksi</small><b id="reportOrders">0</b></div><div class="reportbox"><small>Total Omzet</small><b id="reportSales">Rp 0</b></div></div>
+<div id="topProducts" style="margin-top:15px"></div></div>
 </section></div>
 
 <script>
 (()=>{"use strict";
-const _tabs=[...document.querySelectorAll('.navbtn')];function openTab(id){document.querySelectorAll('.tabpage').forEach(x=>x.classList.add('hidden'));const el=document.getElementById(id);if(el)el.classList.remove('hidden');_tabs.forEach(b=>b.classList.toggle('active',b.dataset.tab===id));} _tabs.forEach(b=>b.addEventListener('click',()=>openTab(b.dataset.tab)));document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>openTab(b.dataset.go)));
-
 const SUPABASE_URL="https://gooawhtldgefmiwplxzs.supabase.co",KEY="sb_publishable_sD0QPAk-uDg5cveBKtwePA_dWV5Q8GH",ADMIN="sandyalhaz79@gmail.com";
 const db=supabase.createClient(SUPABASE_URL,KEY);let products=[],orders=[],editing=null,details={},oldImageUrl=null;
 const $=id=>document.getElementById(id),rp=n=>new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(n||0);
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
-function showApp(u){if(!u||(u.email||"").toLowerCase()!==ADMIN){db.auth.signOut();alert("Email ini bukan akun admin Kavora.");return}$("login").classList.add("hidden");$("app").classList.remove("hidden");$("logout").classList.remove("hidden");const d=new Date(),v=d.toISOString().slice(0,10);$("reportFrom").value=v;$("reportTo").value=v;refreshAll()}
+function showApp(u){if(!u||(u.email||"").toLowerCase()!==ADMIN){db.auth.signOut();alert("Email ini bukan akun admin Kavora.");return}$("login").classList.add("hidden");$("app").classList.remove("hidden");$("logout").classList.remove("hidden");refreshAll()}
 async function init(){const {data}=await db.auth.getSession();if(data.session)showApp(data.session.user)}
 $("send").onclick=async()=>{const e=$("email").value.trim();if(e.toLowerCase()!==ADMIN){$("loginMsg").textContent="Gunakan email admin yang terdaftar.";return}$("send").disabled=true;const {error}=await db.auth.signInWithOtp({email:e,options:{emailRedirectTo:location.href}});$("loginMsg").textContent=error?error.message:"Link login sudah dikirim. Cek Gmail."; $("send").disabled=false}
 $("logout").onclick=()=>db.auth.signOut().then(()=>location.reload());db.auth.onAuthStateChange((_e,s)=>{if(s)showApp(s.user)});
 
-async function refreshAll(){await Promise.all([loadProducts(),loadOrders(),loadMembers()]);updateStats();renderLowStock();loadReport();loadRewardsAdmin();loadRedemptions()}
-async function loadProducts(){const {data,error}=await db.from("products").select("*").order("sort_order");if(error){$("products").textContent=error.message;return}products=data||[];renderProducts();renderLowStock()}
+async function refreshAll(){await Promise.all([loadProducts(),loadOrders(),loadPromos()]);updateStats();loadReport()}
+async function loadProducts(){const {data,error}=await db.from("products").select("*").order("sort_order");if(error){$("products").textContent=error.message;return}products=data||[];renderProducts()}
 function renderProducts(){const q=$("productSearch").value.trim().toLowerCase(),c=$("productFilter").value;const a=products.filter(p=>(c==="all"||p.category===c)&&(!q||p.name.toLowerCase().includes(q)));$("products").innerHTML=a.map(p=>`<div class="product"><div class="top"><div><b>${esc(p.name)}</b><div class="muted">${esc(p.category)} · ${esc(p.description||"")}</div></div><div class="price">${rp(p.price)}</div></div><div style="margin-top:8px;display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap">
 <span>${p.is_active?"🟢 Aktif":"⚪ Nonaktif"} · ${Number(p.stock??999)<=0?"🔴 Habis":Number(p.stock??999)<=5?"🟠 Stok "+Number(p.stock):"🟢 Stok "+Number(p.stock??999)}</span>
 <span><button type="button" data-stock-minus="${p.id}">−</button><button type="button" data-stock-plus="${p.id}">+</button><button type="button" data-edit="${p.id}">Edit</button> <button type="button" class="secondary" data-toggle="${p.id}">${p.is_active?"Nonaktifkan":"Aktifkan"}</button></span>
@@ -140,59 +116,18 @@ async function changeStock(id,delta){
 async function loadOrders(){const {data,error}=await db.from("orders").select("*").order("created_at",{ascending:false}).limit(200);if(error){$("orders").textContent=error.message;return}orders=data||[];renderOrders()}
 function renderOrders(){const q=$("orderSearch").value.trim().toLowerCase(),st=$("statusFilter").value;const a=orders.filter(o=>(st==="all"||o.status===st)&&(!q||String(o.customer_name||"").toLowerCase().includes(q)||String(o.customer_phone||"").includes(q)));$("orders").innerHTML=a.map(o=>`<div class="order"><div class="top"><div><b>${esc(o.customer_name)}</b><span class="badge ${esc(o.status)}">${esc(o.status)}</span></div><b>${rp(o.total)}</b></div><div class="muted" style="margin-top:5px">${esc(o.order_type||"")} · ${esc(o.customer_phone||"")} · ${new Date(o.created_at).toLocaleString("id-ID")}</div>
 <div style="margin-top:6px"><b>Pembayaran:</b> ${esc(o.payment_method==="qris"?"QRIS":"Cash / Bayar di Tempat")} · <b>${esc(o.payment_status==="paid"?"Sudah Bayar":"Belum Bayar")}</b></div>
-${o.order_type==="Delivery"?`<div style="margin-top:6px"><b>Alamat:</b> ${esc(o.delivery_address||"-")} · <b>Ongkir:</b> ${rp(o.delivery_fee||0)}</div>`:""}${o.payment_proof_url?`<div style="margin-top:6px"><a href="${esc(o.payment_proof_url)}" target="_blank" rel="noopener">🧾 Lihat bukti pembayaran</a></div>`:""}${o.voucher_code?`<div style="margin-top:6px"><b>Voucher:</b> ${esc(o.voucher_code)} · <b>Diskon:</b> ${rp(o.discount||0)}</div>`:""}${o.notes?`<div style="margin-top:6px">📝 ${esc(o.notes)}</div>`:""}<div style="margin-top:9px"><button class="secondary" data-detail="${o.id}">Lihat Detail</button> <a href="https://wa.me/${String(o.customer_phone||"").replace(/^0/,"62").replace(/\\D/g,"")}" target="_blank"><button type="button">WhatsApp</button></a> <select data-status="${o.id}" style="max-width:180px"><option value="new" ${o.status==="new"?"selected":""}>New</option><option value="processing" ${o.status==="processing"?"selected":""}>Processing</option><option value="completed" ${o.status==="completed"?"selected":""}>Completed</option><option value="cancelled" ${o.status==="cancelled"?"selected":""}>Cancelled</option></select>
+${o.order_type==="Delivery"?`<div style="margin-top:6px"><b>Alamat:</b> ${esc(o.delivery_address||"-")} · <b>Ongkir:</b> ${rp(o.delivery_fee||0)}</div>`:""}${o.notes?`<div style="margin-top:6px">📝 ${esc(o.notes)}</div>`:""}<div style="margin-top:9px"><button class="secondary" data-detail="${o.id}">Lihat Detail</button> <a href="https://wa.me/${String(o.customer_phone||"").replace(/^0/,"62").replace(/\\D/g,"")}" target="_blank"><button type="button">WhatsApp</button></a> <select data-status="${o.id}" style="max-width:180px"><option value="new" ${o.status==="new"?"selected":""}>New</option><option value="processing" ${o.status==="processing"?"selected":""}>Processing</option><option value="completed" ${o.status==="completed"?"selected":""}>Completed</option><option value="cancelled" ${o.status==="cancelled"?"selected":""}>Cancelled</option></select>
 <select data-payment="${o.id}" style="max-width:180px"><option value="unpaid" ${o.payment_status!=="paid"?"selected":""}>Belum Bayar</option><option value="paid" ${o.payment_status==="paid"?"selected":""}>Sudah Bayar</option></select></div><div id="detail-${o.id}" class="detail hidden"></div></div>`).join("")||'<p class="muted">Tidak ada pesanan.</p>';document.querySelectorAll("[data-status]").forEach(s=>s.onchange=async()=>{const r=await db.from("orders").update({status:s.value}).eq("id",s.dataset.status);if(r.error)alert(r.error.message);else{const o=orders.find(x=>x.id===s.dataset.status);if(o)o.status=s.value;updateStats();loadReport();renderOrders()}});document.querySelectorAll("[data-detail]").forEach(b=>b.onclick=()=>showDetail(b.dataset.detail));
 document.querySelectorAll("[data-payment]").forEach(s=>s.onchange=async()=>{const r=await db.from("orders").update({payment_status:s.value}).eq("id",s.dataset.payment);if(r.error)alert(r.error.message);else{const o=orders.find(x=>x.id===s.dataset.payment);if(o)o.payment_status=s.value;renderOrders();loadReport()}});
 }
 async function showDetail(id){const box=$("detail-"+id);if(!box)return;if(!box.classList.contains("hidden")){box.classList.add("hidden");return}box.classList.remove("hidden");box.innerHTML="Memuat detail...";const {data,error}=await db.from("order_items").select("*").eq("order_id",id);if(error){box.textContent=error.message;return}box.innerHTML=(data||[]).map(i=>`<div class="item"><span>${esc(i.product_name)} × ${i.quantity}</span><b>${rp(i.subtotal)}</b></div>`).join("")||"Tidak ada detail item.";details[id]=data||[]}
-$("orderSearch").oninput=renderOrders;$("statusFilter").onchange=renderOrders;$("refresh").onclick=refreshAll;$("exportOrders").onclick=exportOrdersCSV;$("stockAlertRefresh").onclick=()=>{loadProducts()};
+$("orderSearch").oninput=renderOrders;$("statusFilter").onchange=renderOrders;$("refresh").onclick=refreshAll;
 
-
-function renderLowStock(){
- const low=(products||[]).filter(p=>p.is_active && Number(p.stock??999)<=5).sort((a,b)=>Number(a.stock??999)-Number(b.stock??999));
- $("lowStockList").innerHTML=low.length
-  ? low.map(p=>`<div class="item"><span>${esc(p.name)}</span><b>${Number(p.stock??0)<=0?"HABIS":"Stok "+Number(p.stock??0)}</b></div>`).join("")
-  : '<p class="muted">Semua stok masih aman.</p>';
-}
-function csvCell(v){return '"'+String(v??"").replace(/"/g,'""')+'"'}
-function exportOrdersCSV(){
- const q=$("orderSearch").value.trim().toLowerCase(),st=$("statusFilter").value;
- const list=orders.filter(o=>(st==="all"||o.status===st)&&(!q||String(o.customer_name||"").toLowerCase().includes(q)||String(o.customer_phone||"").includes(q)));
- const rows=[["Tanggal","Nama","No HP","Tipe","Total","Status","Pembayaran","Payment Status","Voucher","Diskon","Alamat","Catatan"]];
- list.forEach(o=>rows.push([
-   new Date(o.created_at).toLocaleString("id-ID"),o.customer_name,o.customer_phone,o.order_type,o.total,o.status,o.payment_method,o.payment_status,o.voucher_code,o.discount,o.delivery_address,o.notes
- ]));
- const csv="\uFEFF"+rows.map(r=>r.map(csvCell).join(",")).join("\r\n");
- const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));a.download="kavora-orders-"+new Date().toISOString().slice(0,10)+".csv";a.click();URL.revokeObjectURL(a.href);
-}
 function updateStats(){const d=new Date();d.setHours(0,0,0,0);const a=orders.filter(o=>new Date(o.created_at)>=d);$("todayOrders").textContent=a.length;$("todaySales").textContent=rp(a.filter(o=>o.status!=="cancelled").reduce((s,o)=>s+Number(o.total||0),0));$("newOrders").textContent=orders.filter(o=>o.status==="new").length;$("activeProducts").textContent=products.filter(p=>p.is_active).length}
-$("reportRefresh").onclick=loadReport;
-async function loadReport(){
- const fromVal=$("reportFrom").value, toVal=$("reportTo").value;
- let from=null,to=null;
- if(fromVal){from=new Date(fromVal+"T00:00:00");}
- if(toVal){to=new Date(toVal+"T23:59:59.999");}
- if(from&&to&&to<from){$("topProducts").innerHTML='<p class="muted">Tanggal sampai harus sama atau setelah tanggal dari.</p>';return}
- let q=db.from("orders").select("*").order("created_at",{ascending:false});
- if(from)q=q.gte("created_at",from.toISOString());
- if(to)q=q.lte("created_at",to.toISOString());
- const {data,error}=await q.limit(5000);
- if(error){$("reportOrders").textContent="0";$("reportSales").textContent=rp(0);$("reportItems").textContent="0";$("topProducts").innerHTML='<p class="muted">'+esc(error.message)+'</p>';return}
- const list=(data||[]).filter(o=>o.status!=="cancelled");
- $("reportOrders").textContent=list.length;
- $("reportItems").textContent="0";
- $("reportSales").textContent=rp(list.reduce((s,o)=>s+Number(o.total||0),0));
- const ids=list.map(o=>o.id);
- if(!ids.length){$("topProducts").innerHTML='<p class="muted">Belum ada penjualan pada periode ini.</p>';return}
- const {data:items}=await db.from("order_items").select("product_name,quantity,subtotal,order_id").in("order_id",ids);
- $("reportItems").textContent=(items||[]).reduce((sum,i)=>sum+Number(i.quantity||0),0);
- const map={};
- (items||[]).forEach(i=>{map[i.product_name]??={qty:0,sales:0};map[i.product_name].qty+=Number(i.quantity||0);map[i.product_name].sales+=Number(i.subtotal||0)});
- const top=Object.entries(map).sort((a,b)=>b[1].qty-a[1].qty).slice(0,5);
- $("topProducts").innerHTML="<h3>Produk Terlaris</h3>"+(top.length?top.map(([n,v],i)=>`<div class="item"><span>${i+1}. ${esc(n)} × ${v.qty}</span><b>${rp(v.sales)}</b></div>`).join(""):'<p class="muted">Belum ada data.</p>');
-}
-$("reportToday").onclick=()=>{const d=new Date();const v=d.toISOString().slice(0,10);$("reportFrom").value=v;$("reportTo").value=v;loadReport()};
-
+$("reportRange").onchange=loadReport;$("reportRefresh").onclick=loadReport;
+async function loadReport(){let from=null;const range=$("reportRange").value;if(range==="today"){from=new Date();from.setHours(0,0,0,0)}else if(range!=="all"){from=new Date(Date.now()-Number(range)*86400000);from.setHours(0,0,0,0)}const list=orders.filter(o=>(!from||new Date(o.created_at)>=from)&&o.status!=="cancelled");$("reportOrders").textContent=list.length;$("reportSales").textContent=rp(list.reduce((s,o)=>s+Number(o.total||0),0));
+const ids=list.map(o=>o.id);if(!ids.length){$("topProducts").innerHTML='<p class="muted">Belum ada penjualan pada periode ini.</p>';return}
+const {data}=await db.from("order_items").select("product_name,quantity,subtotal,order_id").in("order_id",ids);const map={};(data||[]).forEach(i=>{map[i.product_name]??={qty:0,sales:0};map[i.product_name].qty+=Number(i.quantity||0);map[i.product_name].sales+=Number(i.subtotal||0)});const top=Object.entries(map).sort((a,b)=>b[1].qty-a[1].qty).slice(0,5);$("topProducts").innerHTML="<h3>Produk Terlaris</h3>"+(top.length?top.map(([n,v],i)=>`<div class="item"><span>${i+1}. ${esc(n)} × ${v.qty}</span><b>${rp(v.sales)}</b></div>`).join(""):'<p class="muted">Belum ada data.</p>')}
 async function loadQris(){
  const {data}=await db.from("payment_settings").select("qris_image_url").eq("id",1).maybeSingle();
  $("qrisPreview").innerHTML=data?.qris_image_url?'<img src="'+esc(data.qris_image_url)+'" style="max-width:260px;max-height:260px;border-radius:12px;border:1px solid #eee">':'<span class="muted">QRIS belum diupload.</span>';
@@ -210,58 +145,6 @@ $("saveQris").onclick=async()=>{
  if(r.error)return alert(r.error.message);
  $("qrisFile").value=""; alert("QRIS berhasil disimpan."); loadQris();
 };
-async function loadVouchers(){
- const {data,error}=await db.from("vouchers").select("*").order("created_at",{ascending:false});
- if(error){$("voucherList").textContent=error.message;return}
- $("voucherList").innerHTML=(data||[]).map(v=>{
-   const discount=v.discount_type==="percent"?v.discount_value+"%":rp(v.discount_value);
-   return `<div class="item" style="display:block;margin-top:8px"><div style="display:flex;justify-content:space-between;gap:8px"><b>${esc(v.code)}</b><span>${discount}</span></div><div class="muted">Min. ${rp(v.min_order)} · Dipakai ${v.usage_count}${v.usage_limit!=null?"/"+v.usage_limit:""} · ${v.is_active?"Aktif":"Nonaktif"}</div><button type="button" class="secondary" data-vtoggle="${v.id}" style="margin-top:6px">${v.is_active?"Nonaktifkan":"Aktifkan"}</button></div>`;
- }).join("")||'<p class="muted">Belum ada voucher.</p>';
- document.querySelectorAll("[data-vtoggle]").forEach(b=>b.onclick=async()=>{
-   const v=(data||[]).find(x=>x.id===b.dataset.vtoggle); if(!v)return;
-   const r=await db.from("vouchers").update({is_active:!v.is_active,updated_at:new Date().toISOString()}).eq("id",v.id);
-   if(r.error)alert(r.error.message);else loadVouchers();
- });
-}
-$("saveVoucher").onclick=async()=>{
- const code=$("vCode").value.trim().toUpperCase().replace(/\s+/g,"");
- const type=$("vType").value,value=Number($("vValue").value||0),min=Number($("vMin").value||0);
- if(!code||value<=0)return alert("Kode dan nilai diskon wajib diisi.");
- if(type==="percent"&&value>100)return alert("Diskon persen maksimal 100%.");
- const max=$("vMax").value===""?null:Math.max(0,Number($("vMax").value));
- const limit=$("vLimit").value===""?null:Math.max(1,Number($("vLimit").value));
- const starts=$("vStart").value?new Date($("vStart").value).toISOString():null;
- const ends=$("vEnd").value?new Date($("vEnd").value).toISOString():null;
- if(starts&&ends&&new Date(ends)<=new Date(starts))return alert("Waktu berakhir harus setelah waktu mulai.");
- const r=await db.from("vouchers").insert({code,discount_type:type,discount_value:value,min_order:min,max_discount:max,usage_limit:limit,starts_at:starts,ends_at:ends,is_active:true});
- if(r.error)return alert(r.error.message);
- $("voucherMsgAdmin").textContent="Voucher "+code+" berhasil dibuat.";
- $("vCode").value="";$("vValue").value="";$("vMin").value="0";$("vMax").value="";$("vLimit").value="";$("vStart").value="";$("vEnd").value="";
- loadVouchers();
-};
-async function loadMembers(){
- const q=$("memberSearch").value.trim().toLowerCase();
- const {data,error}=await db.from("members").select("*").order("created_at",{ascending:false});
- if(error){$("members").textContent=error.message;return}
- const list=(data||[]).filter(m=>!q||String(m.name||"").toLowerCase().includes(q)||String(m.phone||"").includes(q));
- $("members").innerHTML=list.map(m=>`<div class="product"><div class="top"><div><b>${esc(m.name)}</b><div class="muted">${esc(m.phone)}</div></div><div class="price">${Number(m.points||0)} poin</div></div><div class="muted" style="margin-top:6px">${Number(m.total_orders||0)} transaksi · Total belanja ${rp(m.total_spent||0)}</div><div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap"><button type="button" data-mplus="${m.id}">+ Poin</button><button type="button" class="secondary" data-mminus="${m.id}">− Poin</button></div></div>`).join("")||'<p class="muted">Belum ada member.</p>';
- document.querySelectorAll("[data-mplus]").forEach(b=>b.onclick=()=>adjustMemberPoints(b.dataset.mplus,1));
- document.querySelectorAll("[data-mminus]").forEach(b=>b.onclick=()=>adjustMemberPoints(b.dataset.mminus,-1));
-}
-async function adjustMemberPoints(id,dir){
- const amount=Number(prompt(dir>0?"Tambah berapa poin?":"Kurangi berapa poin?","10"));
- if(!Number.isFinite(amount)||amount<=0)return;
- const {data,error}=await db.from("members").select("points").eq("id",id).single();
- if(error)return alert(error.message);
- const next=dir>0?Number(data.points||0)+amount:Math.max(0,Number(data.points||0)-amount);
- const r=await db.from("members").update({points:next,updated_at:new Date().toISOString()}).eq("id",id);
- if(r.error)return alert(r.error.message);
- const tx=await db.from("member_transactions").insert({member_id:id,type:"adjust",points:dir>0?amount:-amount,note:"Penyesuaian manual oleh admin"});
- if(tx.error)return alert(tx.error.message);
- loadMembers();
-}
-$("memberSearch").oninput=loadMembers;
-$("memberRefresh").onclick=loadMembers;
 async function loadDeliverySettings(){
  const {data,error}=await db.from("store_settings").select("delivery_enabled,delivery_fee").eq("id",1).maybeSingle();
  if(error)return;
@@ -275,43 +158,7 @@ $("saveDelivery").onclick=async()=>{
  if(r.error)return alert(r.error.message);
  $("deliveryMsg").textContent="Pengaturan delivery berhasil disimpan.";
 };
-init().then(()=>{loadDeliverySettings();loadVouchers();loadQris();});
-async function loadRewardsAdmin(){
- const box=$("rewardListAdmin"), {data,error}=await db.from("rewards").select("*").order("points_cost",{ascending:true});
- if(error){box.textContent=error.message;return}
- box.innerHTML=(data||[]).map(r=>{
-   const val=r.reward_type==="percent_discount"?r.reward_value+"%":r.reward_type==="fixed_discount"?rp(r.reward_value):"Free product";
-   return `<div class="item" style="display:block;margin-top:8px"><div style="display:flex;justify-content:space-between"><b>${esc(r.name)}</b><span>${Number(r.points_cost)} poin</span></div><div class="muted">${esc(r.description||"")} · ${val} · ${r.is_active?"Aktif":"Nonaktif"}</div><button type="button" class="secondary" data-rtoggle="${r.id}" style="margin-top:6px">${r.is_active?"Nonaktifkan":"Aktifkan"}</button></div>`;
- }).join("")||'<p class="muted">Belum ada reward.</p>';
- box.querySelectorAll("[data-rtoggle]").forEach(b=>b.onclick=async()=>{
-   const r=(data||[]).find(x=>x.id===b.dataset.rtoggle); if(!r)return;
-   const x=await db.from("rewards").update({is_active:!r.is_active,updated_at:new Date().toISOString()}).eq("id",r.id);
-   if(x.error)alert(x.error.message);else loadRewardsAdmin();
- });
-}
-async function saveRewardAdmin(){
- const name=$("rName").value.trim(), points=Number($("rPoints").value||0), type=$("rType").value, value=Number($("rValue").value||0), desc=$("rDesc").value.trim();
- if(!name||points<=0)return alert("Nama reward dan poin wajib diisi.");
- if(type!=="free_product"&&value<=0)return alert("Nilai reward wajib diisi.");
- if(type==="percent_discount"&&value>100)return alert("Diskon persen maksimal 100%.");
- const x=await db.from("rewards").insert({name,description:desc,points_cost:points,reward_type:type,reward_value:value,is_active:true});
- if(x.error){alert("Gagal membuat reward: "+x.error.message);return}
- $("rewardMsgAdmin").textContent="✅ Reward berhasil dibuat.";
- $("rName").value="";$("rPoints").value="";$("rValue").value="";$("rDesc").value="";
- loadRewardsAdmin();
-}
-async function loadRedemptions(){
- const box=$("redemptionList"), {data,error}=await db.from("reward_redemptions").select("id,code,points_spent,status,created_at,used_at,member:members(name,phone),reward:rewards(name)").order("created_at",{ascending:false}).limit(100);
- if(error){box.textContent=error.message;return}
- box.innerHTML=(data||[]).map(x=>`<div class="item" style="display:block;margin-top:7px"><b>${esc(x.code)}</b> · ${esc(x.reward?.name||"-")} · ${Number(x.points_spent)} poin<div class="muted">${esc(x.member?.name||"-")} (${esc(x.member?.phone||"-")}) · ${esc(x.status)} · ${new Date(x.created_at).toLocaleString("id-ID")}</div></div>`).join("")||'<p class="muted">Belum ada redeem.</p>';
-}
-
-$("saveReward").onclick=saveRewardAdmin;$("rewardRefresh").onclick=()=>{loadRewardsAdmin();loadRedemptions()};
-
-
-const _ro=document.getElementById('refreshOrders');if(_ro)_ro.onclick=()=>loadOrders();
-openTab('dashboard');
+init().then(()=>loadDeliverySettings());
 })();
-
 </script>
 </body></html>
