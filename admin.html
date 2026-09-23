@@ -53,10 +53,13 @@ label{font-size:13px;font-weight:600}input,select,textarea{width:100%;padding:11
 
 <div id="loginPage" class="login panel">
 <h2>KAVORA ADMIN</h2>
-<p class="muted">Login menggunakan email admin Supabase.</p>
-<input id="email" type="email" value="sandyalhaz79@gmail.com" placeholder="Email admin">
-<button id="loginBtn">Kirim Link Login</button>
-<div id="loginMsg" class="muted" style="margin-top:10px"></div><div id="loginHelp" class="notice" style="margin-top:12px;display:none">Setelah klik link di email, buka kembali halaman Admin Kavora pada browser yang sama. Sesi login akan terbaca otomatis.</div>
+<p class="muted">Login Admin Kavora menggunakan email & password.</p>
+<input id="email" type="email" value="sandyalhaz79@gmail.com" placeholder="Email admin" autocomplete="username">
+<input id="password" type="password" placeholder="Password admin" autocomplete="current-password" style="margin-top:10px">
+<button id="loginBtn">Login</button>
+<button id="resetBtn" class="secondary" style="margin-top:8px">Atur / Reset Password</button>
+<div id="loginMsg" class="muted" style="margin-top:10px"></div>
+<div class="notice" style="margin-top:12px">Setelah password berhasil dibuat, login berikutnya tidak perlu mengirim link email lagi.</div>
 </div>
 
 <div id="app" class="layout hidden">
@@ -251,19 +254,29 @@ function authErrorFromUrl(){
 }
 $("loginBtn").onclick=async()=>{
   const e=$("email").value.trim().toLowerCase();
+  const password=$("password").value;
   if(e!==ADMIN){msg("loginMsg","Gunakan email admin yang terdaftar.",true);return}
+  if(!password){msg("loginMsg","Masukkan password admin.",true);return}
   $("loginBtn").disabled=true;
-  msg("loginMsg","Mengirim link login...");
-  const redirectTo=window.location.origin+window.location.pathname;
-  const {error}=await db.auth.signInWithOtp({email:e,options:{emailRedirectTo:redirectTo,shouldCreateUser:false}});
+  msg("loginMsg","Memproses login...");
+  const {data,error}=await db.auth.signInWithPassword({email:e,password});
   if(error){
     msg("loginMsg",error.message,true);
-    $("loginHelp").style.display="none";
-  }else{
-    msg("loginMsg","Link login berhasil dikirim. Buka Gmail dan klik link tersebut.");
-    $("loginHelp").style.display="block";
+  }else if(data?.user){
+    await showApp(data.user);
   }
   $("loginBtn").disabled=false;
+};
+$("resetBtn").onclick=async()=>{
+  const e=$("email").value.trim().toLowerCase();
+  if(e!==ADMIN){msg("loginMsg","Gunakan email admin yang terdaftar.",true);return}
+  $("resetBtn").disabled=true;
+  msg("loginMsg","Mengirim email untuk membuat/reset password...");
+  const redirectTo=window.location.origin+window.location.pathname;
+  const {error}=await db.auth.resetPasswordForEmail(e,{redirectTo});
+  if(error) msg("loginMsg",error.message,true);
+  else msg("loginMsg","Email reset password dikirim. Gunakan link tersebut SATU KALI untuk membuat password baru. Setelah itu login tidak perlu email link lagi.");
+  $("resetBtn").disabled=false;
 };
 $("logout").onclick=()=>db.auth.signOut().then(()=>location.reload());
 db.auth.onAuthStateChange((_e,s)=>{if(s&&s.user)setTimeout(()=>showApp(s.user),0)});
@@ -274,6 +287,21 @@ async function init(){
   if(data.session&&data.session.user) await showApp(data.session.user);
 }
 init();
+async function handlePasswordRecovery(){
+  const {data}=await db.auth.getSession();
+  if(!data.session) return;
+  const type=new URLSearchParams((location.hash||'').replace(/^#/,'?')).get('type');
+  if(type!=='recovery') return;
+  const next=prompt('Buat password admin baru (minimal 8 karakter):');
+  if(!next) return;
+  if(next.length<8){alert('Password minimal 8 karakter.');return;}
+  const {error}=await db.auth.updateUser({password:next});
+  if(error){alert(error.message);return;}
+  history.replaceState(null,'',location.pathname+location.search);
+  alert('Password berhasil dibuat. Selanjutnya login menggunakan email + password.');
+  await showApp(data.session.user);
+}
+
 async function loadCategories(){const {data,error}=await db.from("product_categories").select("*").order("sort_order").order("name");if(error){msg("categoryMsg",error.message,true);return}categories=data||[];renderCategoryControls();renderCategoriesAdmin()}
 function renderCategoryControls(){const f=$("productFilter"),p=$("pcat");if(f)f.innerHTML='<option value="all">Semua kategori</option>'+categories.map(c=>`<option value="${esc(c.name)}">${esc(c.name)}</option>`).join("");if(p)p.innerHTML=categories.map(c=>`<option value="${esc(c.name)}">${esc(c.name)}</option>`).join("")}
 function renderCategoriesAdmin(){$("categoriesList").innerHTML=categories.map(c=>`<div class="item"><div class="top"><b>${esc(c.name)}</b><span class="badge ${c.is_active?'active':'inactive'}">${c.is_active?'Aktif':'Nonaktif'}</span></div><div class="row-actions"><button class="secondary" data-ct="${c.id}">${c.is_active?'Nonaktifkan':'Aktifkan'}</button><button class="danger" data-cd="${c.id}">Hapus</button></div></div>`).join("")||'<div class="muted">Belum ada kategori.</div>';document.querySelectorAll('[data-ct]').forEach(b=>b.onclick=async()=>{const c=categories.find(x=>x.id===b.dataset.ct);if(!c)return;const r=await db.from('product_categories').update({is_active:!c.is_active}).eq('id',c.id);if(r.error)return alert(r.error.message);await loadCategories()});document.querySelectorAll('[data-cd]').forEach(b=>b.onclick=()=>deleteCategory(b.dataset.cd))}
