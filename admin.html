@@ -3,337 +3,364 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kavora Admin V16</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<meta name="theme-color" content="#201713">
+<title>Kavora — Order Online</title>
 <style>
-*{box-sizing:border-box}
-body{margin:0;font-family:Inter,Arial,sans-serif;background:#f6f2ed;color:#2b211b}
-button,input,select,textarea{font:inherit}
-button{border:0;border-radius:10px;padding:10px 14px;background:#6b4226;color:#fff;cursor:pointer}
-button.secondary{background:#e7e0d9;color:#332a24}
-button.danger{background:#a33}
-button:disabled{opacity:.55;cursor:not-allowed}
-.hidden{display:none!important}
-.layout{display:flex;min-height:100vh}
-.sidebar{width:250px;background:#241a15;color:#fff;position:fixed;inset:0 auto 0 0;padding:20px 14px;overflow:auto}
-.brand{padding:8px 12px 20px;border-bottom:1px solid #ffffff22;margin-bottom:14px}
-.brand h1{margin:0;font-size:24px}.brand small{opacity:.7}
-.nav button{display:block;width:100%;text-align:left;background:transparent;color:#fff;margin:4px 0;padding:12px;border-radius:10px}
-.nav button:hover,.nav button.active{background:#6b4226}
-.main{margin-left:250px;width:calc(100% - 250px);padding:24px}
-.mobile-head{display:none}
-.page{display:none}.page.active{display:block}
-.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-h2{margin:0 0 6px}h3{margin:0 0 12px}
-.muted{color:#756a62}.panel{background:#fff;border-radius:16px;padding:18px;margin:14px 0;box-shadow:0 3px 16px #0000000b}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-.stat{background:#fff;border-radius:16px;padding:18px;box-shadow:0 3px 16px #0000000b}
-.stat small{color:#756a62}.stat b{display:block;font-size:25px;margin-top:7px}
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-label{font-size:13px;font-weight:600}input,select,textarea{width:100%;padding:11px;border:1px solid #ddd3cb;border-radius:10px;margin:5px 0 12px;background:#fff}
-.toolbar{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0}.toolbar>*{flex:1;min-width:160px}
-.item{border-top:1px solid #eee;padding:14px 0}.item:first-child{border-top:0}
-.badge{display:inline-block;padding:5px 9px;border-radius:20px;background:#eee;font-size:12px}
-.active{background:#dcebdc}.inactive{background:#eee}.warning{background:#fff0cf}.sold{background:#f1dddd}
-.row-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
-.table{width:100%;border-collapse:collapse}.table th,.table td{padding:10px;border-bottom:1px solid #eee;text-align:left;vertical-align:top}
-.notice{padding:11px;border-radius:10px;background:#f4eee8;margin-top:10px}
-.login{max-width:460px;margin:70px auto}
-.order-card{border:1px solid #eee;border-radius:12px;padding:14px;margin:10px 0}
-.kpi{font-size:20px;font-weight:700}
-@media(max-width:800px){
-.sidebar{transform:translateX(-100%);transition:.2s;z-index:10}.sidebar.open{transform:translateX(0)}
-.main{margin-left:0;width:100%;padding:14px}.mobile-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-.stats{grid-template-columns:1fr 1fr}.grid,.grid3{grid-template-columns:1fr}
-}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f7f3ee;color:#241b17}
+header{background:linear-gradient(135deg,#17110e,#3a261c);color:#fff}
+.hero{max-width:1100px;margin:auto;padding:38px 18px 32px}
+.logo{font-size:35px;font-weight:800;letter-spacing:5px}.tagline{margin-top:7px;color:#dbc7b4;font-size:13px;letter-spacing:1.5px}
+.hero-copy{max-width:600px;margin-top:22px}.hero-copy h1{font-size:31px;line-height:1.15;margin:0 0 10px}.hero-copy p{margin:0;color:#eaded4;line-height:1.6}
+.container{max-width:1100px;margin:auto;padding:22px 18px 50px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+.cart-link{border:0;border-radius:999px;background:#6b4226;color:#fff;padding:10px 16px;font-weight:700;cursor:pointer}
+.toolbar{display:flex;gap:10px;margin-bottom:14px}.search{flex:1;border:1px solid #ddd2c8;background:#fff;border-radius:12px;padding:13px 14px;font-size:15px;outline:none}
+.categories{display:flex;gap:8px;overflow-x:auto;padding-bottom:5px;margin-bottom:18px}.cat{white-space:nowrap;border:1px solid #d9cbbf;background:#fff;border-radius:999px;padding:9px 14px;cursor:pointer}.cat.active{background:#6b4226;color:#fff;border-color:#6b4226}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}
+.card{background:#fff;border:1px solid #eee3db;border-radius:18px;padding:12px;box-shadow:0 4px 14px rgba(40,25,15,.06);display:flex;flex-direction:column;min-height:285px;overflow:hidden}
+.photo{height:145px;border-radius:14px;background:linear-gradient(135deg,#ead9c8,#f7efe7);display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:12px}
+.photo img{width:100%;height:100%;object-fit:cover}.placeholder{font-size:38px}
+.card h3{font-size:16px;margin:0 0 5px}.desc{font-size:12px;color:#8a7a70;min-height:30px}.price{font-weight:800;margin:8px 0 12px}
+.add{margin-top:auto;width:100%;border:0;border-radius:10px;padding:10px;background:#6b4226;color:#fff;font-weight:700;cursor:pointer}
+.cart-section{margin-top:30px;background:#fff;border-radius:20px;border:1px solid #eee3db;padding:20px;box-shadow:0 4px 18px rgba(40,25,15,.06)}
+.cart-empty{color:#8a7a70}.cart-row{display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid #eee;padding:12px 0}.cart-info{flex:1}.cart-info strong{display:block}.cart-info small{color:#8a7a70}
+.qty{display:flex;align-items:center;gap:8px}.qty button{width:30px;height:30px;border:0;border-radius:8px;background:#eee2d7;cursor:pointer;font-size:17px}
+.total{display:flex;justify-content:space-between;font-size:18px;font-weight:800;padding:16px 0}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}label{font-size:13px;font-weight:700}
+input,select,textarea{width:100%;border:1px solid #ddd2c8;border-radius:10px;padding:11px;background:#fff;font:inherit;margin-top:6px}textarea{min-height:80px;resize:vertical}.full{grid-column:1/-1}
+.checkout{width:100%;border:0;border-radius:12px;background:#1d1714;color:#fff;padding:13px;font-size:16px;font-weight:800;cursor:pointer;margin-top:14px}.note{font-size:12px;color:#8a7a70;margin-top:8px;text-align:center}
+footer{text-align:center;color:#8a7a70;font-size:12px;padding:10px 0 30px}
+@media(max-width:800px){.grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:520px){
+.hero{padding:28px 15px 25px}.logo{font-size:29px}.hero-copy h1{font-size:25px}
+.container{padding:18px 12px 40px}.topbar{align-items:flex-start}.topbar h2{font-size:22px}.cart-link{padding:9px 12px;font-size:13px}
+.grid{gap:10px}.card{padding:10px;min-height:270px;border-radius:15px}.photo{height:125px}.card h3{font-size:14px}.desc{font-size:11px}.price{font-size:14px}.add{font-size:13px;padding:9px}
+.form-grid{grid-template-columns:1fr}.full{grid-column:auto}}
+
+.eng-card{display:flex;justify-content:space-between;align-items:center;gap:12px;border:1px solid #eadfd5;border-radius:12px;padding:12px;margin-top:9px;background:#fff}.eng-card button{white-space:nowrap}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+.dashboard-btn{border:1px solid #d9c8bb;background:#fff;border-radius:10px;padding:10px 13px;font-weight:800;cursor:pointer}.dash{display:none}.dash-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}.dash-card{background:#fbf7f2;border:1px solid #eadfd5;border-radius:14px;padding:14px}.dash-label{font-size:12px;color:#8a7a70}.dash-value{font-size:22px;font-weight:900;margin-top:4px}.progress{height:9px;background:#eadfd5;border-radius:99px;overflow:hidden;margin-top:8px}.progress>i{display:block;height:100%;background:#2f2520;border-radius:99px}.order-item{border-top:1px solid #eadfd5;padding:12px 0}.status{display:inline-block;padding:4px 8px;border-radius:99px;background:#eee4dc;font-size:11px;font-weight:800}.dash-tabs{display:flex;gap:8px;overflow:auto;margin:14px 0}.dash-tab{border:1px solid #eadfd5;background:#fff;border-radius:10px;padding:9px 12px;white-space:nowrap;cursor:pointer}.dash-tab.active{background:#2f2520;color:#fff}.dash-section{display:none}.dash-section.active{display:block}@media(max-width:700px){.dash-grid{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
+<header><div class="hero">
+<div class="logo">KAVORA</div><div class="tagline">GOOD COFFEE, ANYTIME</div>
+<div class="hero-copy"><h1>Kopi favoritmu, siap dipesan.</h1><p>Pilih menu Kavora, masukkan detail pesanan, lalu kirim order langsung melalui WhatsApp.</p></div>
+</div></header>
 
-<div id="loginPage" class="login panel">
-<h2>KAVORA ADMIN</h2>
-<p class="muted">Login menggunakan email admin Supabase.</p>
-<input id="email" type="email" value="sandyalhaz79@gmail.com" placeholder="Email admin">
-<button id="loginBtn">Kirim Link Login</button>
-<div id="loginMsg" class="muted" style="margin-top:10px"></div>
+<main class="container">
+<div class="topbar"><h2>Menu</h2><div style="display:flex;gap:8px;align-items:center"><button class="dashboard-btn" id="openDashboard" type="button">👤 Dashboard</button><button class="cart-link" id="goCart" type="button">🛒 Keranjang <span id="cartCount">0</span></button></div></div>
+<div class="toolbar"><input class="search" id="search" placeholder="Cari menu Kavora..."></div>
+<div class="categories" id="categories"></div>
+<div class="grid" id="menu"></div>
+
+<section class="cart-section" id="pointsSection">
+<h2>⭐ Cek Point Kavora</h2>
+<p class="muted">Masukkan nomor HP yang pernah digunakan saat order.</p>
+<div style="display:flex;gap:8px"><input id="pointsPhone" placeholder="08xxxxxxxxxx" style="flex:1"><button type="button" id="checkPoints">Cek Point</button></div>
+<div id="pointsResult" style="margin-top:10px"></div>
+<div id="rewardsBox" style="margin-top:14px"></div>
+</section>
+<section class="cart-section dash" id="dashboardSection">
+<h2>👤 Dashboard Kavora</h2>
+<p class="muted">Masukkan nomor HP yang digunakan saat bertransaksi untuk melihat profil, membership, point, reward, dan riwayat order.</p>
+<div style="display:flex;gap:8px"><input id="dashboardPhone" placeholder="08xxxxxxxxxx" style="flex:1"><button type="button" id="loadDashboard">Lihat Dashboard</button></div>
+<div id="dashboardContent" style="margin-top:14px"></div>
+</section>
+<section class="cart-section" id="cartSection">
+<h2>Keranjang</h2><div id="cart" style="margin-top:8px"></div>
+<div id="checkoutArea" style="display:none">
+<div class="total"><span>Total</span><span id="total">Rp 0</span></div>
+<div class="form-grid">
+<div><label>Nama</label><input id="customerName" placeholder="Nama customer"></div>
+<div><label>No. HP</label><input id="customerPhone" placeholder="08xxxxxxxxxx"></div>
+<div><label>Tipe Order</label><select id="orderType"><option>Take Away</option><option>Delivery</option></select></div>
+<div class="full" id="deliveryBox" style="display:none"><label>Alamat Delivery</label><textarea id="deliveryAddress" rows="3" placeholder="Masukkan alamat lengkap delivery"></textarea>
+<div id="deliveryFeeInfo" style="font-size:13px;color:#8a7a70;margin-top:-5px">Ongkir: Rp 0</div></div>
+<div class="full"><label>Promo / Voucher</label><div style="display:flex;gap:8px"><input id="promoCode" placeholder="Contoh: KAVORA10" style="flex:1"><button type="button" id="applyPromo" style="white-space:nowrap">Pakai Promo</button></div><div id="promoMsg" style="font-size:13px;margin-top:6px;color:#8a7a70"></div></div><div class="full" id="membershipBenefitBox" style="display:none;border:1px solid #eadfd5;border-radius:12px;padding:12px;background:#fbf7f2"><strong>🏆 Benefit Membership</strong><div id="membershipBenefitContent" style="margin-top:7px;font-size:13px;color:#6f625a">Masukkan nomor HP untuk melihat benefit.</div></div><div class="full"><label>🎁 Kode Reward Point</label><div style="display:flex;gap:8px"><input id="rewardCode" placeholder="Kode dari penukaran point" style="flex:1"><button type="button" id="checkReward" style="white-space:nowrap">Gunakan</button></div><div id="rewardMsg" style="font-size:13px;margin-top:6px;color:#8a7a70"></div></div>
+<div><label>Metode Pembayaran</label><select id="paymentMethod"><option value="cash">Cash / Bayar di Tempat</option><option value="qris">QRIS</option></select></div>
+<div class="full" id="qrisBox" style="display:none;border:1px solid #eadfd5;border-radius:12px;padding:12px;background:#fbf7f2">
+<strong>Bayar dengan QRIS</strong>
+<div id="qrisContent" style="margin-top:8px;color:#8a7a70">Memuat QRIS...</div>
 </div>
-
-<div id="app" class="layout hidden">
-<aside id="sidebar" class="sidebar">
-<div class="brand"><h1>KAVORA</h1><small>Admin Dashboard V16</small></div>
-<nav class="nav">
-<button data-page="dashboard" class="active">🏠 Dashboard</button>
-<button data-page="products">☕ Menu Produk</button>
-<button data-page="promos">🎟️ Promo & Voucher</button>
-<button data-page="orders">📦 Pesanan</button>
-<button data-page="reports">📊 Laporan Penjualan</button>
-<button data-page="payments">💳 Pembayaran</button>
-<button data-page="delivery">🚚 Delivery</button>
-<button data-page="customers">⭐ Customer & Point</button>
-<button data-page="settings">⚙️ Pengaturan</button>
-</nav>
-<button id="logout" class="secondary" style="width:100%;margin-top:18px">Logout</button>
-</aside>
-
-<main class="main">
-<div class="mobile-head"><b>KAVORA ADMIN</b><button id="menuBtn" class="secondary">☰ Menu</button></div>
-
-<section id="page-dashboard" class="page active">
-<div class="top"><div><h2>Dashboard</h2><div class="muted">Ringkasan operasional Kavora</div></div><button id="dashRefresh" class="secondary">Refresh</button></div>
-<div class="stats" style="margin-top:14px">
-<div class="stat"><small>Pesanan Hari Ini</small><b id="sOrders">0</b></div>
-<div class="stat"><small>Omzet Hari Ini</small><b id="sSales">Rp 0</b></div>
-<div class="stat"><small>Pesanan Baru</small><b id="sNew">0</b></div>
-<div class="stat"><small>Menu Aktif</small><b id="sProducts">0</b></div>
+<div class="full"><label>Catatan / Alamat Delivery</label><textarea id="orderNote" placeholder="Contoh: less ice, tanpa gula, alamat delivery, dll."></textarea></div>
 </div>
-<div class="panel"><h3>Pesanan Terbaru</h3><div id="dashOrders"></div></div>
-</section>
-
-<section id="page-products" class="page">
-<div class="top"><div><h2>Menu Produk</h2><div class="muted">Kelola menu, harga, foto, kategori, dan stok.</div></div><button id="newProduct">+ Tambah Produk</button></div>
-<div class="panel"><div class="toolbar"><input id="productSearch" placeholder="Cari produk..."><select id="productFilter"><option value="all">Semua kategori</option></select><button id="manageCategories" class="secondary">⚙️ Kelola Kategori</button></div><div id="productsList"></div></div>
-<div id="categoryEditor" class="panel hidden"><h3>Kelola Kategori</h3><div class="grid"><div><label>Nama Kategori Baru</label><input id="newCategoryName" placeholder="Contoh: Signature"></div><div style="display:flex;align-items:end"><button id="addCategory">+ Tambah Kategori</button></div></div><div id="categoriesList"></div><div id="categoryMsg"></div></div>
-<div id="productEditor" class="panel hidden">
-<h3 id="productEditorTitle">Tambah Produk</h3>
-<div class="grid"><div><label>Nama</label><input id="pname"></div><div><label>Harga</label><input id="price" type="number" min="0"></div></div>
-<div class="grid"><div><label>Kategori</label><select id="pcat"><option>Coffee</option><option>Non Coffee</option><option>Snack</option></select></div><div><label>Urutan</label><input id="sort" type="number" min="0"></div></div>
-<label>Deskripsi</label><textarea id="desc" rows="3"></textarea>
-<label>Foto Produk</label><input id="image" placeholder="URL foto (opsional)"><input id="imageFile" type="file" accept="image/*"><div id="imagePreview" class="notice">Pilih foto dari device atau gunakan URL.</div>
-<label>Stok</label><input id="stock" type="number" min="0" value="999">
-<label><input id="active" type="checkbox" checked style="width:auto"> Produk aktif</label>
-<div class="row-actions"><button id="saveProduct">Simpan</button><button id="cancelProduct" class="secondary">Batal</button></div>
-<div id="productMsg"></div>
-</div>
-</section>
-
-<section id="page-promos" class="page">
-<div class="top"><div><h2>Promo & Voucher</h2><div class="muted">Buat dan kelola kode promo customer.</div></div><button id="newPromo">+ Tambah Voucher</button></div>
-<div class="panel"><div id="promosList"></div></div>
-<div id="promoEditor" class="panel hidden">
-<h3 id="promoEditorTitle">Tambah Voucher</h3>
-<div class="grid"><div><label>Kode Voucher</label><input id="promoCode" placeholder="KAVORA10"></div><div><label>Deskripsi</label><input id="promoDesc"></div></div>
-<div class="grid"><div><label>Tipe Diskon</label><select id="promoType"><option value="percent">Persen (%)</option><option value="fixed">Nominal (Rp)</option></select></div><div><label>Nilai Diskon</label><input id="promoValue" type="number" min="0"></div></div>
-<div class="grid3"><div><label>Min. Pembelian</label><input id="promoMin" type="number" min="0" value="0"></div><div><label>Max. Diskon</label><input id="promoMax" type="number" min="0"></div><div><label>Limit Penggunaan</label><input id="promoLimit" type="number" min="0"></div></div>
-<div class="grid"><div><label>Mulai</label><input id="promoStart" type="datetime-local"></div><div><label>Berakhir</label><input id="promoEnd" type="datetime-local"></div></div>
-<label><input id="promoActive" type="checkbox" checked style="width:auto"> Voucher aktif</label>
-<div class="row-actions"><button id="savePromo">Simpan Voucher</button><button id="cancelPromo" class="secondary">Batal</button></div>
-<div id="promoMsg"></div>
-</div>
-</section>
-
-<section id="page-orders" class="page">
-<div class="top"><div><h2>Pesanan</h2><div class="muted">Kelola seluruh order customer.</div></div><button id="refreshOrders" class="secondary">Refresh</button></div>
-<div class="panel"><div class="toolbar"><select id="orderStatusFilter"><option value="all">Semua status</option><option value="new">Baru</option><option value="processing">Diproses</option><option value="completed">Selesai</option><option value="cancelled">Dibatalkan</option></select></div><div id="ordersList"></div></div>
-</section>
-
-<section id="page-reports" class="page">
-<h2>Laporan Penjualan</h2><div class="muted">Pilih periode untuk melihat penjualan harian, mingguan, bulanan, atau rentang tanggal tertentu.</div>
-<div class="panel" style="margin-top:14px">
-  <h3>Filter Periode</h3>
-  <div class="toolbar" style="flex-wrap:wrap">
-    <button type="button" class="report-period" data-period="today">Hari Ini</button>
-    <button type="button" class="secondary report-period" data-period="yesterday">Kemarin</button>
-    <button type="button" class="secondary report-period" data-period="week">Minggu Ini</button>
-    <button type="button" class="secondary report-period" data-period="month">Bulan Ini</button>
-    <label style="margin:0">Dari<input id="reportStart" type="date"></label>
-    <label style="margin:0">Sampai<input id="reportEnd" type="date"></label>
-    <button type="button" id="applyReportDate" class="secondary">Terapkan</button>
-    <button type="button" id="resetReportDate" class="secondary">Semua Data</button>
-  </div>
-  <div id="reportPeriodLabel" class="notice" style="margin-top:12px">Periode: Hari Ini</div>
-</div>
-<div class="stats" style="margin-top:14px"><div class="stat"><small>Total Transaksi</small><b id="rOrders">0</b></div><div class="stat"><small>Total Omzet</small><b id="rSales">Rp 0</b></div><div class="stat"><small>Rata-rata Order</small><b id="rAvg">Rp 0</b></div><div class="stat"><small>Produk Terjual</small><b id="rItems">0</b></div></div>
-<div class="panel"><h3>Rekap Status</h3><div id="reportStatus"></div></div>
-</section>
-
-<section id="page-payments" class="page">
-<h2>Pembayaran</h2><div class="muted">Pengaturan QRIS dan metode pembayaran.</div>
-<div class="panel"><h3>QRIS</h3><label>Upload QRIS dari Device</label><input id="qrisFile" type="file" accept="image/*"><div id="qrisPreview" class="notice">QRIS belum diupload.</div><div class="row-actions"><button id="saveQris">Upload & Simpan QRIS</button></div><div id="qrisMsg" class="notice"></div></div>
-<div class="panel"><h3>Metode</h3><div class="notice">Customer dapat memilih Cash / Bayar di Tempat atau QRIS pada checkout.</div></div>
-</section>
-
-<section id="page-delivery" class="page">
-<h2>Delivery</h2><div class="muted">Pengaturan pengiriman customer.</div>
-<div class="panel"><label><input id="deliveryEnabled" type="checkbox" style="width:auto"> Aktifkan Delivery</label><label>Biaya Delivery</label><input id="deliveryFee" type="number" min="0"><button id="saveDelivery">Simpan Pengaturan</button><div id="deliveryMsg" class="notice"></div></div>
-</section>
-
-<section id="page-customers" class="page">
-<div class="top"><div><h2>Customer & CRM</h2><div class="muted">Database customer, profil, point, dan riwayat transaksi. Ini adalah tahap pertama Fase 2.</div></div><button id="refreshCustomers" class="secondary">Refresh</button></div>
-<div class="stats" style="margin-top:14px">
-<div class="stat"><small>Total Customer</small><b id="crmTotal">0</b></div>
-<div class="stat"><small>Customer Aktif</small><b id="crmActive">0</b></div>
-<div class="stat"><small>Total Point</small><b id="crmPoints">0</b></div>
-<div class="stat"><small>Total Belanja</small><b id="crmSpend">Rp 0</b></div>
-</div>
-<div class="grid" style="margin-top:14px">
-<div class="panel"><h3>Daftar Customer</h3><input id="customerSearch" placeholder="Cari nama atau nomor HP..."><div id="customersList" style="margin-top:12px"></div></div>
-<div class="panel"><h3>Profil Customer</h3><div id="customerEmpty" class="muted">Pilih customer dari daftar.</div>
-<div id="customerDetail" class="hidden">
-<div class="grid"><div><label>Nama</label><input id="crmName"></div><div><label>No. HP</label><input id="crmPhone" disabled></div></div>
-<div class="grid"><div><label>Email</label><input id="crmEmail" type="email" placeholder="customer@email.com"></div><div><label>Tanggal Lahir</label><input id="crmBirthday" type="date"></div></div>
-<label>Alamat</label><textarea id="crmAddress" rows="2" placeholder="Alamat customer (opsional)"></textarea>
-<label>Catatan Customer</label><textarea id="crmNotes" rows="2" placeholder="Catatan internal admin"></textarea>
-<label><input id="crmMarketing" type="checkbox" style="width:auto"> Bersedia menerima informasi/promosi Kavora</label>
-<div class="row-actions"><button id="saveCustomer">Simpan Profil</button></div><div id="customerMsg"></div>
-<div id="customerStats" style="margin-top:14px"></div>
-<h3 style="margin-top:18px">Riwayat Transaksi</h3><div id="customerOrders"></div>
-<h3 style="margin-top:18px">Riwayat Point</h3><div id="customerPointHistory"></div>
-</div></div></div>
-</div>
-<div class="panel"><h3>Cek Point Cepat</h3><div class="grid"><div><label>No. HP Customer</label><input id="pointPhone" placeholder="08xxxxxxxxxx"></div><div style="display:flex;align-items:end"><button id="checkPoint">Cek Point</button></div></div><div id="pointResult" style="margin-top:14px"></div></div>
-</section>
-
-<section id="page-engagement" class="page">
-<div class="top"><div><h2>Customer Engagement</h2><div class="muted">Kelola Birthday Reward, campaign membership, dan customer yang sudah lama tidak order.</div></div><button id="refreshEngagement" class="secondary">Refresh</button></div>
-<div class="panel"><h3>Campaign</h3><div class="grid"><div><label>Nama Campaign</label><input id="engName" placeholder="Contoh: Come Back 50 Point"></div><div><label>Tipe</label><select id="engType"><option value="inactive">Customer Inactive</option><option value="membership">Membership</option><option value="upgrade">Upgrade</option><option value="birthday">Birthday</option></select></div></div>
-<div class="grid3"><div><label>Target Membership</label><select id="engLevel"><option value="">Semua Membership</option></select></div><div><label>Inactive Days</label><input id="engDays" type="number" min="1" placeholder="Contoh: 14"></div><div><label>Bonus Point</label><input id="engPoints" type="number" min="0" value="0"></div></div>
-<div class="grid"><div><label>Mulai</label><input id="engStart" type="datetime-local"></div><div><label>Berakhir</label><input id="engEnd" type="datetime-local"></div></div>
-<label>Pesan Campaign</label><textarea id="engMessage" rows="2" placeholder="Pesan yang ditampilkan ke customer"></textarea>
-<label><input id="engActive" type="checkbox" checked style="width:auto"> Campaign aktif</label>
-<div class="row-actions"><button id="saveEngagement">Simpan Campaign</button><button id="cancelEngagement" class="secondary">Reset</button></div><div id="engMsg"></div></div>
-<div class="panel"><h3>Campaign Aktif / Tersimpan</h3><div id="engagementList"></div></div>
-<div class="panel"><h3>Birthday Reward</h3><div class="notice">Atur nominal Birthday Bonus melalui menu Membership & Benefit. Customer hanya dapat mengambil bonus 1× per tahun pada tanggal ulang tahunnya.</div></div>
-</section>
-
-<section id="page-rewards" class="page">
-<div class="top"><div><h2>Rewards Point</h2><div class="muted">Kelola hadiah yang bisa ditukar customer menggunakan point.</div></div><button id="newReward">+ Tambah Reward</button></div>
-<div class="panel"><div id="rewardsList"></div></div>
-<div id="rewardEditor" class="panel hidden">
-<h3 id="rewardEditorTitle">Tambah Reward</h3>
-<div class="grid"><div><label>Nama Reward</label><input id="rewardName"></div><div><label>Deskripsi</label><input id="rewardDesc"></div></div>
-<div class="grid3"><div><label>Point Dibutuhkan</label><input id="rewardCost" type="number" min="1"></div><div><label>Tipe Reward</label><select id="rewardType"><option value="fixed_discount">Diskon Nominal</option><option value="percent_discount">Diskon Persen</option></select></div><div><label>Nilai Reward</label><input id="rewardValue" type="number" min="0"></div></div>
-<label><input id="rewardActive" type="checkbox" checked style="width:auto"> Reward aktif</label>
-<div class="row-actions"><button id="saveReward">Simpan Reward</button><button id="cancelReward" class="secondary">Batal</button></div>
-<div id="rewardMsg"></div>
-</div>
-</section>
-
-<section id="page-settings" class="page">
-<h2>Pengaturan</h2><div class="muted">Informasi dasar sistem Kavora.</div>
-<div class="panel"><div class="grid"><div><label>WhatsApp Order</label><input value="082262877440" id="waNumber"></div><div><label>Email Admin</label><input value="sandyalhaz79@gmail.com" disabled></div></div><div class="notice">WhatsApp order dan email admin digunakan oleh sistem customer/admin yang sudah terhubung.</div></div>
-</section>
+<button class="checkout" id="orderBtn" type="button">Pesan via WhatsApp</button><div class="note">Pesanan akan disimpan dan dikirim ke WhatsApp Kavora.</div>
+</div></section>
 </main>
-</div>
+<footer>Kavora Bottled Coffee • Good Coffee, Anytime</footer>
 
 <script>
-(()=>{
+(function(){
 "use strict";
-const URL="https://gooawhtldgefmiwplxzs.supabase.co";
-const KEY="sb_publishable_sD0QPAk-uDg5cveBKtwePA_dWV5Q8GH";
-const ADMIN="sandyalhaz79@gmail.com";
-const db=supabase.createClient(URL,KEY);
-let products=[],orders=[],categories=[],editingProduct=null,editingPromo=null,editingReward=null,crmCustomers=[],selectedCustomer=null;
-const $=id=>document.getElementById(id);
-const rp=n=>new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(Number(n||0));
-const esc=s=>String(s??"").replace(/[&<>\"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]));
-function msg(id,text,error=false){$(id).innerHTML=text?'<div class="notice" style="color:'+(error?'#a33':'#4f463f')+'">'+esc(text)+'</div>':''}
-function nav(page){
-document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
-$("page-"+page).classList.add("active");
-document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
-$("sidebar").classList.remove("open");
-if(page==="products")renderProducts(); if(page==="orders")renderOrders(); if(page==="promos")loadPromos(); if(page==="customers")loadCustomers(); if(page==="engagement"){loadEngLevels();loadEngagement()}
+const WA_NUMBER="6282262877440";
+let qrisImageUrl=null, deliveryEnabled=true, deliveryFee=0, appliedPromo=null;
+const SUPABASE_URL="https://gooawhtldgefmiwplxzs.supabase.co";
+const SUPABASE_KEY="sb_publishable_sD0QPAk-uDg5cveBKtwePA_dWV5Q8GH";
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let rewardData=null, products=[],cart=JSON.parse(localStorage.getItem("kavora_cart")||"{}"),activeCat="All";
+const menu=document.getElementById("menu"),cartEl=document.getElementById("cart"),cartCount=document.getElementById("cartCount"),totalEl=document.getElementById("total"),checkoutArea=document.getElementById("checkoutArea"),search=document.getElementById("search");
+function rupiah(n){return new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(n)}
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+function save(){localStorage.setItem("kavora_cart",JSON.stringify(cart));renderCart()}
+async function loadPaymentSettings(){
+ const {data}=await db.from("payment_settings").select("qris_image_url").eq("id",1).maybeSingle();
+ qrisImageUrl=data?.qris_image_url||null;
+ updateQrisBox();
 }
-document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>nav(b.dataset.page));
-$("menuBtn").onclick=()=>$("sidebar").classList.toggle("open");
-
-async function showApp(user){
-if(!user||String(user.email||"").toLowerCase()!==ADMIN){await db.auth.signOut();alert("Email ini bukan akun admin Kavora.");return}
-$("loginPage").classList.add("hidden");$("app").classList.remove("hidden");await refreshAll();
+async function loadStoreSettings(){
+ const {data}=await db.from("store_settings").select("delivery_enabled,delivery_fee").eq("id",1).maybeSingle();
+ deliveryEnabled=data?.delivery_enabled!==false;
+ deliveryFee=Number(data?.delivery_fee||0);
+ const typeEl=document.getElementById("orderType");
+ if(!deliveryEnabled){
+   [...typeEl.options].forEach(o=>{if(o.value==="Delivery"||o.textContent==="Delivery")o.remove();});
+   if(typeEl.value==="Delivery")typeEl.value="Take Away";
+ }
+ updateDeliveryBox();
 }
-async function refreshAll(){await loadCategories();await Promise.all([loadProducts(),loadOrders(),loadPromos(),loadRewardsAdmin(),loadSettings(),loadCustomers(),loadEngLevels(),loadEngagement()]);updateDashboard();updateReports()}
-$("loginBtn").onclick=async()=>{
-const e=$("email").value.trim();if(e.toLowerCase()!==ADMIN){msg("loginMsg","Gunakan email admin yang terdaftar.",true);return}
-$("loginBtn").disabled=true;const {error}=await db.auth.signInWithOtp({email:e,options:{emailRedirectTo:location.href}});
-msg("loginMsg",error?error.message:"Link login sudah dikirim. Cek Gmail.");$("loginBtn").disabled=false
+function updateDeliveryBox(){
+ const delivery=document.getElementById("orderType").value==="Delivery";
+ document.getElementById("deliveryBox").style.display=delivery?"block":"none";
+ document.getElementById("deliveryFeeInfo").textContent="Ongkir: "+rupiah(deliveryFee);
+ renderCart();
+}
+function updateQrisBox(){
+ const method=document.getElementById("paymentMethod").value;
+ const box=document.getElementById("qrisBox");
+ box.style.display=method==="qris"?"block":"none";
+ if(method!=="qris")return;
+ document.getElementById("qrisContent").innerHTML=qrisImageUrl
+ ? '<img src="'+esc(qrisImageUrl)+'" alt="QRIS Kavora" style="display:block;width:100%;max-width:300px;margin:8px auto;border-radius:12px"><div style="text-align:center;font-size:12px;color:#8a7a70">Scan QRIS Kavora untuk pembayaran.</div>'
+ : '<div>QRIS belum tersedia. Pilih Cash / Bayar di Tempat atau hubungi admin Kavora.</div>';
+}
+function add(id){
+ const p=products.find(x=>x.id===id); if(!p)return;
+ const stock=Number(p.stock??999), next=(cart[id]||0)+1;
+ if(stock<=0){alert("Produk sedang habis.");return}
+ if(next>stock){alert("Stok "+p.name+" hanya tersisa "+stock+".");return}
+ cart[id]=next;save();
+}
+function minus(id){if(cart[id])cart[id]--;if(!cart[id])delete cart[id];save()}
+async function loadProducts(){
+ menu.innerHTML='<p style="color:#8a7a70">Memuat menu...</p>';
+ const {data,error}=await db.from("products")
+   .select("id,name,price,category,description,image_url,stock")
+   .eq("is_active",true)
+   .order("sort_order",{ascending:true});
+ if(error){
+   console.error(error);
+   menu.innerHTML='<p style="color:#a33">Menu gagal dimuat. Silakan refresh halaman.</p>';
+   return;
+ }
+ products=data||[];
+ renderCategories();
+ renderMenu();
+ renderCart();
+}
+document.getElementById("checkPoints").onclick=async()=>{
+ const raw=document.getElementById("pointsPhone").value.trim();
+ const box=document.getElementById("pointsResult");
+ if(!raw){box.innerHTML='<span style="color:#a33">Masukkan nomor HP terlebih dahulu.</span>';return}
+ box.textContent="Mengecek point...";
+ const {data,error}=await db.rpc("get_customer_points",{p_phone:raw});
+ if(error){console.error(error);box.innerHTML='<span style="color:#a33">Point belum bisa dicek. Silakan coba lagi.</span>';return}
+ box.innerHTML='<div style="background:#fbf7f2;border-radius:14px;padding:15px"><div style="font-size:13px;color:#8a7a70">Total transaksi</div><b style="font-size:24px">'+(data.orders||0)+'</b><div style="font-size:13px;color:#8a7a70;margin-top:8px">Point Kavora</div><b style="font-size:30px">'+(data.points||0)+' ⭐</b></div>';
+ await loadRewards(raw);
 };
-$("logout").onclick=()=>db.auth.signOut().then(()=>location.reload());
-db.auth.onAuthStateChange((_e,s)=>{if(s)showApp(s.user)});
-async function init(){const {data}=await db.auth.getSession();if(data.session)showApp(data.session.user)}
-async function loadCategories(){const {data,error}=await db.from("product_categories").select("*").order("sort_order").order("name");if(error){msg("categoryMsg",error.message,true);return}categories=data||[];renderCategoryControls();renderCategoriesAdmin()}
-function renderCategoryControls(){const f=$("productFilter"),p=$("pcat");if(f)f.innerHTML='<option value="all">Semua kategori</option>'+categories.map(c=>`<option value="${esc(c.name)}">${esc(c.name)}</option>`).join("");if(p)p.innerHTML=categories.map(c=>`<option value="${esc(c.name)}">${esc(c.name)}</option>`).join("")}
-function renderCategoriesAdmin(){$("categoriesList").innerHTML=categories.map(c=>`<div class="item"><div class="top"><b>${esc(c.name)}</b><span class="badge ${c.is_active?'active':'inactive'}">${c.is_active?'Aktif':'Nonaktif'}</span></div><div class="row-actions"><button class="secondary" data-ct="${c.id}">${c.is_active?'Nonaktifkan':'Aktifkan'}</button><button class="danger" data-cd="${c.id}">Hapus</button></div></div>`).join("")||'<div class="muted">Belum ada kategori.</div>';document.querySelectorAll('[data-ct]').forEach(b=>b.onclick=async()=>{const c=categories.find(x=>x.id===b.dataset.ct);if(!c)return;const r=await db.from('product_categories').update({is_active:!c.is_active}).eq('id',c.id);if(r.error)return alert(r.error.message);await loadCategories()});document.querySelectorAll('[data-cd]').forEach(b=>b.onclick=()=>deleteCategory(b.dataset.cd))}
-$("manageCategories").onclick=()=>$('categoryEditor').classList.toggle('hidden');
-$("addCategory").onclick=async()=>{const name=$("newCategoryName").value.trim();if(!name)return msg('categoryMsg','Nama kategori wajib diisi.',true);const r=await db.from('product_categories').insert({name,sort_order:categories.length});if(r.error)return msg('categoryMsg',r.error.message,true);$("newCategoryName").value='';await loadCategories();msg('categoryMsg','Kategori berhasil ditambahkan.')};
-async function deleteCategory(id){const c=categories.find(x=>x.id===id);if(!c)return;if(products.some(p=>p.category===c.name))return alert('Kategori masih digunakan oleh produk. Pindahkan produk ke kategori lain terlebih dahulu.');if(!confirm(`Hapus kategori ${c.name}?`))return;const r=await db.from('product_categories').delete().eq('id',id);if(r.error)return alert(r.error.message);await loadCategories()}
-async function loadProducts(){const {data,error}=await db.from("products").select("*").order("sort_order").order("name");if(error)return msg("productMsg",error.message,true);products=data||[];renderProducts()}
-function renderProducts(){const q=$("productSearch").value.toLowerCase(),cat=$("productFilter").value;const list=products.filter(p=>(cat==="all"||p.category===cat)&&(!q||String(p.name).toLowerCase().includes(q)));$("productsList").innerHTML=list.map(p=>`<div class="item"><div class="top"><div><b>${esc(p.name)}</b><div class="muted">${esc(p.category)} · ${esc(p.description||"")}</div></div><b>${rp(p.price)}</b></div><div class="row-actions"><span class="badge ${p.stock<=0?'sold':p.stock<=5?'warning':'active'}">Stok: ${p.stock??999}</span><span class="badge ${p.is_active?'active':'inactive'}">${p.is_active?'Aktif':'Nonaktif'}</span><button data-pe="${p.id}">Edit</button><button class="secondary" data-pt="${p.id}">${p.is_active?'Nonaktifkan':'Aktifkan'}</button><button class="danger" data-pd="${p.id}">Hapus</button></div></div>`).join("")||'<div class="muted">Belum ada produk.</div>';document.querySelectorAll('[data-pe]').forEach(b=>b.onclick=()=>editProduct(b.dataset.pe));document.querySelectorAll('[data-pt]').forEach(b=>b.onclick=()=>toggleProduct(b.dataset.pt));document.querySelectorAll('[data-pd]').forEach(b=>b.onclick=()=>deleteProduct(b.dataset.pd))}
-$("productSearch").oninput=renderProducts;$("productFilter").onchange=renderProducts;
-$("newProduct").onclick=()=>{editingProduct=null;$("productEditorTitle").textContent="Tambah Produk";$("pname").value='';$("price").value='';$("sort").value=0;$("desc").value='';$("image").value='';$("imageFile").value='';$("imagePreview").innerHTML='<span class="muted">Pilih foto dari device atau gunakan URL.</span>';$('stock').value=999;$("active").checked=true;renderCategoryControls();$("productEditor").classList.remove('hidden')};
-async function editProduct(id){const p=products.find(x=>x.id===id);if(!p)return;editingProduct=id;$("productEditorTitle").textContent="Edit Produk";$("pname").value=p.name;$("price").value=p.price;$("pcat").value=p.category;$("sort").value=p.sort_order||0;$("desc").value=p.description||'';$("image").value=p.image_url||'';$("imageFile").value='';$("imagePreview").innerHTML=p.image_url?`<img src="${esc(p.image_url)}" style="width:140px;height:100px;object-fit:cover;border-radius:10px">`:'<span class="muted">Belum ada foto.</span>';$("stock").value=p.stock??999;$("active").checked=!!p.is_active;$("productEditor").classList.remove('hidden')}
-$("imageFile").onchange=()=>{const f=$("imageFile").files[0];if(!f)return;if(!f.type.startsWith('image/'))return alert('File harus berupa gambar.');if(f.size>5*1024*1024)return alert('Ukuran foto maksimal 5 MB.');$("imagePreview").innerHTML=`<img src="${URL.createObjectURL(f)}" style="width:140px;height:100px;object-fit:cover;border-radius:10px">`};
-$("cancelProduct").onclick=()=>$("productEditor").classList.add('hidden');
-$("saveProduct").onclick=async()=>{const payload={name:$("pname").value.trim(),price:Number($("price").value),category:$("pcat").value,sort_order:Number($("sort").value||0),description:$("desc").value.trim(),image_url:$("image").value.trim()||null,stock:Math.max(0,Number($("stock").value||0)),is_active:$("active").checked};if(!payload.name||payload.price<0||!payload.category)return msg('productMsg','Nama, harga, dan kategori wajib diisi.',true);const file=$("imageFile").files[0];if(file){if(!file.type.startsWith('image/'))return alert('File harus berupa gambar.');if(file.size>5*1024*1024)return alert('Ukuran foto maksimal 5 MB.');const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';const path='products/'+crypto.randomUUID()+'.'+ext;const up=await db.storage.from('product-images').upload(path,file,{cacheControl:'3600',upsert:false,contentType:file.type});if(up.error)return alert('Upload foto gagal: '+up.error.message);payload.image_url=db.storage.from('product-images').getPublicUrl(path).data.publicUrl}const r=editingProduct?await db.from('products').update(payload).eq('id',editingProduct):await db.from('products').insert(payload);if(r.error)return msg('productMsg',r.error.message,true);$("productEditor").classList.add('hidden');await loadProducts();updateDashboard();msg('productMsg','Produk berhasil disimpan.')};
-async function toggleProduct(id){const p=products.find(x=>x.id===id);if(!p)return;const r=await db.from('products').update({is_active:!p.is_active}).eq('id',id);if(r.error)return alert(r.error.message);await loadProducts();updateDashboard()}
-async function deleteProduct(id){const p=products.find(x=>x.id===id);if(!p)return;if(!confirm(`Hapus menu ${p.name}? Tindakan ini tidak bisa dibatalkan.`))return;const r=await db.from('products').delete().eq('id',id);if(r.error)return alert('Gagal hapus menu: '+r.error.message);await loadProducts();updateDashboard()}
-async function loadPromos(){const {data,error}=await db.from("promos").select("*").order("created_at",{ascending:false});if(error){msg("promoMsg",error.message,true);return}renderPromos(data||[])}
-function renderPromos(list){
-$("promosList").innerHTML=list.map(p=>`<div class="item"><div class="top"><div><b>${esc(p.code)}</b><div class="muted">${esc(p.description||"")}</div></div><span class="badge ${p.is_active?'active':'inactive'}">${p.is_active?'Aktif':'Nonaktif'}</span></div><div style="margin-top:8px">Diskon: <b>${p.discount_type==="percent"?p.discount_value+"%":rp(p.discount_value)}</b> · Min. ${rp(p.min_purchase||0)} · Dipakai ${p.usage_count||0}${p.usage_limit?' / '+p.usage_limit:''}</div><div class="row-actions"><button data-pe2="${p.id}">Edit</button><button class="secondary" data-pt2="${p.id}">${p.is_active?'Nonaktifkan':'Aktifkan'}</button></div></div>`).join("")||'<div class="muted">Belum ada voucher.</div>';
-document.querySelectorAll("[data-pe2]").forEach(b=>b.onclick=()=>editPromo(b.dataset.pe2));document.querySelectorAll("[data-pt2]").forEach(b=>b.onclick=()=>togglePromo(b.dataset.pt2))
+
+async function loadRewards(phone){
+ const box=document.getElementById("rewardsBox");
+ box.innerHTML='<div style="background:#fbf7f2;border-radius:14px;padding:14px"><b>🎁 Tukar Point</b><div style="font-size:12px;color:#8a7a70;margin-top:4px">Masukkan nomor HP lalu pilih reward yang tersedia.</div><div id="rewardsList" style="margin-top:10px">Memuat reward...</div></div>';
+ const {data,error}=await db.from("rewards").select("*").eq("is_active",true).order("points_cost",{ascending:true});
+ if(error){box.innerHTML+='<div style="color:#a33;margin-top:8px">Reward belum dapat dimuat.</div>';return}
+ const list=document.getElementById("rewardsList");
+ if(!data?.length){list.innerHTML='<div style="color:#8a7a70">Belum ada reward tersedia.</div>';return}
+ list.innerHTML=data.map(r=>'<div style="border-top:1px solid #eadfd5;padding:10px 0"><b>'+esc(r.name)+'</b><div style="font-size:12px;color:#8a7a70">'+esc(r.description||"")+'</div><div style="margin:6px 0"><b>'+Number(r.points_cost||0)+' ⭐</b> → '+(r.reward_type==="fixed_discount"?rupiah(r.reward_value):r.reward_type==="percent_discount"?Number(r.reward_value)+'% diskon':"Reward")+'</div><button type="button" data-redeem="'+r.id+'">Tukar Point</button></div>').join("");
+ list.querySelectorAll("[data-redeem]").forEach(b=>b.onclick=async()=>{
+   if(!phone){alert("Masukkan nomor HP pada bagian Cek Point terlebih dahulu.");return}
+   if(!confirm("Tukar point untuk reward ini?"))return
+   b.disabled=true;b.textContent="Memproses...";
+   const {data:code,error}=await db.rpc("redeem_reward",{p_phone:phone,p_reward_id:b.dataset.redeem});
+   if(error){alert(error.message||"Redeem gagal.");b.disabled=false;b.textContent="Tukar Point";return}
+   const rewardCode=String(code||"");
+   document.getElementById("pointsPhone").value=phone;
+   document.getElementById("rewardCode").value=rewardCode;
+   document.getElementById("rewardMsg").textContent="Reward berhasil ditukar. Kode: "+rewardCode;
+   document.getElementById("rewardMsg").style.color="#4f7a45";
+   const cp=await db.rpc("get_customer_points",{p_phone:phone});
+   if(!cp.error && cp.data) {
+     document.getElementById("pointsResult").innerHTML='<div style="background:#fbf7f2;border-radius:14px;padding:15px"><div style="font-size:13px;color:#8a7a70">Transaksi</div><b style="font-size:24px">'+(cp.data.orders||0)+'</b><div style="font-size:13px;color:#8a7a70;margin-top:8px">Point Kavora</div><b style="font-size:30px">'+(cp.data.points||0)+' ⭐</b></div>';
+   }
+   b.disabled=false;b.textContent="Sudah Ditukar";
+ });
 }
-$("newPromo").onclick=()=>{editingPromo=null;$("promoEditorTitle").textContent="Tambah Voucher";["promoCode","promoDesc","promoValue","promoMin","promoMax","promoLimit","promoStart","promoEnd"].forEach(x=>$(x).value="");$("promoType").value="percent";$("promoActive").checked=true;$("promoEditor").classList.remove("hidden")};
-$("cancelPromo").onclick=()=>$("promoEditor").classList.add("hidden");
-async function editPromo(id){const {data,error}=await db.from("promos").select("*").eq("id",id).single();if(error)return alert(error.message);editingPromo=id;$("promoEditorTitle").textContent="Edit Voucher";$("promoCode").value=data.code;$("promoDesc").value=data.description||"";$("promoType").value=data.discount_type;$("promoValue").value=data.discount_value;$("promoMin").value=data.min_purchase||0;$("promoMax").value=data.max_discount||"";$("promoLimit").value=data.usage_limit||"";$("promoStart").value=data.starts_at?new Date(data.starts_at).toISOString().slice(0,16):"";$("promoEnd").value=data.ends_at?new Date(data.ends_at).toISOString().slice(0,16):"";$("promoActive").checked=!!data.is_active;$("promoEditor").classList.remove("hidden")}
-$("savePromo").onclick=async()=>{
-const code=$("promoCode").value.trim().toUpperCase();const start=$("promoStart").value?new Date($("promoStart").value).toISOString():null;const end=$("promoEnd").value?new Date($("promoEnd").value).toISOString():null;
-if(!code)return msg("promoMsg","Kode voucher wajib diisi.",true);if(end&&start&&new Date(end)<=new Date(start))return msg("promoMsg","Tanggal berakhir harus setelah tanggal mulai.",true);
-const payload={code,description:$("promoDesc").value.trim(),discount_type:$("promoType").value,discount_value:Number($("promoValue").value||0),min_purchase:Number($("promoMin").value||0),max_discount:$("promoMax").value?Number($("promoMax").value):null,usage_limit:$("promoLimit").value?Number($("promoLimit").value):null,starts_at:start,ends_at:end,is_active:$("promoActive").checked};
-let r;if(editingPromo)r=await db.from("promos").update(payload).eq("id",editingPromo);else r=await db.from("promos").insert(payload);
-if(r.error)return msg("promoMsg",r.error.message,true);$("promoEditor").classList.add("hidden");await loadPromos();msg("promoMsg","Voucher berhasil disimpan.")
+
+function renderCategories(){const cats=["All","Coffee","Non Coffee","Snack"];document.getElementById("categories").innerHTML=cats.map(c=>'<button class="cat '+(activeCat===c?'active':'')+'" data-cat="'+c+'" type="button">'+(c==="All"?"Semua":c)+'</button>').join("");document.querySelectorAll("[data-cat]").forEach(b=>b.onclick=()=>{activeCat=b.dataset.cat;renderCategories();renderMenu()})}
+function renderMenu(){
+ const q=search.value.trim().toLowerCase();
+ const list=products.filter(p=>(activeCat==="All"||p.category===activeCat)&&(!q||p.name.toLowerCase().includes(q)));
+ if(!list.length){menu.innerHTML="<p style='color:#8a7a70'>Menu tidak ditemukan.</p>";return}
+ menu.innerHTML=list.map(p=>{
+   const stock=Number(p.stock ?? 999), soldOut=stock<=0, limited=stock>0&&stock<=5;
+   const visual=p.image_url?'<img src="'+esc(p.image_url)+'" alt="'+esc(p.name)+'" loading="lazy"><span class="placeholder" style="display:none">☕</span>':'<span class="placeholder">☕</span>';
+   const stockText=soldOut?'🔴 Habis':limited?'🟠 Tersisa '+stock:'🟢 Tersedia';
+   return '<div class="card" style="'+(soldOut?'opacity:.68':'')+'"><div class="photo">'+visual+'</div><h3>'+esc(p.name)+'</h3><div class="desc">'+esc(p.description||"")+'</div><div class="price">'+rupiah(p.price)+'</div><div style="font-size:13px;margin:7px 0;color:#7d6c61">'+stockText+'</div><button class="add" type="button" data-add="'+p.id+'" '+(soldOut?'disabled style="opacity:.55;cursor:not-allowed"':'')+'>'+ (soldOut?'Habis':'+ Tambah') +'</button></div>'
+ }).join("");
+ document.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>add(b.dataset.add))
+}
+function renderCart(){
+ const valid=Object.keys(cart).filter(id=>products.some(p=>p.id===id));
+ valid.forEach(id=>{if(!cart[id])delete cart[id]});
+ cartCount.textContent=Object.values(cart).reduce((x,y)=>x+y,0);
+ if(!valid.length){cartEl.innerHTML='<div class="cart-empty">Keranjang masih kosong.</div>';checkoutArea.style.display="none";totalEl.textContent=rupiah(0);return}
+ let subtotal=0;
+ cartEl.innerHTML=valid.map(id=>{const p=products.find(x=>x.id===id),sub=p.price*cart[id];subtotal+=sub;return '<div class="cart-row"><div class="cart-info"><strong>'+esc(p.name)+'</strong><small>'+rupiah(p.price)+' / item</small></div><div class="qty"><button type="button" data-minus="'+id+'">−</button><b>'+cart[id]+'</b><button type="button" data-plus="'+id+'">+</button></div></div>'}).join("");
+ const delivery=document.getElementById("orderType")?.value==="Delivery"?Number(deliveryFee||0):0;
+ const discount=Math.min(Number(appliedPromo?.discount||0),subtotal);
+ const grand=Math.max(0,subtotal-discount)+delivery;
+ totalEl.innerHTML='<div>Subtotal '+rupiah(subtotal)+'</div>'+(discount?'<div style="font-size:14px;color:#4f7a45">Diskon '+rupiah(discount)+(appliedPromo?' ('+esc(appliedPromo.code)+')':'')+'</div>':'')+(delivery?'<div style="font-size:14px;color:#8a7a70">Ongkir '+rupiah(delivery)+'</div>':'')+'<div style="margin-top:5px">'+rupiah(grand)+'</div>';
+ checkoutArea.style.display="block";
+ loadMembershipBenefits(document.getElementById("customerPhone")?.value.trim()||"");
+ document.querySelectorAll("[data-minus]").forEach(x=>x.onclick=()=>minus(x.dataset.minus));
+ document.querySelectorAll("[data-plus]").forEach(x=>x.onclick=()=>add(x.dataset.plus));
+}
+document.getElementById("goCart").onclick=()=>document.getElementById("cartSection").scrollIntoView({behavior:"smooth",block:"start"});
+search.oninput=renderMenu;
+document.getElementById("paymentMethod").onchange=updateQrisBox;
+document.getElementById("orderType").onchange=updateDeliveryBox;
+document.getElementById("applyPromo").onclick=async()=>{
+ const code=document.getElementById("promoCode").value.trim().toUpperCase();
+ const msg=document.getElementById("promoMsg");
+ if(!code){appliedPromo=null;msg.textContent="Masukkan kode promo.";msg.style.color="#a33";renderCart();return}
+ const subtotal=Object.keys(cart).reduce((sum,id)=>{const p=products.find(x=>x.id===id);return sum+(p?p.price*cart[id]:0)},0);
+ if(subtotal<=0){msg.textContent="Tambahkan produk terlebih dahulu.";msg.style.color="#a33";return}
+ const {data,error}=await db.rpc("validate_promo",{p_code:code,p_subtotal:subtotal});
+ if(error||!data?.valid){
+   console.error(error);
+   appliedPromo=null;
+   msg.textContent=data?.message||"Kode promo tidak berlaku.";
+   msg.style.color="#a33";
+   renderCart();
+   return;
+ }
+ appliedPromo={code:String(data.code||code).toUpperCase(),discount:Number(data.discount||0)};
+ msg.textContent="Promo berhasil: -"+rupiah(appliedPromo.discount);
+ msg.style.color="#4f7a45";
+ renderCart();
 };
-async function togglePromo(id){const {data,error}=await db.from("promos").select("is_active").eq("id",id).single();if(error)return alert(error.message);const r=await db.from("promos").update({is_active:!data.is_active}).eq("id",id);if(r.error)return alert(r.error.message);loadPromos()}
 
-async function loadOrders(){const {data,error}=await db.from("orders").select("*").order("created_at",{ascending:false}).limit(5000);if(error)return;orders=data||[];renderOrders();updateDashboard();updateReports()}
-function statusLabel(s){return ({new:"Baru",processing:"Diproses",completed:"Selesai",cancelled:"Dibatalkan"})[s]||s||"-"}
-function renderOrders(){const f=$("orderStatusFilter").value;const list=orders.filter(o=>f==="all"||o.status===f);$("ordersList").innerHTML=list.map(o=>`<div class="order-card"><div class="top"><div><b>${esc(o.customer_name||"Customer")}</b><div class="muted">${new Date(o.created_at).toLocaleString("id-ID")}</div></div><span class="badge">${statusLabel(o.status)}</span></div><div style="margin-top:8px">${rp(o.total)} · ${esc(o.order_type||"-")} · ${esc(o.payment_method||"-")}</div><div class="row-actions"><select data-os="${o.id}"><option value="new" ${o.status==="new"?"selected":""}>Baru</option><option value="processing" ${o.status==="processing"?"selected":""}>Diproses</option><option value="completed" ${o.status==="completed"?"selected":""}>Selesai</option><option value="cancelled" ${o.status==="cancelled"?"selected":""}>Dibatalkan</option></select></div></div>`).join("")||'<div class="muted">Tidak ada pesanan.</div>';document.querySelectorAll("[data-os]").forEach(s=>s.onchange=()=>updateOrder(s.dataset.os,s.value))}
-$("orderStatusFilter").onchange=renderOrders;
-$("refreshOrders").onclick=async()=>{await loadOrders();updateDashboard();updateReports()};
-async function updateOrder(id,status){const {error}=await db.from("orders").update({status}).eq("id",id);if(error)return alert(error.message);await loadOrders()}
-function updateDashboard(){const today=new Date().toISOString().slice(0,10);const td=orders.filter(o=>String(o.created_at).slice(0,10)===today);$("sOrders").textContent=td.length;$("sSales").textContent=rp(td.filter(o=>o.status==="completed").reduce((a,o)=>a+Number(o.total||0),0));$("sNew").textContent=orders.filter(o=>o.status==="new").length;$("sProducts").textContent=products.filter(p=>p.is_active).length;$("dashOrders").innerHTML=orders.slice(0,5).map(o=>`<div class="item"><b>${esc(o.customer_name||"Customer")}</b> · ${rp(o.total)} · <span class="badge">${statusLabel(o.status)}</span></div>`).join("")||'<div class="muted">Belum ada pesanan.</div>'}
-$("dashRefresh").onclick=refreshAll;
-let reportPeriod="today";
-function dateKeyLocal(d){const x=new Date(d);if(Number.isNaN(x.getTime()))return "";const y=x.getFullYear(),m=String(x.getMonth()+1).padStart(2,"0"),day=String(x.getDate()).padStart(2,"0");return `${y}-${m}-${day}`}
-function startOfWeek(d){const x=new Date(d);const day=x.getDay();const diff=day===0?-6:1-day;x.setHours(0,0,0,0);x.setDate(x.getDate()+diff);return x}
-function reportRange(){const now=new Date();now.setHours(0,0,0,0);if(reportPeriod==="today")return [dateKeyLocal(now),dateKeyLocal(now),"Hari Ini"];if(reportPeriod==="yesterday"){const d=new Date(now);d.setDate(d.getDate()-1);return [dateKeyLocal(d),dateKeyLocal(d),"Kemarin"]}if(reportPeriod==="week"){const a=startOfWeek(now),b=new Date(a);b.setDate(b.getDate()+6);return [dateKeyLocal(a),dateKeyLocal(b),`Minggu Ini (${dateKeyLocal(a)} s/d ${dateKeyLocal(b)})`]}if(reportPeriod==="month"){const a=new Date(now.getFullYear(),now.getMonth(),1),b=new Date(now.getFullYear(),now.getMonth()+1,0);return [dateKeyLocal(a),dateKeyLocal(b),`Bulan Ini (${dateKeyLocal(a)} s/d ${dateKeyLocal(b)})`]}if(reportPeriod==="custom"){const a=$("reportStart").value,b=$("reportEnd").value;if(!a||!b)return ["","","Pilih tanggal terlebih dahulu"];return [a,b,`Tanggal ${a} s/d ${b}`]}return ["","","Semua Data"]}
-function updateReports(){const [start,end,label]=reportRange();let filtered=orders;if(start&&end)filtered=orders.filter(o=>{const k=dateKeyLocal(o.created_at);return k>=start&&k<=end});const completed=filtered.filter(o=>o.status==="completed");const sales=completed.reduce((a,o)=>a+Number(o.total||0),0);$("rOrders").textContent=completed.length;$("rSales").textContent=rp(sales);$("rAvg").textContent=rp(completed.length?sales/completed.length:0);$("reportPeriodLabel").textContent=`Periode: ${label}`;const counts={};filtered.forEach(o=>counts[o.status]=(counts[o.status]||0)+1);$("reportStatus").innerHTML=Object.entries(counts).map(([k,v])=>`<div class="item">${statusLabel(k)}: <b>${v}</b></div>`).join("")||'<div class="muted">Tidak ada transaksi pada periode ini.</div>';$("rItems").textContent="—"}
-document.querySelectorAll(".report-period").forEach(b=>b.onclick=()=>{reportPeriod=b.dataset.period;document.querySelectorAll(".report-period").forEach(x=>x.classList.toggle("secondary",x!==b));updateReports()});
-$("applyReportDate").onclick=()=>{const a=$("reportStart").value,b=$("reportEnd").value;if(!a||!b)return alert("Pilih tanggal mulai dan tanggal akhir.");if(a>b)return alert("Tanggal mulai tidak boleh lebih besar dari tanggal akhir.");reportPeriod="custom";document.querySelectorAll(".report-period").forEach(x=>x.classList.add("secondary"));updateReports()};
-$("resetReportDate").onclick=()=>{reportPeriod="all";$("reportStart").value="";$("reportEnd").value="";document.querySelectorAll(".report-period").forEach(x=>x.classList.add("secondary"));updateReports()};
 
-async function loadEngagement(){
- const {data,error}=await db.from("engagement_campaigns").select("*").order("created_at",{ascending:false});
- if(error)return msg("engMsg",error.message,true);
- $("engagementList").innerHTML=(data||[]).map(c=>`<div class="item"><div class="top"><div><b>${esc(c.name)}</b><div class="muted">${esc(c.message||"")}</div></div><span class="badge ${c.is_active?'active':'inactive'}">${c.is_active?'Aktif':'Nonaktif'}</span></div><div style="margin-top:8px">${esc(c.campaign_type)} · ${c.target_membership_level?esc(c.target_membership_level):'Semua membership'} · ${c.bonus_points||0} point${c.inactive_days?' · Inactive '+c.inactive_days+' hari':''}</div><div class="row-actions"><button data-e-toggle="${c.id}" class="secondary">${c.is_active?'Nonaktifkan':'Aktifkan'}</button><button data-e-del="${c.id}" class="danger">Hapus</button></div></div>`).join("")||'<div class="muted">Belum ada campaign.</div>';
- document.querySelectorAll("[data-e-toggle]").forEach(b=>b.onclick=async()=>{const id=b.dataset.eToggle;const {data}=await db.from("engagement_campaigns").select("is_active").eq("id",id).single();if(data)await db.from("engagement_campaigns").update({is_active:!data.is_active,updated_at:new Date().toISOString()}).eq("id",id);loadEngagement()});
- document.querySelectorAll("[data-e-del]").forEach(b=>b.onclick=async()=>{if(!confirm("Hapus campaign ini?"))return;await db.from("engagement_campaigns").delete().eq("id",b.dataset.eDel);loadEngagement()});
+async function loadMembershipBenefits(phone){
+ const box=document.getElementById('membershipBenefitBox'), content=document.getElementById('membershipBenefitContent');
+ if(!box||!content)return;
+ if(!phone){box.style.display='none';return}
+ const {data,error}=await db.rpc('get_membership_benefits',{p_phone:phone});
+ if(error||!data?.level){box.style.display='none';return}
+ box.style.display='block';
+ const list=(data.benefits||[]).map(b=>'<div style="padding:5px 0">✓ '+esc(b.title)+(b.description?' — '+esc(b.description):'')+'</div>').join('');
+ content.innerHTML='<b>'+esc(data.level.name)+'</b>'+(list||'<div style="margin-top:5px;color:#8a7a70">Belum ada benefit aktif.</div>');
 }
-async function loadEngLevels(){const {data}=await db.from("membership_levels").select("name").eq("is_active",true).order("min_spent");$("engLevel").innerHTML='<option value="">Semua Membership</option>'+(data||[]).map(x=>`<option>${esc(x.name)}</option>`).join("")}
-$("saveEngagement").onclick=async()=>{const name=$("engName").value.trim();if(!name)return msg("engMsg","Nama campaign wajib diisi.",true);const start=$("engStart").value?new Date($("engStart").value).toISOString():new Date().toISOString();const end=$("engEnd").value?new Date($("engEnd").value).toISOString():null;if(end&&new Date(end)<=new Date(start))return msg("engMsg","Tanggal berakhir harus setelah mulai.",true);const payload={name,campaign_type:$("engType").value,target_membership_level:$("engLevel").value||null,inactive_days:$("engDays").value?Number($("engDays").value):null,bonus_points:Number($("engPoints").value||0),message:$("engMessage").value.trim()||null,starts_at:start,ends_at:end,is_active:$("engActive").checked,updated_at:new Date().toISOString()};const r=await db.from("engagement_campaigns").insert(payload);if(r.error)return msg("engMsg",r.error.message,true);msg("engMsg","Campaign berhasil dibuat.");$("engName").value="";$("engDays").value="";$("engPoints").value="0";$("engMessage").value="";await loadEngagement()};
-$("cancelEngagement").onclick=()=>{["engName","engDays","engMessage","engStart","engEnd"].forEach(id=>$(id).value="");$("engPoints").value="0";$("engActive").checked=true};$("refreshEngagement").onclick=async()=>{await loadEngLevels();await loadEngagement()};
+document.getElementById('customerPhone').addEventListener('blur',e=>loadMembershipBenefits(e.target.value.trim()));
+document.getElementById('pointsPhone').addEventListener('blur',e=>loadMembershipBenefits(e.target.value.trim()));
 
-async function loadRewardsAdmin(){const {data,error}=await db.from('rewards').select('*').order('created_at',{ascending:false});if(error)return msg('rewardMsg',error.message,true);$("rewardsList").innerHTML=(data||[]).map(r=>`<div class="item"><div class="top"><div><b>${esc(r.name)}</b><div class="muted">${esc(r.description||'')}</div></div><span class="badge ${r.is_active?'active':'inactive'}">${r.is_active?'Aktif':'Nonaktif'}</span></div><div style="margin-top:8px">${r.points_cost} point · ${r.reward_type==='percent_discount'?r.reward_value+'%':rp(r.reward_value)}</div><div class="row-actions"><button data-re="${r.id}">Edit</button><button class="secondary" data-rt="${r.id}">${r.is_active?'Nonaktifkan':'Aktifkan'}</button></div></div>`).join('')||'<div class="muted">Belum ada reward.</div>';document.querySelectorAll('[data-re]').forEach(b=>b.onclick=()=>editReward(b.dataset.re));document.querySelectorAll('[data-rt]').forEach(b=>b.onclick=()=>toggleReward(b.dataset.rt))}
-$("newReward").onclick=()=>{editingReward=null;$("rewardEditorTitle").textContent='Tambah Reward';$("rewardName").value='';$("rewardDesc").value='';$("rewardCost").value='';$("rewardType").value='fixed_discount';$("rewardValue").value='';$("rewardActive").checked=true;$("rewardEditor").classList.remove('hidden')};$("cancelReward").onclick=()=>$("rewardEditor").classList.add('hidden');
-async function editReward(id){const {data,error}=await db.from('rewards').select('*').eq('id',id).single();if(error)return alert(error.message);editingReward=id;$("rewardEditorTitle").textContent='Edit Reward';$("rewardName").value=data.name;$("rewardDesc").value=data.description||'';$("rewardCost").value=data.points_cost;$("rewardType").value=data.reward_type;$("rewardValue").value=data.reward_value||0;$("rewardActive").checked=!!data.is_active;$("rewardEditor").classList.remove('hidden')}
-$("saveReward").onclick=async()=>{const payload={name:$("rewardName").value.trim(),description:$("rewardDesc").value.trim(),points_cost:Number($("rewardCost").value||0),reward_type:$("rewardType").value,reward_value:Number($("rewardValue").value||0),is_active:$("rewardActive").checked};if(!payload.name||payload.points_cost<1)return msg('rewardMsg','Nama reward dan point wajib diisi.',true);const r=editingReward?await db.from('rewards').update(payload).eq('id',editingReward):await db.from('rewards').insert(payload);if(r.error)return msg('rewardMsg',r.error.message,true);$("rewardEditor").classList.add('hidden');await loadRewardsAdmin();msg('rewardMsg','Reward berhasil disimpan.')}
-async function toggleReward(id){const {data,error}=await db.from('rewards').select('is_active').eq('id',id).single();if(error)return alert(error.message);const r=await db.from('rewards').update({is_active:!data.is_active}).eq('id',id);if(r.error)return alert(r.error.message);await loadRewardsAdmin()}
+document.getElementById("checkReward").onclick=async()=>{
+ const code=document.getElementById("rewardCode").value.trim().toUpperCase();
+ const phone=document.getElementById("customerPhone").value.trim() || document.getElementById("pointsPhone").value.trim();
+ const msg=document.getElementById("rewardMsg");
+ if(!code||!phone){msg.textContent="Masukkan nomor HP dan kode reward.";msg.style.color="#a33";return}
+ const {data,error}=await db.rpc("check_reward_code",{p_code:code,p_phone:phone});
+ if(error){msg.textContent=error.message||"Kode reward tidak valid.";msg.style.color="#a33";rewardData=null;return}
+ rewardData=data;msg.textContent="Reward aktif: "+(data.reward_name||"")+" ("+(data.reward_type==="fixed_discount"?rupiah(data.reward_value):data.reward_value+"%")+")";msg.style.color="#4f7a45";
+};
 
-async function loadSettings(){
-await loadQris();
-const {data:d}=await db.from("store_settings").select("*").limit(1).maybeSingle();if(d){$("deliveryEnabled").checked=!!d.delivery_enabled;$("deliveryFee").value=d.delivery_fee||0}
+async function loadDashboard(phone){
+ const content=document.getElementById("dashboardContent"); content.innerHTML='<div style="padding:15px;background:#fbf7f2;border-radius:14px">Memuat dashboard...</div>';
+ const {data,error}=await db.rpc("get_customer_dashboard",{p_phone:phone});
+ if(error){console.error(error);content.innerHTML='<div style="color:#a33">Dashboard belum dapat dimuat. Silakan coba lagi.</div>';return}
+ if(!data?.member){content.innerHTML='<div style="padding:15px;background:#fbf7f2;border-radius:14px">Data customer belum ditemukan. Silakan gunakan nomor HP yang pernah dipakai saat order.</div>';return}
+ const m=data.member,l=data.level,n=data.next_level;
+ const pct=n?Math.min(100,Math.max(0,((m.total_spent-(l?.min_spent||0))/Math.max(1,n.min_spent-(l?.min_spent||0)))*100)):100;
+ const fmtStatus=x=>String(x||'').replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+ const orders=(data.orders||[]).map(o=>'<div class="order-item"><div style="display:flex;justify-content:space-between;gap:8px"><b>#'+esc(String(o.id).slice(0,8).toUpperCase())+'</b><span class="status">'+esc(fmtStatus(o.status))+'</span></div><div style="font-size:12px;color:#8a7a70;margin-top:4px">'+new Date(o.created_at).toLocaleString('id-ID')+' • '+esc(o.order_type||'')+'</div><div style="margin-top:7px">'+(o.items||[]).map(i=>esc(i.product_name)+' × '+i.quantity).join(' • ')+'</div><b style="display:block;margin-top:7px">'+rupiah(o.total)+'</b></div>').join('')||'<div class="muted">Belum ada riwayat order.</div>';
+ const hist=(data.point_history||[]).map(h=>'<div class="order-item"><div style="display:flex;justify-content:space-between"><b>'+esc(h.type)+'</b><strong style="color:'+(Number(h.points)>=0?'#4f7a45':'#a33')+'">'+(Number(h.points)>=0?'+':'')+Number(h.points)+' ⭐</strong></div><div style="font-size:12px;color:#8a7a70">'+new Date(h.created_at).toLocaleString('id-ID')+'</div><div style="font-size:13px;margin-top:4px">'+esc(h.note||'')+'</div></div>').join('')||'<div class="muted">Belum ada riwayat point.</div>';
+ const rewards=(data.rewards||[]).map(r=>'<div class="order-item"><b>'+esc(r.name)+'</b><div style="font-size:12px;color:#8a7a70">'+esc(r.description||'')+'</div><div style="margin-top:5px"><b>'+Number(r.points_cost)+' ⭐</b> → '+(r.reward_type==='fixed_discount'?rupiah(r.reward_value):r.reward_type==='percent_discount'?Number(r.reward_value)+'% diskon':'Reward')+'</div></div>').join('')||'<div class="muted">Belum ada reward aktif.</div>';
+ const benefitRes=await db.rpc('get_membership_benefits',{p_phone:phone}); const benefitData=benefitRes.data||{}; const benefits=(benefitData.benefits||[]).map(b=>'<div class="order-item"><b>'+esc(b.title)+'</b><div style="font-size:13px;color:#6f625a;margin-top:4px">'+esc(b.description||'')+'</div></div>').join('')||'<div class="muted">Belum ada benefit khusus yang aktif untuk level ini.</div>';
+ const engRes=await db.rpc('get_customer_engagement',{p_phone:phone}); const eng=engRes.data||{};
+ const birthday=eng.birthday_bonus_available?'<div class="eng-card"><div><b>🎂 Birthday Bonus</b><div class="muted" style="margin-top:5px">Selamat ulang tahun! Kamu punya bonus point yang bisa diklaim hari ini.</div></div><button type="button" id="claimBirthday">Klaim Bonus</button></div>':(eng.member?.birthday?'<div class="eng-card"><div><b>🎂 Birthday Bonus</b><div class="muted" style="margin-top:5px">Birthday bonus hanya bisa diklaim pada tanggal ulang tahun dan sekali setiap tahun.</div></div></div>':'');
+ const campaigns=[...(eng.inactive_campaigns||[]),...(eng.membership_campaigns||[])];
+ const campaignHtml=campaigns.map(c=>'<div class="eng-card"><div style="flex:1"><b>'+esc(c.name)+'</b><div class="muted" style="margin-top:5px">'+esc(c.message||c.description||'Benefit khusus untuk kamu.')+'</div>'+(Number(c.bonus_points||0)?'<div style="margin-top:6px"><b>+'+Number(c.bonus_points)+' ⭐</b></div>':'')+(c.discount_value?'<div style="margin-top:4px">Diskon '+(c.discount_type==='percent'?Number(c.discount_value)+'%':rupiah(c.discount_value))+'</div>':'')+'</div><button type="button" data-claim-campaign="'+esc(c.id)+'">Klaim</button></div>').join('')||'<div class="muted">Belum ada campaign khusus yang tersedia untuk kamu.</div>';
+ const events=(eng.events||[]).map(e=>'<div class="order-item"><div style="display:flex;justify-content:space-between;gap:8px"><b>'+esc(e.event_type)+'</b><strong>'+(Number(e.points)>=0?'+':'')+Number(e.points)+' ⭐</strong></div><div class="muted">'+new Date(e.created_at).toLocaleString('id-ID')+'</div><div style="font-size:13px;margin-top:4px">'+esc(e.note||'')+'</div></div>').join('')||'<div class="muted">Belum ada riwayat engagement.</div>';
+ content.innerHTML='<div class="dash-grid"><div class="dash-card"><div class="dash-label">Point</div><div class="dash-value">'+Number(m.points)+' ⭐</div></div><div class="dash-card"><div class="dash-label">Membership</div><div class="dash-value">'+esc(l?.name||'Member')+'</div></div><div class="dash-card"><div class="dash-label">Total Belanja</div><div class="dash-value">'+rupiah(m.total_spent)+'</div></div><div class="dash-card"><div class="dash-label">Total Order</div><div class="dash-value">'+Number(m.total_orders)+'</div></div></div>'+
+ '<div class="dash-card" style="margin-top:10px"><b>👋 Halo, '+esc(m.name)+'</b><div style="font-size:13px;color:#8a7a70;margin-top:5px">'+esc(m.phone)+(m.email?' • '+esc(m.email):'')+'</div><div style="margin-top:12px"><b>Level '+esc(l?.name||'Member')+'</b> • '+Number(l?.multiplier||1)+'× point</div>'+(n?'<div style="font-size:12px;color:#8a7a70;margin-top:7px">Menuju '+esc(n.name)+': '+rupiah(n.remaining)+' lagi</div><div class="progress"><i style="width:'+pct+'%"></i></div>':'<div style="font-size:12px;color:#8a7a70;margin-top:7px">Kamu sudah berada di level tertinggi.</div>')+'</div>'+
+ '<div class="dash-tabs"><button class="dash-tab active" data-dtab="orders">🧾 Order</button><button class="dash-tab" data-dtab="points">⭐ Point</button><button class="dash-tab" data-dtab="rewards">🎁 Reward</button><button class="dash-tab" data-dtab="benefits">🏆 Benefit</button><button class="dash-tab" data-dtab="engagement">🎉 Offer</button></div>'+
+ '<div class="dash-section active" data-dsection="orders"><div class="dash-card">'+orders+'</div></div><div class="dash-section" data-dsection="points"><div class="dash-card">'+hist+'</div></div><div class="dash-section" data-dsection="rewards"><div class="dash-card">'+rewards+'</div></div><div class="dash-section" data-dsection="benefits"><div class="dash-card"><div style="margin-bottom:8px"><b>Level '+esc(l?.name||'Member')+'</b></div>'+benefits+'</div></div><div class="dash-section" data-dsection="engagement"><div class="dash-card">'+birthday+(campaigns.length?'<div style="margin-top:12px"><b>🎁 Offer Khusus</b></div>'+campaignHtml:'')+'<div style="margin-top:14px"><b>🕘 Riwayat Engagement</b></div>'+events+'</div></div>';
+ content.querySelectorAll('[data-dtab]').forEach(b=>b.onclick=()=>{content.querySelectorAll('[data-dtab]').forEach(x=>x.classList.remove('active'));content.querySelectorAll('[data-dsection]').forEach(x=>x.classList.remove('active'));b.classList.add('active');content.querySelector('[data-dsection="'+b.dataset.dtab+'"]').classList.add('active')});
+ const cb=document.getElementById('claimBirthday'); if(cb) cb.onclick=async()=>{cb.disabled=true;cb.textContent='Memproses...';const r=await db.rpc('claim_birthday_bonus',{p_phone:phone});alert(r.data?.message||r.error?.message||'Selesai');await loadDashboard(phone)};
+ content.querySelectorAll('[data-claim-campaign]').forEach(b=>b.onclick=async()=>{b.disabled=true;b.textContent='Memproses...';const r=await db.rpc('claim_engagement_bonus',{p_phone:phone,p_campaign_id:b.dataset.claimCampaign});alert(r.data?.message||r.error?.message||'Selesai');await loadDashboard(phone)});
 }
-async function loadQris(){const {data:q}=await db.from('payment_settings').select('*').limit(1).maybeSingle();if(q)$('qrisPreview').innerHTML=q.qris_image_url?`<img src="${esc(q.qris_image_url)}" style="max-width:260px;max-height:260px;border-radius:12px;border:1px solid #eee">`:'<span class="muted">QRIS belum diupload.</span>'}
-$("qrisFile").onchange=()=>{const f=$("qrisFile").files[0];if(!f)return;if(!f.type.startsWith('image/'))return alert('File harus berupa gambar.');if(f.size>5*1024*1024)return alert('Ukuran QRIS maksimal 5 MB.');$("qrisPreview").innerHTML=`<img src="${URL.createObjectURL(f)}" style="max-width:260px;max-height:260px;border-radius:12px">`};
-$("saveQris").onclick=async()=>{const f=$("qrisFile").files[0];if(!f)return msg('qrisMsg','Pilih file QRIS dari device terlebih dahulu.',true);const ext=(f.name.split('.').pop()||'png').toLowerCase().replace(/[^a-z0-9]/g,'')||'png';const path='qris/'+crypto.randomUUID()+'.'+ext;const up=await db.storage.from('payment-assets').upload(path,f,{cacheControl:'3600',upsert:false,contentType:f.type});if(up.error)return msg('qrisMsg','Upload QRIS gagal: '+up.error.message,true);const url=db.storage.from('payment-assets').getPublicUrl(path).data.publicUrl;const {data}=await db.from('payment_settings').select('id').limit(1).maybeSingle();const r=data?await db.from('payment_settings').update({qris_image_url:url,updated_at:new Date().toISOString()}).eq('id',data.id):await db.from('payment_settings').insert({qris_image_url:url});if(r.error)return msg('qrisMsg',r.error.message,true);$("qrisFile").value='';await loadQris();msg('qrisMsg','QRIS berhasil diupload dan disimpan.')}
-$("saveDelivery").onclick=async()=>{const {data}=await db.from("store_settings").select("id").limit(1).maybeSingle();const payload={delivery_enabled:$("deliveryEnabled").checked,delivery_fee:Number($("deliveryFee").value||0)};const r=data?await db.from("store_settings").update(payload).eq("id",data.id):await db.from("store_settings").insert(payload);msg("deliveryMsg",r.error?r.error.message:"Pengaturan delivery berhasil disimpan.",!!r.error)}
-async function loadCustomers(){const {data,error}=await db.from("members").select("*").order("updated_at",{ascending:false});if(error){msg("customerMsg",error.message,true);return}crmCustomers=data||[];$("crmTotal").textContent=crmCustomers.length;$("crmActive").textContent=crmCustomers.filter(x=>x.is_active).length;$("crmPoints").textContent=crmCustomers.reduce((a,x)=>a+Number(x.points||0),0);$("crmSpend").textContent=rp(crmCustomers.reduce((a,x)=>a+Number(x.total_spent||0),0));renderCustomers()}
-function renderCustomers(){const q=($("customerSearch")?.value||"").toLowerCase().trim();const list=crmCustomers.filter(c=>!q||String(c.name||"").toLowerCase().includes(q)||String(c.phone||"").toLowerCase().includes(q));$("customersList").innerHTML=list.map(c=>`<div class="item" style="cursor:pointer" data-customer="${c.id}"><div class="top"><div><b>${esc(c.name)}</b><div class="muted">${esc(c.phone)}</div></div><span class="badge ${c.is_active?'active':'inactive'}">⭐ ${c.points||0}</span></div><div style="margin-top:7px">${c.total_orders||0} transaksi · ${rp(c.total_spent||0)}</div></div>`).join("")||'<div class="muted">Belum ada customer.</div>';document.querySelectorAll("[data-customer]").forEach(b=>b.onclick=()=>selectCustomer(b.dataset.customer))}
-async function selectCustomer(id){const c=crmCustomers.find(x=>x.id===id);if(!c)return;selectedCustomer=c;$("customerEmpty").classList.add("hidden");$("customerDetail").classList.remove("hidden");$("crmName").value=c.name||"";$("crmPhone").value=c.phone||"";$("crmEmail").value=c.email||"";$("crmBirthday").value=c.birthday||"";$("crmAddress").value=c.address||"";$("crmNotes").value=c.notes||"";$("crmMarketing").checked=c.marketing_opt_in!==false;$("customerStats").innerHTML=`<div class="stats"><div class="stat"><small>Point</small><b>⭐ ${c.points||0}</b></div><div class="stat"><small>Transaksi</small><b>${c.total_orders||0}</b></div><div class="stat"><small>Total Belanja</small><b>${rp(c.total_spent||0)}</b></div><div class="stat"><small>Bergabung</small><b style="font-size:14px">${c.created_at?new Date(c.created_at).toLocaleDateString("id-ID"):"-"}</b></div></div>`;await loadCustomerHistory(c)}
-async function loadCustomerHistory(c){const [or,tx]=await Promise.all([db.from("orders").select("id,created_at,status,total,order_type,payment_method,payment_status").eq("member_id",c.id).order("created_at",{ascending:false}).limit(50),db.from("member_transactions").select("id,created_at,type,points,note,order_id").eq("member_id",c.id).order("created_at",{ascending:false}).limit(50)]);if(or.error){$("customerOrders").innerHTML='<div class="notice" style="color:#a33">'+esc(or.error.message)+'</div>'}else{$("customerOrders").innerHTML=(or.data||[]).map(o=>`<div class="item"><b>${new Date(o.created_at).toLocaleString("id-ID")}</b><div>${rp(o.total)} · ${statusLabel(o.status)} · ${esc(o.payment_method||"-")}</div></div>`).join("")||'<div class="muted">Belum ada transaksi.</div>'}if(tx.error){$("customerPointHistory").innerHTML='<div class="notice" style="color:#a33">'+esc(tx.error.message)+'</div>'}else{$("customerPointHistory").innerHTML=(tx.data||[]).map(t=>`<div class="item"><b>${t.points>0?"+":""}${t.points} point</b> · ${esc(t.type||"")}<div class="muted">${new Date(t.created_at).toLocaleString("id-ID")} · ${esc(t.note||"")}</div></div>`).join("")||'<div class="muted">Belum ada riwayat point.</div>'}}
-$("customerSearch").oninput=renderCustomers;$("refreshCustomers").onclick=loadCustomers;$("saveCustomer").onclick=async()=>{if(!selectedCustomer)return;const payload={name:$("crmName").value.trim(),email:$("crmEmail").value.trim()||null,birthday:$("crmBirthday").value||null,address:$("crmAddress").value.trim()||null,notes:$("crmNotes").value.trim()||null,marketing_opt_in:$("crmMarketing").checked,updated_at:new Date().toISOString()};if(!payload.name)return msg("customerMsg","Nama customer wajib diisi.",true);const r=await db.from("members").update(payload).eq("id",selectedCustomer.id);if(r.error)return msg("customerMsg",r.error.message,true);msg("customerMsg","Profil customer berhasil disimpan.");await loadCustomers();selectedCustomer=crmCustomers.find(x=>x.id===selectedCustomer.id);await selectCustomer(selectedCustomer.id)}
-$("checkPoint").onclick=async()=>{const phone=$("pointPhone").value.trim();if(!phone)return msg("pointResult","Masukkan nomor HP customer.",true);const {data,error}=await db.rpc("get_customer_points",{p_phone:phone});if(error)return msg("pointResult",error.message,true);const x=Array.isArray(data)?data[0]:data;if(!x)return msg("pointResult","Data customer tidak ditemukan.");$("pointResult").innerHTML=`<div class="stats"><div class="stat"><small>Transaksi Selesai</small><b>${x.orders||0}</b></div><div class="stat"><small>Total Belanja</small><b>${rp(x.spend||0)}</b></div><div class="stat"><small>Point Kavora</small><b>⭐ ${x.points||0}</b></div></div>`}
-init();
+document.getElementById('openDashboard').onclick=()=>{const s=document.getElementById('dashboardSection');s.style.display='block';s.scrollIntoView({behavior:'smooth',block:'start'});const phone=document.getElementById('customerPhone').value.trim()||document.getElementById('pointsPhone').value.trim();if(phone){document.getElementById('dashboardPhone').value=phone;loadDashboard(phone);loadMembershipBenefits(phone)}};
+document.getElementById('loadDashboard').onclick=()=>{const p=document.getElementById('dashboardPhone').value.trim();if(!p){alert('Masukkan nomor HP terlebih dahulu.');return}loadDashboard(p);loadMembershipBenefits(p)};
+
+document.getElementById("orderBtn").onclick=async()=>{
+ try{
+   const keys=Object.keys(cart).filter(id=>cart[id]>0);
+   for(const id of keys){const p=products.find(x=>x.id===id);if(!p||Number(p.stock??999)<cart[id]){alert("Stok "+(p?.name||"produk")+" tidak mencukupi. Silakan refresh menu.");return}}
+   if(!keys.length){alert("Keranjang masih kosong.");return}
+   const name=document.getElementById("customerName").value.trim();
+   if(!name){alert("Silakan isi Nama terlebih dahulu.");return}
+   const phone=document.getElementById("customerPhone").value.trim();
+   const type=document.getElementById("orderType").value;
+   const paymentMethod=document.getElementById("paymentMethod").value;
+   const note=document.getElementById("orderNote").value.trim();
+   const deliveryAddress=document.getElementById("deliveryAddress")?.value.trim()||"";
+   if(type==="Delivery" && !deliveryAddress){alert("Alamat delivery wajib diisi.");return}
+
+   let subtotal=0;
+   const lines=keys.map(id=>{
+     const p=products.find(x=>x.id===id);
+     if(!p) throw new Error("Produk tidak ditemukan.");
+     const sub=p.price*cart[id]; subtotal+=sub;
+     return p.name+" x "+cart[id]+" = "+rupiah(sub);
+   });
+   const ongkir=type==="Delivery"?Number(deliveryFee||0):0;
+   const discount=Number(appliedPromo?.discount||0) + Number(rewardData?.reward_type==="fixed_discount"?Math.min(subtotal,Number(rewardData.reward_value||0)):rewardData?.reward_type==="percent_discount"?Math.floor(subtotal*Number(rewardData.reward_value||0)/100):0); const total=Math.max(0,subtotal-discount)+ongkir;
+   const paymentLabel=paymentMethod==="qris"?"QRIS":"Cash / Bayar di Tempat";
+   const deliveryText=type==="Delivery"?"\nAlamat Delivery: "+deliveryAddress+"\nOngkir: "+rupiah(ongkir):"";
+   const plain="Halo Kavora, saya ingin order:\n\n"+lines.join("\n")+
+     "\n\nSubtotal: "+rupiah(subtotal)+"\nDiskon: "+rupiah(discount)+(appliedPromo?" ("+appliedPromo.code+")":"")+"\nOngkir: "+rupiah(ongkir)+
+     "\nTotal: "+rupiah(total)+"\nNama: "+name+"\nNo HP: "+phone+
+     "\nTipe: "+type+deliveryText+"\nPembayaran: "+paymentLabel+
+     "\nStatus Pembayaran: Belum Bayar\nCatatan: "+note;
+
+   const btn=document.getElementById("orderBtn");
+   btn.disabled=true; btn.textContent="Memproses...";
+
+   const orderPayload={customer_name:name,customer_phone:phone,order_type:type,delivery_address:type==="Delivery"?deliveryAddress:null,delivery_fee:ongkir,notes:note,payment_method:paymentMethod,promo_code:appliedPromo?.code||null,reward_code:rewardData?.code||null,whatsapp_message:plain};
+   const rpcItems=keys.map(id=>({product_id:id,quantity:cart[id]}));
+   const {data:orderId,error}=await db.rpc("create_order_with_stock",{p_order:orderPayload,p_items:rpcItems});
+   if(error){
+     console.error(error);
+     alert(error.message||"Pesanan gagal dibuat. Silakan coba lagi.");
+     btn.disabled=false;btn.textContent="Pesan via WhatsApp";
+     return;
+   }
+   cart={};localStorage.removeItem("kavora_cart");appliedPromo=null;rewardData=null;document.getElementById("promoCode").value="";document.getElementById("promoMsg").textContent="";renderCart();
+   btn.disabled=false;btn.textContent="Pesan via WhatsApp";
+   window.location.href="https://api.whatsapp.com/send?phone="+WA_NUMBER+"&text="+encodeURIComponent(plain);
+ }catch(err){
+   console.error(err);
+   alert("Terjadi kesalahan saat membuat pesanan. Silakan coba lagi.");
+   const btn=document.getElementById("orderBtn");
+   btn.disabled=false;btn.textContent="Pesan via WhatsApp";
+ }
+};
+loadProducts();
+loadPaymentSettings();
+loadStoreSettings();
 })();
 </script>
-</body>
-</html>
+</body></html>
