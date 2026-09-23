@@ -22,7 +22,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .nav button:hover,.nav button.active{background:#6b4226}
 .main{margin-left:250px;width:calc(100% - 250px);padding:24px}
 .mobile-head{display:none}
-.page{display:none}.page.active{display:block}
+.page{display:none}.page.active{display:block}.quick-point-panel{display:none!important}.page.active#page-customers .quick-point-panel{display:block!important}
 .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 h2{margin:0 0 6px}h3{margin:0 0 12px}
 .muted{color:#756a62}.panel{background:#fff;border-radius:16px;padding:18px;margin:14px 0;box-shadow:0 3px 16px #0000000b}
@@ -181,7 +181,7 @@ label{font-size:13px;font-weight:600}input,select,textarea{width:100%;padding:11
 <h3 style="margin-top:18px">Riwayat Point</h3><div id="customerPointHistory"></div>
 </div></div></div>
 </div>
-<div class="panel"><h3>Cek Point Cepat</h3><div class="grid"><div><label>No. HP Customer</label><input id="pointPhone" placeholder="08xxxxxxxxxx"></div><div style="display:flex;align-items:end"><button id="checkPoint">Cek Point</button></div></div><div id="pointResult" style="margin-top:14px"></div></div>
+<div id="quickPointPanel" class="panel quick-point-panel"><h3>Cek Point Cepat</h3><div class="grid"><div><label>No. HP Customer</label><input id="pointPhone" placeholder="08xxxxxxxxxx"></div><div style="display:flex;align-items:end"><button id="checkPoint">Cek Point</button></div></div><div id="pointResult" style="margin-top:14px"></div></div>
 </section>
 
 <section id="page-rewards" class="page">
