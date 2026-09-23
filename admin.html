@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kavora Admin V21</title>
+<title>Kavora Admin V16</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box}
@@ -53,12 +53,9 @@ label{font-size:13px;font-weight:600}input,select,textarea{width:100%;padding:11
 
 <div id="loginPage" class="login panel">
 <h2>KAVORA ADMIN</h2>
-<p class="muted">Login dengan email dan password.</p>
+<p class="muted">Login menggunakan email admin Supabase.</p>
 <input id="email" type="email" value="sandyalhaz79@gmail.com" placeholder="Email admin">
-<input id="password" type="password" placeholder="Password admin">
-<button id="passwordLoginBtn">Login</button>
-<div style="text-align:center;margin:12px 0;color:#888">atau</div>
-<button id="loginBtn" class="secondary">Login via Email Link (Setup Awal)</button>
+<button id="loginBtn">Kirim Link Login</button>
 <div id="loginMsg" class="muted" style="margin-top:10px"></div>
 </div>
 
@@ -74,7 +71,6 @@ label{font-size:13px;font-weight:600}input,select,textarea{width:100%;padding:11
 <button data-page="payments">💳 Pembayaran</button>
 <button data-page="delivery">🚚 Delivery</button>
 <button data-page="customers">⭐ Customer & Point</button>
-<button data-page="membership">🏆 Membership & Benefit</button>
 <button data-page="settings">⚙️ Pengaturan</button>
 </nav>
 <button id="logout" class="secondary" style="width:100%;margin-top:18px">Logout</button>
@@ -188,6 +184,18 @@ label{font-size:13px;font-weight:600}input,select,textarea{width:100%;padding:11
 <div class="panel"><h3>Cek Point Cepat</h3><div class="grid"><div><label>No. HP Customer</label><input id="pointPhone" placeholder="08xxxxxxxxxx"></div><div style="display:flex;align-items:end"><button id="checkPoint">Cek Point</button></div></div><div id="pointResult" style="margin-top:14px"></div></div>
 </section>
 
+<section id="page-engagement" class="page">
+<div class="top"><div><h2>Customer Engagement</h2><div class="muted">Kelola Birthday Reward, campaign membership, dan customer yang sudah lama tidak order.</div></div><button id="refreshEngagement" class="secondary">Refresh</button></div>
+<div class="panel"><h3>Campaign</h3><div class="grid"><div><label>Nama Campaign</label><input id="engName" placeholder="Contoh: Come Back 50 Point"></div><div><label>Tipe</label><select id="engType"><option value="inactive">Customer Inactive</option><option value="membership">Membership</option><option value="upgrade">Upgrade</option><option value="birthday">Birthday</option></select></div></div>
+<div class="grid3"><div><label>Target Membership</label><select id="engLevel"><option value="">Semua Membership</option></select></div><div><label>Inactive Days</label><input id="engDays" type="number" min="1" placeholder="Contoh: 14"></div><div><label>Bonus Point</label><input id="engPoints" type="number" min="0" value="0"></div></div>
+<div class="grid"><div><label>Mulai</label><input id="engStart" type="datetime-local"></div><div><label>Berakhir</label><input id="engEnd" type="datetime-local"></div></div>
+<label>Pesan Campaign</label><textarea id="engMessage" rows="2" placeholder="Pesan yang ditampilkan ke customer"></textarea>
+<label><input id="engActive" type="checkbox" checked style="width:auto"> Campaign aktif</label>
+<div class="row-actions"><button id="saveEngagement">Simpan Campaign</button><button id="cancelEngagement" class="secondary">Reset</button></div><div id="engMsg"></div></div>
+<div class="panel"><h3>Campaign Aktif / Tersimpan</h3><div id="engagementList"></div></div>
+<div class="panel"><h3>Birthday Reward</h3><div class="notice">Atur nominal Birthday Bonus melalui menu Membership & Benefit. Customer hanya dapat mengambil bonus 1× per tahun pada tanggal ulang tahunnya.</div></div>
+</section>
+
 <section id="page-rewards" class="page">
 <div class="top"><div><h2>Rewards Point</h2><div class="muted">Kelola hadiah yang bisa ditukar customer menggunakan point.</div></div><button id="newReward">+ Tambah Reward</button></div>
 <div class="panel"><div id="rewardsList"></div></div>
@@ -198,19 +206,6 @@ label{font-size:13px;font-weight:600}input,select,textarea{width:100%;padding:11
 <label><input id="rewardActive" type="checkbox" checked style="width:auto"> Reward aktif</label>
 <div class="row-actions"><button id="saveReward">Simpan Reward</button><button id="cancelReward" class="secondary">Batal</button></div>
 <div id="rewardMsg"></div>
-</div>
-</section>
-
-<section id="page-membership" class="page">
-<div class="top"><div><h2>Membership & Benefit</h2><div class="muted">Atur benefit Bronze, Silver, Gold, dan Platinum.</div></div><button id="refreshMembership" class="secondary">Refresh</button></div>
-<div class="panel"><h3>Level Membership</h3><div id="membershipLevelsList"></div></div>
-<div id="benefitEditor" class="panel hidden">
-<h3 id="benefitEditorTitle">Tambah Benefit</h3>
-<div class="grid"><div><label>Level</label><select id="benefitLevel"></select></div><div><label>Judul Benefit</label><input id="benefitTitle" placeholder="Contoh: Diskon 5%"></div></div>
-<div class="grid"><div><label>Jenis Benefit</label><select id="benefitType"><option value="discount_percent">Discount Persen (%)</option><option value="discount_fixed">Discount Nominal (Rp)</option><option value="free_delivery">Free Delivery</option><option value="bonus_points">Bonus Point</option><option value="birthday_bonus">Birthday Bonus</option><option value="priority_service">Priority Service</option></select></div><div><label>Nilai</label><input id="benefitValue" type="number" min="0" step="0.01" value="0"></div></div>
-<label>Deskripsi</label><textarea id="benefitDescription" rows="3" placeholder="Keterangan benefit untuk customer"></textarea>
-<label><input id="benefitActive" type="checkbox" checked style="width:auto"> Benefit aktif</label>
-<div class="row-actions"><button id="saveBenefit">Simpan Benefit</button><button id="cancelBenefit" class="secondary">Batal</button></div><div id="benefitMsg"></div>
 </div>
 </section>
 
@@ -228,7 +223,7 @@ const URL="https://gooawhtldgefmiwplxzs.supabase.co";
 const KEY="sb_publishable_sD0QPAk-uDg5cveBKtwePA_dWV5Q8GH";
 const ADMIN="sandyalhaz79@gmail.com";
 const db=supabase.createClient(URL,KEY);
-let products=[],orders=[],categories=[],editingProduct=null,editingPromo=null,editingReward=null,crmCustomers=[],selectedCustomer=null,membershipLevels=[],membershipBenefits=[],editingBenefit=null;
+let products=[],orders=[],categories=[],editingProduct=null,editingPromo=null,editingReward=null,crmCustomers=[],selectedCustomer=null;
 const $=id=>document.getElementById(id);
 const rp=n=>new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(Number(n||0));
 const esc=s=>String(s??"").replace(/[&<>\"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]));
@@ -238,70 +233,24 @@ document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
 $("page-"+page).classList.add("active");
 document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
 $("sidebar").classList.remove("open");
-if(page==="products")renderProducts(); if(page==="orders")renderOrders(); if(page==="promos")loadPromos(); if(page==="customers")loadCustomers(); if(page==="membership")loadMembership();
+if(page==="products")renderProducts(); if(page==="orders")renderOrders(); if(page==="promos")loadPromos(); if(page==="customers")loadCustomers(); if(page==="engagement"){loadEngLevels();loadEngagement()}
 }
 document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>nav(b.dataset.page));
 $("menuBtn").onclick=()=>$("sidebar").classList.toggle("open");
 
-let appShown=false;
 async function showApp(user){
-if(!user||String(user.email||"").toLowerCase()!==ADMIN){await db.auth.signOut();msg("loginMsg","Email ini bukan akun admin Kavora.",true);return}
-if(appShown)return;
-appShown=true;
-$("loginPage").classList.add("hidden");$("app").classList.remove("hidden");
-await refreshAll();
+if(!user||String(user.email||"").toLowerCase()!==ADMIN){await db.auth.signOut();alert("Email ini bukan akun admin Kavora.");return}
+$("loginPage").classList.add("hidden");$("app").classList.remove("hidden");await refreshAll();
 }
-async function handleAuthCallback(){
-try{
-  const url=new URL(window.location.href);
-  const errorDesc=url.searchParams.get("error_description")||url.searchParams.get("error");
-  if(errorDesc){
-    history.replaceState({},document.title,url.origin+url.pathname);
-    msg("loginMsg",decodeURIComponent(errorDesc.replace(/\+/g," ")),true);
-    return false;
-  }
-  const code=url.searchParams.get("code");
-  if(code){
-    const {error}=await db.auth.exchangeCodeForSession(code);
-    history.replaceState({},document.title,url.origin+url.pathname);
-    if(error){msg("loginMsg","Link login tidak dapat diproses: "+error.message,true);return false;}
-  }
-  return true;
-}catch(e){
-  msg("loginMsg","Gagal memproses link login: "+(e?.message||e),true);
-  return false;
-}
-}
-function showPasswordSetup(){
-if(document.getElementById("passwordSetup")) return;
-const box=document.createElement("div");box.id="passwordSetup";box.className="panel";box.style.cssText="position:fixed;inset:0;background:#0006;z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px";
-box.innerHTML=`<div style="background:#fff;border-radius:16px;padding:22px;max-width:440px;width:100%;box-shadow:0 10px 40px #0003"><h2>Buat Password Admin</h2><p class="muted">Login email sudah berhasil. Sekarang buat password Anda sendiri. Password tidak dikirim ke siapa pun.</p><label>Password Baru</label><input id="newAdminPassword" type="password" placeholder="Minimal 8 karakter"><label>Ulangi Password</label><input id="newAdminPassword2" type="password" placeholder="Ulangi password"><div id="passwordSetupMsg" class="muted" style="margin:8px 0"></div><button id="saveAdminPassword">Simpan Password</button></div>`;
-document.body.appendChild(box);
-$("saveAdminPassword").onclick=async()=>{const a=$("newAdminPassword").value,b=$("newAdminPassword2").value;if(a.length<8){$("passwordSetupMsg").textContent="Password minimal 8 karakter.";return}if(a!==b){$("passwordSetupMsg").textContent="Password tidak sama.";return}$("saveAdminPassword").disabled=true;const {error}=await db.auth.updateUser({password:a});if(error){$("passwordSetupMsg").textContent=error.message;$("saveAdminPassword").disabled=false;return}box.remove();alert("Password Admin berhasil dibuat. Mulai sekarang gunakan email + password untuk login.");};
-}
-async function refreshAll(){await loadCategories();await Promise.all([loadProducts(),loadOrders(),loadPromos(),loadRewardsAdmin(),loadSettings(),loadCustomers(),loadMembership()]);updateDashboard();updateReports()}
-$("passwordLoginBtn").onclick=async()=>{
-const e=$("email").value.trim(),p=$("password").value;if(e.toLowerCase()!==ADMIN){msg("loginMsg","Gunakan email admin yang terdaftar.",true);return}if(!p){msg("loginMsg","Masukkan password.",true);return}
-$("passwordLoginBtn").disabled=true;const {data,error}=await db.auth.signInWithPassword({email:e,password:p});
-if(error) msg("loginMsg",error.message,true); else if(data.user) showApp(data.user);
-$("passwordLoginBtn").disabled=false;
-};
+async function refreshAll(){await loadCategories();await Promise.all([loadProducts(),loadOrders(),loadPromos(),loadRewardsAdmin(),loadSettings(),loadCustomers(),loadEngLevels(),loadEngagement()]);updateDashboard();updateReports()}
 $("loginBtn").onclick=async()=>{
 const e=$("email").value.trim();if(e.toLowerCase()!==ADMIN){msg("loginMsg","Gunakan email admin yang terdaftar.",true);return}
-$("loginBtn").disabled=true;
-const redirectUrl=location.origin+location.pathname;
-const {error}=await db.auth.signInWithOtp({email:e,options:{emailRedirectTo:redirectUrl}});
-msg("loginMsg",error?error.message:"Link login sudah dikirim. Setelah klik link di Gmail, Anda akan otomatis masuk ke Dashboard Admin.",!!error);
-$("loginBtn").disabled=false
+$("loginBtn").disabled=true;const {error}=await db.auth.signInWithOtp({email:e,options:{emailRedirectTo:location.href}});
+msg("loginMsg",error?error.message:"Link login sudah dikirim. Cek Gmail.");$("loginBtn").disabled=false
 };
 $("logout").onclick=()=>db.auth.signOut().then(()=>location.reload());
-db.auth.onAuthStateChange((_event,session)=>{if(session?.user)showApp(session.user)});
-async function init(){
-  const callbackOk=await handleAuthCallback();
-  const {data}=await db.auth.getSession();
-  if(data.session) await showApp(data.session.user);
-  else if(callbackOk && !location.search.includes("code=")) msg("loginMsg","Silakan login dengan password atau gunakan Login via Email Link.");
-}
+db.auth.onAuthStateChange((_e,s)=>{if(s)showApp(s.user)});
+async function init(){const {data}=await db.auth.getSession();if(data.session)showApp(data.session.user)}
 async function loadCategories(){const {data,error}=await db.from("product_categories").select("*").order("sort_order").order("name");if(error){msg("categoryMsg",error.message,true);return}categories=data||[];renderCategoryControls();renderCategoriesAdmin()}
 function renderCategoryControls(){const f=$("productFilter"),p=$("pcat");if(f)f.innerHTML='<option value="all">Semua kategori</option>'+categories.map(c=>`<option value="${esc(c.name)}">${esc(c.name)}</option>`).join("");if(p)p.innerHTML=categories.map(c=>`<option value="${esc(c.name)}">${esc(c.name)}</option>`).join("")}
 function renderCategoriesAdmin(){$("categoriesList").innerHTML=categories.map(c=>`<div class="item"><div class="top"><b>${esc(c.name)}</b><span class="badge ${c.is_active?'active':'inactive'}">${c.is_active?'Aktif':'Nonaktif'}</span></div><div class="row-actions"><button class="secondary" data-ct="${c.id}">${c.is_active?'Nonaktifkan':'Aktifkan'}</button><button class="danger" data-cd="${c.id}">Hapus</button></div></div>`).join("")||'<div class="muted">Belum ada kategori.</div>';document.querySelectorAll('[data-ct]').forEach(b=>b.onclick=async()=>{const c=categories.find(x=>x.id===b.dataset.ct);if(!c)return;const r=await db.from('product_categories').update({is_active:!c.is_active}).eq('id',c.id);if(r.error)return alert(r.error.message);await loadCategories()});document.querySelectorAll('[data-cd]').forEach(b=>b.onclick=()=>deleteCategory(b.dataset.cd))}
@@ -352,49 +301,22 @@ document.querySelectorAll(".report-period").forEach(b=>b.onclick=()=>{reportPeri
 $("applyReportDate").onclick=()=>{const a=$("reportStart").value,b=$("reportEnd").value;if(!a||!b)return alert("Pilih tanggal mulai dan tanggal akhir.");if(a>b)return alert("Tanggal mulai tidak boleh lebih besar dari tanggal akhir.");reportPeriod="custom";document.querySelectorAll(".report-period").forEach(x=>x.classList.add("secondary"));updateReports()};
 $("resetReportDate").onclick=()=>{reportPeriod="all";$("reportStart").value="";$("reportEnd").value="";document.querySelectorAll(".report-period").forEach(x=>x.classList.add("secondary"));updateReports()};
 
+async function loadEngagement(){
+ const {data,error}=await db.from("engagement_campaigns").select("*").order("created_at",{ascending:false});
+ if(error)return msg("engMsg",error.message,true);
+ $("engagementList").innerHTML=(data||[]).map(c=>`<div class="item"><div class="top"><div><b>${esc(c.name)}</b><div class="muted">${esc(c.message||"")}</div></div><span class="badge ${c.is_active?'active':'inactive'}">${c.is_active?'Aktif':'Nonaktif'}</span></div><div style="margin-top:8px">${esc(c.campaign_type)} · ${c.target_membership_level?esc(c.target_membership_level):'Semua membership'} · ${c.bonus_points||0} point${c.inactive_days?' · Inactive '+c.inactive_days+' hari':''}</div><div class="row-actions"><button data-e-toggle="${c.id}" class="secondary">${c.is_active?'Nonaktifkan':'Aktifkan'}</button><button data-e-del="${c.id}" class="danger">Hapus</button></div></div>`).join("")||'<div class="muted">Belum ada campaign.</div>';
+ document.querySelectorAll("[data-e-toggle]").forEach(b=>b.onclick=async()=>{const id=b.dataset.eToggle;const {data}=await db.from("engagement_campaigns").select("is_active").eq("id",id).single();if(data)await db.from("engagement_campaigns").update({is_active:!data.is_active,updated_at:new Date().toISOString()}).eq("id",id);loadEngagement()});
+ document.querySelectorAll("[data-e-del]").forEach(b=>b.onclick=async()=>{if(!confirm("Hapus campaign ini?"))return;await db.from("engagement_campaigns").delete().eq("id",b.dataset.eDel);loadEngagement()});
+}
+async function loadEngLevels(){const {data}=await db.from("membership_levels").select("name").eq("is_active",true).order("min_spent");$("engLevel").innerHTML='<option value="">Semua Membership</option>'+(data||[]).map(x=>`<option>${esc(x.name)}</option>`).join("")}
+$("saveEngagement").onclick=async()=>{const name=$("engName").value.trim();if(!name)return msg("engMsg","Nama campaign wajib diisi.",true);const start=$("engStart").value?new Date($("engStart").value).toISOString():new Date().toISOString();const end=$("engEnd").value?new Date($("engEnd").value).toISOString():null;if(end&&new Date(end)<=new Date(start))return msg("engMsg","Tanggal berakhir harus setelah mulai.",true);const payload={name,campaign_type:$("engType").value,target_membership_level:$("engLevel").value||null,inactive_days:$("engDays").value?Number($("engDays").value):null,bonus_points:Number($("engPoints").value||0),message:$("engMessage").value.trim()||null,starts_at:start,ends_at:end,is_active:$("engActive").checked,updated_at:new Date().toISOString()};const r=await db.from("engagement_campaigns").insert(payload);if(r.error)return msg("engMsg",r.error.message,true);msg("engMsg","Campaign berhasil dibuat.");$("engName").value="";$("engDays").value="";$("engPoints").value="0";$("engMessage").value="";await loadEngagement()};
+$("cancelEngagement").onclick=()=>{["engName","engDays","engMessage","engStart","engEnd"].forEach(id=>$(id).value="");$("engPoints").value="0";$("engActive").checked=true};$("refreshEngagement").onclick=async()=>{await loadEngLevels();await loadEngagement()};
+
 async function loadRewardsAdmin(){const {data,error}=await db.from('rewards').select('*').order('created_at',{ascending:false});if(error)return msg('rewardMsg',error.message,true);$("rewardsList").innerHTML=(data||[]).map(r=>`<div class="item"><div class="top"><div><b>${esc(r.name)}</b><div class="muted">${esc(r.description||'')}</div></div><span class="badge ${r.is_active?'active':'inactive'}">${r.is_active?'Aktif':'Nonaktif'}</span></div><div style="margin-top:8px">${r.points_cost} point · ${r.reward_type==='percent_discount'?r.reward_value+'%':rp(r.reward_value)}</div><div class="row-actions"><button data-re="${r.id}">Edit</button><button class="secondary" data-rt="${r.id}">${r.is_active?'Nonaktifkan':'Aktifkan'}</button></div></div>`).join('')||'<div class="muted">Belum ada reward.</div>';document.querySelectorAll('[data-re]').forEach(b=>b.onclick=()=>editReward(b.dataset.re));document.querySelectorAll('[data-rt]').forEach(b=>b.onclick=()=>toggleReward(b.dataset.rt))}
 $("newReward").onclick=()=>{editingReward=null;$("rewardEditorTitle").textContent='Tambah Reward';$("rewardName").value='';$("rewardDesc").value='';$("rewardCost").value='';$("rewardType").value='fixed_discount';$("rewardValue").value='';$("rewardActive").checked=true;$("rewardEditor").classList.remove('hidden')};$("cancelReward").onclick=()=>$("rewardEditor").classList.add('hidden');
 async function editReward(id){const {data,error}=await db.from('rewards').select('*').eq('id',id).single();if(error)return alert(error.message);editingReward=id;$("rewardEditorTitle").textContent='Edit Reward';$("rewardName").value=data.name;$("rewardDesc").value=data.description||'';$("rewardCost").value=data.points_cost;$("rewardType").value=data.reward_type;$("rewardValue").value=data.reward_value||0;$("rewardActive").checked=!!data.is_active;$("rewardEditor").classList.remove('hidden')}
 $("saveReward").onclick=async()=>{const payload={name:$("rewardName").value.trim(),description:$("rewardDesc").value.trim(),points_cost:Number($("rewardCost").value||0),reward_type:$("rewardType").value,reward_value:Number($("rewardValue").value||0),is_active:$("rewardActive").checked};if(!payload.name||payload.points_cost<1)return msg('rewardMsg','Nama reward dan point wajib diisi.',true);const r=editingReward?await db.from('rewards').update(payload).eq('id',editingReward):await db.from('rewards').insert(payload);if(r.error)return msg('rewardMsg',r.error.message,true);$("rewardEditor").classList.add('hidden');await loadRewardsAdmin();msg('rewardMsg','Reward berhasil disimpan.')}
 async function toggleReward(id){const {data,error}=await db.from('rewards').select('is_active').eq('id',id).single();if(error)return alert(error.message);const r=await db.from('rewards').update({is_active:!data.is_active}).eq('id',id);if(r.error)return alert(r.error.message);await loadRewardsAdmin()}
-
-async function loadMembership(){
-  const [lr,br]=await Promise.all([
-    db.from('membership_levels').select('*').order('min_spent'),
-    db.from('membership_benefits').select('*').order('created_at')
-  ]);
-  if(lr.error)return msg('benefitMsg',lr.error.message,true);
-  if(br.error)return msg('benefitMsg',br.error.message,true);
-  membershipLevels=lr.data||[]; membershipBenefits=br.data||[];
-  const sel=$('benefitLevel'); if(sel) sel.innerHTML=membershipLevels.map(x=>`<option value="${x.id}">${esc(x.name)} · mulai ${rp(x.min_spent)}</option>`).join('');
-  renderMembership();
-}
-function benefitLabel(type,value){
-  const v=Number(value||0);
-  if(type==='discount_percent') return `Diskon ${v}%`;
-  if(type==='discount_fixed') return `Diskon ${rp(v)}`;
-  if(type==='free_delivery') return 'Gratis Delivery';
-  if(type==='bonus_points') return `Bonus ${v} Point`;
-  if(type==='birthday_bonus') return `Birthday Bonus ${v} Point`;
-  if(type==='priority_service') return 'Priority Service';
-  return type;
-}
-function renderMembership(){
-  const box=$('membershipLevelsList'); if(!box)return;
-  box.innerHTML=membershipLevels.map(l=>{
-    const bs=membershipBenefits.filter(b=>b.membership_level_id===l.id);
-    return `<div class="item"><div class="top"><div><b>${esc(l.name)}</b><div class="muted">Mulai ${rp(l.min_spent)} · ${Number(l.bonus_point_multiplier||1)}× point</div></div><button data-addbenefit="${l.id}">+ Benefit</button></div><div style="margin-top:10px">${bs.map(b=>`<div class="order-card"><div class="top"><div><b>${esc(b.title)}</b><div class="muted">${esc(b.description||'')}</div></div><span class="badge ${b.is_active?'active':'inactive'}">${b.is_active?'Aktif':'Nonaktif'}</span></div><div style="margin-top:7px">${benefitLabel(b.benefit_type,b.benefit_value)}</div><div class="row-actions"><button data-eb="${b.id}">Edit</button><button class="secondary" data-tb="${b.id}">${b.is_active?'Nonaktifkan':'Aktifkan'}</button></div></div>`).join('')||'<div class="muted">Belum ada benefit untuk level ini.</div>'}</div></div>`;
-  }).join('')||'<div class="muted">Belum ada level membership.</div>';
-  document.querySelectorAll('[data-addbenefit]').forEach(b=>b.onclick=()=>newBenefit(b.dataset.addbenefit));
-  document.querySelectorAll('[data-eb]').forEach(b=>b.onclick=()=>editBenefit(b.dataset.eb));
-  document.querySelectorAll('[data-tb]').forEach(b=>b.onclick=()=>toggleBenefit(b.dataset.tb));
-}
-function newBenefit(levelId){editingBenefit=null;$('benefitEditorTitle').textContent='Tambah Benefit';$('benefitLevel').value=levelId;$('benefitTitle').value='';$('benefitType').value='discount_percent';$('benefitValue').value='0';$('benefitDescription').value='';$('benefitActive').checked=true;$('benefitEditor').classList.remove('hidden');$('benefitEditor').scrollIntoView({behavior:'smooth',block:'start'});}
-async function editBenefit(id){const b=membershipBenefits.find(x=>x.id===id);if(!b)return;editingBenefit=id;$('benefitEditorTitle').textContent='Edit Benefit';$('benefitLevel').value=b.membership_level_id;$('benefitTitle').value=b.title;$('benefitType').value=b.benefit_type;$('benefitValue').value=b.benefit_value||0;$('benefitDescription').value=b.description||'';$('benefitActive').checked=!!b.is_active;$('benefitEditor').classList.remove('hidden');$('benefitEditor').scrollIntoView({behavior:'smooth',block:'start'});}
-$('cancelBenefit').onclick=()=>{$('benefitEditor').classList.add('hidden');editingBenefit=null};
-$('refreshMembership').onclick=loadMembership;
-$('saveBenefit').onclick=async()=>{const payload={membership_level_id:$('benefitLevel').value,benefit_type:$('benefitType').value,benefit_value:Number($('benefitValue').value||0),title:$('benefitTitle').value.trim(),description:$('benefitDescription').value.trim()||null,is_active:$('benefitActive').checked,updated_at:new Date().toISOString()};if(!payload.membership_level_id||!payload.title)return msg('benefitMsg','Level dan judul benefit wajib diisi.',true);if(payload.benefit_value<0)return msg('benefitMsg','Nilai benefit tidak boleh negatif.',true);const r=editingBenefit?await db.from('membership_benefits').update(payload).eq('id',editingBenefit):await db.from('membership_benefits').insert(payload);if(r.error)return msg('benefitMsg',r.error.message,true);$('benefitEditor').classList.add('hidden');editingBenefit=null;await loadMembership();msg('benefitMsg','Benefit berhasil disimpan.');};
-async function toggleBenefit(id){const b=membershipBenefits.find(x=>x.id===id);if(!b)return;const r=await db.from('membership_benefits').update({is_active:!b.is_active,updated_at:new Date().toISOString()}).eq('id',id);if(r.error)return alert(r.error.message);await loadMembership();}
 
 async function loadSettings(){
 await loadQris();
