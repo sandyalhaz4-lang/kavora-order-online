@@ -128,7 +128,21 @@ label{font-size:13px;font-weight:600}input,select,textarea{width:100%;padding:11
 </section>
 
 <section id="page-reports" class="page">
-<h2>Laporan Penjualan</h2><div class="muted">Ringkasan berdasarkan data pesanan.</div>
+<h2>Laporan Penjualan</h2><div class="muted">Pilih periode untuk melihat penjualan harian, mingguan, bulanan, atau rentang tanggal tertentu.</div>
+<div class="panel" style="margin-top:14px">
+  <h3>Filter Periode</h3>
+  <div class="toolbar" style="flex-wrap:wrap">
+    <button type="button" class="report-period" data-period="today">Hari Ini</button>
+    <button type="button" class="secondary report-period" data-period="yesterday">Kemarin</button>
+    <button type="button" class="secondary report-period" data-period="week">Minggu Ini</button>
+    <button type="button" class="secondary report-period" data-period="month">Bulan Ini</button>
+    <label style="margin:0">Dari<input id="reportStart" type="date"></label>
+    <label style="margin:0">Sampai<input id="reportEnd" type="date"></label>
+    <button type="button" id="applyReportDate" class="secondary">Terapkan</button>
+    <button type="button" id="resetReportDate" class="secondary">Semua Data</button>
+  </div>
+  <div id="reportPeriodLabel" class="notice" style="margin-top:12px">Periode: Hari Ini</div>
+</div>
 <div class="stats" style="margin-top:14px"><div class="stat"><small>Total Transaksi</small><b id="rOrders">0</b></div><div class="stat"><small>Total Omzet</small><b id="rSales">Rp 0</b></div><div class="stat"><small>Rata-rata Order</small><b id="rAvg">Rp 0</b></div><div class="stat"><small>Produk Terjual</small><b id="rItems">0</b></div></div>
 <div class="panel"><h3>Rekap Status</h3><div id="reportStatus"></div></div>
 </section>
@@ -237,7 +251,7 @@ if(r.error)return msg("promoMsg",r.error.message,true);$("promoEditor").classLis
 };
 async function togglePromo(id){const {data,error}=await db.from("promos").select("is_active").eq("id",id).single();if(error)return alert(error.message);const r=await db.from("promos").update({is_active:!data.is_active}).eq("id",id);if(r.error)return alert(r.error.message);loadPromos()}
 
-async function loadOrders(){const {data,error}=await db.from("orders").select("*").order("created_at",{ascending:false}).limit(100);if(error)return;orders=data||[];renderOrders();updateDashboard();updateReports()}
+async function loadOrders(){const {data,error}=await db.from("orders").select("*").order("created_at",{ascending:false}).limit(5000);if(error)return;orders=data||[];renderOrders();updateDashboard();updateReports()}
 function statusLabel(s){return ({new:"Baru",processing:"Diproses",completed:"Selesai",cancelled:"Dibatalkan"})[s]||s||"-"}
 function renderOrders(){const f=$("orderStatusFilter").value;const list=orders.filter(o=>f==="all"||o.status===f);$("ordersList").innerHTML=list.map(o=>`<div class="order-card"><div class="top"><div><b>${esc(o.customer_name||"Customer")}</b><div class="muted">${new Date(o.created_at).toLocaleString("id-ID")}</div></div><span class="badge">${statusLabel(o.status)}</span></div><div style="margin-top:8px">${rp(o.total)} · ${esc(o.order_type||"-")} · ${esc(o.payment_method||"-")}</div><div class="row-actions"><select data-os="${o.id}"><option value="new" ${o.status==="new"?"selected":""}>Baru</option><option value="processing" ${o.status==="processing"?"selected":""}>Diproses</option><option value="completed" ${o.status==="completed"?"selected":""}>Selesai</option><option value="cancelled" ${o.status==="cancelled"?"selected":""}>Dibatalkan</option></select></div></div>`).join("")||'<div class="muted">Tidak ada pesanan.</div>';document.querySelectorAll("[data-os]").forEach(s=>s.onchange=()=>updateOrder(s.dataset.os,s.value))}
 $("orderStatusFilter").onchange=renderOrders;
@@ -245,7 +259,14 @@ $("refreshOrders").onclick=async()=>{await loadOrders();updateDashboard();update
 async function updateOrder(id,status){const {error}=await db.from("orders").update({status}).eq("id",id);if(error)return alert(error.message);await loadOrders()}
 function updateDashboard(){const today=new Date().toISOString().slice(0,10);const td=orders.filter(o=>String(o.created_at).slice(0,10)===today);$("sOrders").textContent=td.length;$("sSales").textContent=rp(td.filter(o=>o.status==="completed").reduce((a,o)=>a+Number(o.total||0),0));$("sNew").textContent=orders.filter(o=>o.status==="new").length;$("sProducts").textContent=products.filter(p=>p.is_active).length;$("dashOrders").innerHTML=orders.slice(0,5).map(o=>`<div class="item"><b>${esc(o.customer_name||"Customer")}</b> · ${rp(o.total)} · <span class="badge">${statusLabel(o.status)}</span></div>`).join("")||'<div class="muted">Belum ada pesanan.</div>'}
 $("dashRefresh").onclick=refreshAll;
-function updateReports(){const completed=orders.filter(o=>o.status==="completed");const sales=completed.reduce((a,o)=>a+Number(o.total||0),0);$("rOrders").textContent=completed.length;$("rSales").textContent=rp(sales);$("rAvg").textContent=rp(completed.length?sales/completed.length:0);$("rItems").textContent="—";const counts={};orders.forEach(o=>counts[o.status]=(counts[o.status]||0)+1);$("reportStatus").innerHTML=Object.entries(counts).map(([k,v])=>`<div class="item">${statusLabel(k)}: <b>${v}</b></div>`).join("")||'<div class="muted">Belum ada data.</div>'}
+let reportPeriod="today";
+function dateKeyLocal(d){const x=new Date(d);if(Number.isNaN(x.getTime()))return "";const y=x.getFullYear(),m=String(x.getMonth()+1).padStart(2,"0"),day=String(x.getDate()).padStart(2,"0");return `${y}-${m}-${day}`}
+function startOfWeek(d){const x=new Date(d);const day=x.getDay();const diff=day===0?-6:1-day;x.setHours(0,0,0,0);x.setDate(x.getDate()+diff);return x}
+function reportRange(){const now=new Date();now.setHours(0,0,0,0);if(reportPeriod==="today")return [dateKeyLocal(now),dateKeyLocal(now),"Hari Ini"];if(reportPeriod==="yesterday"){const d=new Date(now);d.setDate(d.getDate()-1);return [dateKeyLocal(d),dateKeyLocal(d),"Kemarin"]}if(reportPeriod==="week"){const a=startOfWeek(now),b=new Date(a);b.setDate(b.getDate()+6);return [dateKeyLocal(a),dateKeyLocal(b),`Minggu Ini (${dateKeyLocal(a)} s/d ${dateKeyLocal(b)})`]}if(reportPeriod==="month"){const a=new Date(now.getFullYear(),now.getMonth(),1),b=new Date(now.getFullYear(),now.getMonth()+1,0);return [dateKeyLocal(a),dateKeyLocal(b),`Bulan Ini (${dateKeyLocal(a)} s/d ${dateKeyLocal(b)})`]}if(reportPeriod==="custom"){const a=$("reportStart").value,b=$("reportEnd").value;if(!a||!b)return ["","","Pilih tanggal terlebih dahulu"];return [a,b,`Tanggal ${a} s/d ${b}`]}return ["","","Semua Data"]}
+function updateReports(){const [start,end,label]=reportRange();let filtered=orders;if(start&&end)filtered=orders.filter(o=>{const k=dateKeyLocal(o.created_at);return k>=start&&k<=end});const completed=filtered.filter(o=>o.status==="completed");const sales=completed.reduce((a,o)=>a+Number(o.total||0),0);$("rOrders").textContent=completed.length;$("rSales").textContent=rp(sales);$("rAvg").textContent=rp(completed.length?sales/completed.length:0);$("reportPeriodLabel").textContent=`Periode: ${label}`;const counts={};filtered.forEach(o=>counts[o.status]=(counts[o.status]||0)+1);$("reportStatus").innerHTML=Object.entries(counts).map(([k,v])=>`<div class="item">${statusLabel(k)}: <b>${v}</b></div>`).join("")||'<div class="muted">Tidak ada transaksi pada periode ini.</div>';$("rItems").textContent="—"}
+document.querySelectorAll(".report-period").forEach(b=>b.onclick=()=>{reportPeriod=b.dataset.period;document.querySelectorAll(".report-period").forEach(x=>x.classList.toggle("secondary",x!==b));updateReports()});
+$("applyReportDate").onclick=()=>{const a=$("reportStart").value,b=$("reportEnd").value;if(!a||!b)return alert("Pilih tanggal mulai dan tanggal akhir.");if(a>b)return alert("Tanggal mulai tidak boleh lebih besar dari tanggal akhir.");reportPeriod="custom";document.querySelectorAll(".report-period").forEach(x=>x.classList.add("secondary"));updateReports()};
+$("resetReportDate").onclick=()=>{reportPeriod="all";$("reportStart").value="";$("reportEnd").value="";document.querySelectorAll(".report-period").forEach(x=>x.classList.add("secondary"));updateReports()};
 
 async function loadRewardsAdmin(){const {data,error}=await db.from('rewards').select('*').order('created_at',{ascending:false});if(error)return msg('rewardMsg',error.message,true);$("rewardsList").innerHTML=(data||[]).map(r=>`<div class="item"><div class="top"><div><b>${esc(r.name)}</b><div class="muted">${esc(r.description||'')}</div></div><span class="badge ${r.is_active?'active':'inactive'}">${r.is_active?'Aktif':'Nonaktif'}</span></div><div style="margin-top:8px">${r.points_cost} point · ${r.reward_type==='percent_discount'?r.reward_value+'%':rp(r.reward_value)}</div><div class="row-actions"><button data-re="${r.id}">Edit</button><button class="secondary" data-rt="${r.id}">${r.is_active?'Nonaktifkan':'Aktifkan'}</button></div></div>`).join('')||'<div class="muted">Belum ada reward.</div>';document.querySelectorAll('[data-re]').forEach(b=>b.onclick=()=>editReward(b.dataset.re));document.querySelectorAll('[data-rt]').forEach(b=>b.onclick=()=>toggleReward(b.dataset.rt))}
 $("newReward").onclick=()=>{editingReward=null;$("rewardEditorTitle").textContent='Tambah Reward';$("rewardName").value='';$("rewardDesc").value='';$("rewardCost").value='';$("rewardType").value='fixed_discount';$("rewardValue").value='';$("rewardActive").checked=true;$("rewardEditor").classList.remove('hidden')};$("cancelReward").onclick=()=>$("rewardEditor").classList.add('hidden');
