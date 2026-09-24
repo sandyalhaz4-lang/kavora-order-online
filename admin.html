@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kavora Admin V24 — Fase 2 Complete</title>
+<title>Kavora Admin V28 — Fase 1–3 Complete</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box}
@@ -62,7 +62,7 @@ label{font-size:13px;font-weight:600}input,select,textarea{width:100%;padding:11
 
 <div id="app" class="layout hidden">
 <aside id="sidebar" class="sidebar">
-<div class="brand"><h1>KAVORA</h1><small>Admin Dashboard V24 · Fase 2 Complete</small></div>
+<div class="brand"><h1>KAVORA</h1><small>Admin Dashboard V28 · Fase 1–3 Complete</small></div>
 <nav class="nav">
 <button data-page="dashboard" class="active">🏠 Dashboard</button>
 <button data-page="products">☕ Menu Produk</button>
@@ -76,7 +76,7 @@ label{font-size:13px;font-weight:600}input,select,textarea{width:100%;padding:11
 <button data-page="engagement">🎯 Engagement Campaign</button>
 <button data-page="retention">🔁 Retention Engine</button>
 <button data-page="referrals">🤝 Referral</button>
-<button data-page="feedback">💬 Feedback Customer</button>
+<button data-page="feedback">💬 Feedback Customer</button><button data-page="notificationPrefs">🔔 Notification Preference</button>
 <button data-page="lifecycle">🧭 Lifecycle & Offers</button>
 <button data-page="rewards">🎁 Rewards Point</button>
 <button data-page="settings">⚙️ Pengaturan</button>
@@ -249,6 +249,10 @@ label{font-size:13px;font-weight:600}input,select,textarea{width:100%;padding:11
 <div class="stats"><div class="stat"><small>Available</small><b id="soAvailable">0</b></div><div class="stat"><small>Claimed</small><b id="soClaimed">0</b></div><div class="stat"><small>Used</small><b id="soUsed">0</b></div><div class="stat"><small>Expired</small><b id="soExpired">0</b></div></div>
 <div class="panel"><h3>Offer Customer</h3><div id="smartOffersList"></div></div>
 <div class="panel"><h3>Catatan</h3><div class="notice">Campaign dibuat dari menu Engagement Campaign, sedangkan rule otomatis dibuat dari Retention Engine. Halaman ini dipakai untuk memantau hasil offer yang sudah terbentuk.</div></div>
+</section>
+<section id="page-notificationPrefs" class="page">
+<div class="top"><div><h2>Notification Preference</h2><div class="muted">Pengaturan preferensi komunikasi customer.</div></div><button id="refreshNotifPrefs" class="secondary">Refresh</button></div>
+<div class="panel"><div class="notice">Preferensi customer dikelola dari Customer Dashboard. Halaman ini menjadi titik monitoring Admin.</div><div id="notifPrefsList" style="margin-top:12px"></div></div>
 </section>
 <section id="page-settings" class="page">
 <h2>Pengaturan</h2><div class="muted">Informasi dasar sistem Kavora.</div>
@@ -429,5 +433,5 @@ const oldNav=nav;
 nav=async function(page){oldNav(page);if(page==="smartoffers")await loadSmartOffers()};
 })();
 </script>
-<div id="v27BuildBadge" style="position:fixed;right:14px;bottom:14px;z-index:9999;padding:8px 11px;border-radius:10px;background:#111;color:#fff;font-size:11px">KAVORA ADMIN V27 · FASE 1–3</div></body>
+<div id="v27BuildBadge" style="position:fixed;right:14px;bottom:14px;z-index:9999;padding:8px 11px;border-radius:10px;background:#111;color:#fff;font-size:11px">KAVORA ADMIN V28 · FASE 1–3</div><div id="v28MasterBadge" style="position:fixed;left:14px;bottom:14px;z-index:9999;padding:8px 11px;border-radius:10px;background:#111;color:#fff;font-size:11px">KAVORA ADMIN V28 · MASTER FASE 1–3</div></body>
 </html>
