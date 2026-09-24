@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kavora Admin V29 — Fase 1–4 Complete</title>
+<title>Kavora Admin V29 — Fase 1–4 Complete — Scroll Architecture Fix</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box}
-body{margin:0;font-family:Inter,Arial,sans-serif;background:#f6f2ed;color:#2b211b}
+body{margin:0;font-family:Inter,Arial,sans-serif;background:#f6f2ed;color:#2b211b;overflow-x:hidden;overflow-y:auto}
 button,input,select,textarea{font:inherit}
 button{border:0;border-radius:10px;padding:10px 14px;background:#6b4226;color:#fff;cursor:pointer}
 button.secondary{background:#e7e0d9;color:#332a24}
@@ -24,11 +24,11 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .brand h1{margin:0;font-size:20px}.brand small{opacity:.7}
 .nav{margin:0;padding:0}.nav button{display:block;width:100%;text-align:left;background:transparent;color:#fff;margin:1px 0;padding:5px 8px;border-radius:7px;font-size:12.5px;line-height:15px;white-space:nowrap}
 .nav button:hover,.nav button.active{background:#6b4226}
-.main{margin-left:230px;width:calc(100% - 230px);padding:24px;transition:margin-left .2s,width .2s}
+.main{margin-left:230px;width:calc(100% - 230px);min-height:100vh;padding:24px;transition:margin-left .2s,width .2s;scroll-behavior:auto;overflow:visible}
 .layout.sidebar-collapsed .main{margin-left:0;width:100%}
 .mobile-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 .mobile-head .desktop-menu-btn{display:inline-flex}
-.page{display:none}.page.active{display:block}
+.page{display:none!important}.page.active{display:block!important;position:relative;top:0;transform:none}
 .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 h2{margin:0 0 6px}h3{margin:0 0 12px}
 .muted{color:#756a62}.panel{background:#fff;border-radius:16px;padding:18px;margin:14px 0;box-shadow:0 3px 16px #0000000b}
@@ -51,7 +51,7 @@ label{font-size:13px;font-weight:600}input,select,textarea{width:100%;padding:11
 @media(max-width:800px){
 .sidebar{transform:translateX(-100%);transition:.2s;z-index:30;width:250px;padding:20px 14px}.sidebar.open{transform:translateX(0)}.sidebar.collapsed{width:250px;padding:20px 14px;overflow:auto}.sidebar.collapsed>*{display:block}
 .sidebar-toggle{display:none}
-.main,.layout.sidebar-collapsed .main{margin-left:0;width:100%;padding:14px}.mobile-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.main,.layout.sidebar-collapsed .main{margin-left:0;width:100%;min-height:100vh;overflow:visible;padding:14px}.mobile-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 .stats{grid-template-columns:1fr 1fr}.grid,.grid3{grid-template-columns:1fr}
 }
 </style>
@@ -306,34 +306,35 @@ const rp=n=>new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maxim
 const esc=s=>String(s??"").replace(/[&<>\"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]));
 function msg(id,text,error=false){$(id).innerHTML=text?'<div class="notice" style="color:'+(error?'#a33':'#4f463f')+'">'+esc(text)+'</div>':''}
 function resetViewport(){
-  // Reset both document scroll containers. This prevents a submenu from opening at the previous page's scroll position.
-  try{ window.scrollTo(0,0); }catch(e){}
+  try{window.scrollTo(0,0)}catch(e){}
   document.documentElement.scrollTop=0;
   document.body.scrollTop=0;
-  const main=$("app")?.querySelector(".main");
-  if(main) main.scrollTop=0;
-  requestAnimationFrame(()=>{
-    try{ window.scrollTo(0,0); }catch(e){}
-    document.documentElement.scrollTop=0;
-    document.body.scrollTop=0;
-    if(main) main.scrollTop=0;
-  });
 }
-function nav(page){
-const target=$("page-"+page);
-if(!target)return;
-document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
-target.classList.add("active");
-document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
-$("sidebar").classList.remove("open");
-resetViewport();
-if(page==="products")renderProducts();
-if(page==="orders")renderOrders();
-if(page==="promos")loadPromos();
-if(page==="customers")loadCustomers();
-if(page==="business" && typeof loadBusinessDashboard==="function")loadBusinessDashboard().finally(resetViewport);
-if(page==="inventory" && typeof loadInventory==="function")loadInventory().finally(resetViewport);
-if(page==="shifts" && typeof loadShifts==="function")loadShifts().finally(resetViewport);
+async function nav(page){
+  const target=$("page-"+page);
+  if(!target)return;
+  document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+  target.classList.add("active");
+  target.scrollIntoView({block:"start",inline:"nearest"});
+  window.scrollTo(0,0);
+  document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
+  $("sidebar").classList.remove("open");
+  resetViewport();
+  if(page==="products")renderProducts();
+  if(page==="orders")renderOrders();
+  if(page==="promos")loadPromos();
+  if(page==="customers")loadCustomers();
+  if(page==="membershipBenefits")await loadMembershipBenefits();
+  if(page==="engagement")await loadEngagement();
+  if(page==="retention")await loadRetention();
+  if(page==="referrals"){await loadReferralSettings();await loadReferrals()}
+  if(page==="feedback")await loadFeedback();
+  if(page==="lifecycle")await loadLifecycleAdmin();
+  if(page==="business")await loadBusiness();
+  if(page==="inventory")await loadInventory();
+  if(page==="shifts")await loadShift();
+  if(page==="smartoffers")await loadSmartOffers();
+  resetViewport();
 }
 document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>nav(b.dataset.page));
 $("menuBtn").onclick=()=>$("sidebar").classList.toggle("open");
@@ -472,8 +473,6 @@ async function loadLifecycleAdmin(){const {data,error}=await db.rpc('get_lifecyc
 async function loadOffersAdmin(){const {data,error}=await db.from('customer_offers').select('*,members(name,phone)').order('created_at',{ascending:false}).limit(300);if(error)return $('offersAdminList').innerHTML='<div class="notice" style="color:#a33">'+esc(error.message)+'</div>';$('offersAdminList').innerHTML=(data||[]).map(x=>`<div class="item"><div class="top"><div><b>${esc(x.title)}</b><div class="muted">${esc(x.members?.name||'-')} · ${esc(x.members?.phone||'')}</div></div><span class="badge">${esc(x.status)}</span></div><div>${esc(x.code||'-')} · Diskon ${x.discount_value||0}${x.discount_type==='percent'?'%':''} · Bonus ${x.bonus_points||0}</div><div class="muted">${x.expires_at?'Expired '+new Date(x.expires_at).toLocaleString('id-ID'):''}</div></div>`).join('')||'<div class="muted">Belum ada offer.</div>'}
 $('refreshLifecycle').onclick=loadLifecycleAdmin;
 
-const _nav=nav;nav=async function(page){_nav(page);if(page==='membershipBenefits')await loadMembershipBenefits();if(page==='engagement')await loadEngagement();if(page==='retention')await loadRetention();if(page==='referrals'){await loadReferralSettings();await loadReferrals()}if(page==='feedback')await loadFeedback();if(page==='lifecycle')await loadLifecycleAdmin();};
-
 init();
 })();
 </script>
@@ -489,8 +488,6 @@ async function loadSmartOffers(){
  box.innerHTML=a.map(x=>`<div class="item"><div class="top"><div><b>${esc(x.title||"Offer")}</b><div class="muted">${esc(x.members?.name||"Customer")} · ${esc(x.members?.phone||"")}</div></div><span class="badge">${esc(x.status)}</span></div><div style="margin-top:6px"><span class="badge">${esc(x.code||"-")}</span> · ${x.discount_value?`Diskon ${x.discount_type==="percent"?x.discount_value+"%":rp(x.discount_value)}`:"Tanpa diskon"} · Bonus ${Number(x.bonus_points||0)} point</div><div class="muted" style="margin-top:5px">${x.expires_at?"Berlaku sampai "+new Date(x.expires_at).toLocaleString("id-ID"):""}</div></div>`).join("")||'<div class="muted">Belum ada customer offer.</div>';
 }
 document.getElementById("refreshSmartOffers")?.addEventListener("click",loadSmartOffers);
-const oldNav=nav;
-nav=async function(page){oldNav(page);window.scrollTo({top:0,left:0,behavior:"instant"});if(page==="business")await loadBusiness();if(page==="inventory")await loadInventory();if(page==="shifts")await loadShift();if(page==="smartoffers")await loadSmartOffers()};
 })();
 </script>
 <script>
@@ -536,7 +533,6 @@ async function cashMove(){if(!window.currentShift)return alert("Buka shift terle
 async function closeShift(){if(!window.currentShift)return alert("Tidak ada shift aktif.");const mv=await db.from("cash_movements").select("type,amount").eq("shift_id",window.currentShift.id);const cashIn=(mv.data||[]).filter(x=>x.type==="in").reduce((a,x)=>a+Number(x.amount),0),cashOut=(mv.data||[]).filter(x=>x.type==="out").reduce((a,x)=>a+Number(x.amount),0);const expected=Number(window.currentShift.opening_cash)+cashIn-cashOut;const actual=Number($v("shiftActual").value||0);const r=await db.from("cash_shifts").update({status:"closed",closed_at:new Date().toISOString(),closing_cash_expected:expected,closing_cash_actual:actual,variance:actual-expected,notes:$v("shiftCloseNote").value.trim()}).eq("id",window.currentShift.id);$v("shiftMsg").textContent=r.error?.message||`Shift ditutup. Expected ${fmt(expected)} · Actual ${fmt(actual)} · Selisih ${fmt(actual-expected)}`;loadShift()}
 $v("bizLoad")?.addEventListener("click",loadBusiness);$v("invRefresh")?.addEventListener("click",loadInventory);$v("invSave")?.addEventListener("click",saveMovement);$v("shiftRefresh")?.addEventListener("click",loadShift);$v("shiftOpen")?.addEventListener("click",openShift);$v("cashSave")?.addEventListener("click",cashMove);$v("shiftClose")?.addEventListener("click",closeShift);
 initDates();
-const oldNav=nav;nav=function(page){oldNav(page);if(page==="business")loadBusiness();if(page==="inventory")loadInventory();if(page==="shifts")loadShift()};
 })();
 </script>
 </body>
