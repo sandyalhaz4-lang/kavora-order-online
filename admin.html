@@ -15,12 +15,12 @@ button.danger{background:#a33}
 button:disabled{opacity:.55;cursor:not-allowed}
 .hidden{display:none!important}
 .layout{display:flex;min-height:100vh}
-.sidebar{width:250px;background:#241a15;color:#fff;position:fixed;inset:0 auto 0 0;padding:20px 14px;overflow:auto}
+.sidebar{width:250px;background:#241a15;color:#fff;position:fixed;inset:0 auto 0 0;padding:20px 14px;overflow:auto;transition:width .2s ease,padding .2s ease;z-index:20}.layout.sidebar-mini .sidebar{width:78px;padding:20px 10px}.layout.sidebar-mini .main{margin-left:78px;width:calc(100% - 78px)}.layout.sidebar-mini .brand{padding-left:4px;padding-right:4px;text-align:center}.layout.sidebar-mini .brand h1{font-size:18px}.layout.sidebar-mini .brand small,.layout.sidebar-mini .nav button span,.layout.sidebar-mini .logout-label{display:none}.layout.sidebar-mini .nav button{text-align:center;padding:12px 8px;font-size:0}.layout.sidebar-mini .nav button::first-letter{font-size:20px}.sidebar-toggle{display:flex;align-items:center;justify-content:center;width:38px;height:34px;padding:0;margin:0 0 10px;background:#6b4226;border-radius:9px;font-size:18px}
 .brand{padding:8px 12px 20px;border-bottom:1px solid #ffffff22;margin-bottom:14px}
 .brand h1{margin:0;font-size:24px}.brand small{opacity:.7}
 .nav button{display:block;width:100%;text-align:left;background:transparent;color:#fff;margin:4px 0;padding:12px;border-radius:10px}
 .nav button:hover,.nav button.active{background:#6b4226}
-.main{margin-left:250px;width:calc(100% - 250px);padding:24px}
+.main{margin-left:250px;width:calc(100% - 250px);padding:24px;transition:margin-left .2s ease,width .2s ease}
 .mobile-head{display:none}
 .page{display:none}.page.active{display:block}
 .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
@@ -43,10 +43,13 @@ label{font-size:13px;font-weight:600}input,select,textarea{width:100%;padding:11
 .order-card{border:1px solid #eee;border-radius:12px;padding:14px;margin:10px 0}
 .kpi{font-size:20px;font-weight:700}
 @media(max-width:800px){
-.sidebar{transform:translateX(-100%);transition:.2s;z-index:10}.sidebar.open{transform:translateX(0)}
+.sidebar{transform:translateX(-100%);transition:.2s;z-index:30}.sidebar.open{transform:translateX(0)}.layout.sidebar-mini .sidebar{width:250px;padding:20px 14px}.layout.sidebar-mini .main{margin-left:0;width:100%}.layout.sidebar-mini .brand{padding:8px 12px 20px;text-align:left}.layout.sidebar-mini .brand h1{font-size:24px}.layout.sidebar-mini .brand small,.layout.sidebar-mini .nav button span,.layout.sidebar-mini .logout-label{display:block}.layout.sidebar-mini .nav button{text-align:left;padding:12px;font-size:inherit}
 .main{margin-left:0;width:100%;padding:14px}.mobile-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 .stats{grid-template-columns:1fr 1fr}.grid,.grid3{grid-template-columns:1fr}
 }
+
+/* Keep the admin shell clean: no floating version/build badges. */
+.version-badge,.build-badge,.floating-badge,#versionBadge,#buildBadge,[data-version-badge]{display:none!important}
 </style>
 </head>
 <body>
@@ -62,32 +65,33 @@ label{font-size:13px;font-weight:600}input,select,textarea{width:100%;padding:11
 
 <div id="app" class="layout hidden">
 <aside id="sidebar" class="sidebar">
+<button id="sidebarToggle" class="sidebar-toggle" title="Minimize menu" aria-label="Minimize menu">‹</button>
 <div class="brand"><h1>KAVORA</h1><small>Admin Dashboard V30 · Fase 1–5 Complete</small></div>
 <nav class="nav">
-<button data-page="dashboard" class="active">🏠 Dashboard</button>
-<button data-page="products">☕ Menu Produk</button>
-<button data-page="promos">🎟️ Promo & Voucher</button>
-<button data-page="orders">📦 Pesanan</button>
-<button data-page="reports">📊 Laporan Penjualan</button><button data-page="business">📈 Business Dashboard</button><button data-page="inventory">📦 Inventory 2.0</button><button data-page="shifts">💵 Shift & Cashier</button>
-<button data-page="payments">💳 Pembayaran</button>
-<button data-page="delivery">🚚 Delivery</button>
-<button data-page="customers">⭐ Customer & Point</button>
-<button data-page="membershipBenefits">🏆 Membership & Benefit</button>
-<button data-page="engagement">🎯 Engagement Campaign</button>
-<button data-page="retention">🔁 Retention Engine</button>
-<button data-page="referrals">🤝 Referral</button>
-<button data-page="feedback">💬 Feedback Customer</button><button data-page="notificationPrefs">🔔 Notification Preference</button>
-<button data-page="lifecycle">🧭 Lifecycle & Offers</button>
-<button data-page="automation">🤖 Automation Center</button>
-<button data-page="whatsappQueue">📲 WhatsApp Queue</button>
-<button data-page="campaignAutomation">🎯 Customer Campaign</button>
-<button data-page="inventoryAlerts">🚨 Inventory Alert</button>
-<button data-page="ownerReports">📊 Owner Daily Report</button>
-<button data-page="outlets">🏪 Outlet Management</button>
-<button data-page="rewards">🎁 Rewards Point</button>
-<button data-page="settings">⚙️ Pengaturan</button>
+<button data-page="dashboard" class="active"><span>🏠 Dashboard</span></button>
+<button data-page="products"><span>☕ Menu Produk</span></button>
+<button data-page="promos"><span>🎟️ Promo & Voucher</span></button>
+<button data-page="orders"><span>📦 Pesanan</span></button>
+<button data-page="reports"><span>📊 Laporan Penjualan</span></button><button data-page="business"><span>📈 Business Dashboard</span></button><button data-page="inventory"><span>📦 Inventory 2.0</span></button><button data-page="shifts"><span>💵 Shift & Cashier</span></button>
+<button data-page="payments"><span>💳 Pembayaran</span></button>
+<button data-page="delivery"><span>🚚 Delivery</span></button>
+<button data-page="customers"><span>⭐ Customer & Point</span></button>
+<button data-page="membershipBenefits"><span>🏆 Membership & Benefit</span></button>
+<button data-page="engagement"><span>🎯 Engagement Campaign</span></button>
+<button data-page="retention"><span>🔁 Retention Engine</span></button>
+<button data-page="referrals"><span>🤝 Referral</span></button>
+<button data-page="feedback"><span>💬 Feedback Customer</span></button><button data-page="notificationPrefs"><span>🔔 Notification Preference</span></button>
+<button data-page="lifecycle"><span>🧭 Lifecycle & Offers</span></button>
+<button data-page="automation"><span>🤖 Automation Center</span></button>
+<button data-page="whatsappQueue"><span>📲 WhatsApp Queue</span></button>
+<button data-page="campaignAutomation"><span>🎯 Customer Campaign</span></button>
+<button data-page="inventoryAlerts"><span>🚨 Inventory Alert</span></button>
+<button data-page="ownerReports"><span>📊 Owner Daily Report</span></button>
+<button data-page="outlets"><span>🏪 Outlet Management</span></button>
+<button data-page="rewards"><span>🎁 Rewards Point</span></button>
+<button data-page="settings"><span>⚙️ Pengaturan</span></button>
 </nav>
-<button id="logout" class="secondary" style="width:100%;margin-top:18px">Logout</button>
+<button id="logout" class="secondary" style="width:100%;margin-top:18px"><span class="logout-label">Logout</span> ↪</button>
 </aside>
 
 <main class="main">
@@ -195,7 +199,7 @@ label{font-size:13px;font-weight:600}input,select,textarea{width:100%;padding:11
 <h3 style="margin-top:18px">Riwayat Point</h3><div id="customerPointHistory"></div>
 </div></div></div>
 </div>
-<div class="panel"><h3>Cek Point Cepat</h3><div class="grid"><div><label>No. HP Customer</label><input id="pointPhone" placeholder="08xxxxxxxxxx"></div><div style="display:flex;align-items:end"><button id="checkPoint">Cek Point</button></div></div><div id="pointResult" style="margin-top:14px"></div></div>
+<div class="panel quick-point-panel" style="display:none!important"><h3>Cek Point Cepat</h3><div class="grid"><div><label>No. HP Customer</label><input id="pointPhone" placeholder="08xxxxxxxxxx"></div><div style="display:flex;align-items:end"><button id="checkPoint">Cek Point</button></div></div><div id="pointResult" style="margin-top:14px"></div></div>
 </section>
 
 <section id="page-rewards" class="page">
@@ -351,6 +355,7 @@ if(page==="products")renderProducts(); if(page==="orders")renderOrders(); if(pag
 }
 document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>nav(b.dataset.page));
 $("menuBtn").onclick=()=>$("sidebar").classList.toggle("open");
+$("sidebarToggle").onclick=()=>{const mini=$("app").classList.toggle("sidebar-mini");$("sidebarToggle").textContent=mini?"›":"‹";$("sidebarToggle").title=mini?"Expand menu":"Minimize menu";$("sidebarToggle").setAttribute("aria-label",mini?"Expand menu":"Minimize menu");};
 
 async function showApp(user){
 if(!user||String(user.email||"").toLowerCase()!==ADMIN){await db.auth.signOut();alert("Email ini bukan akun admin Kavora.");return}
@@ -547,7 +552,7 @@ const oldNav=nav;
 nav=async function(page){oldNav(page);if(page==="smartoffers")await loadSmartOffers()};
 })();
 </script>
-<div id="v27BuildBadge" style="position:fixed;right:14px;bottom:14px;z-index:9999;padding:8px 11px;border-radius:10px;background:#111;color:#fff;font-size:11px">KAVORA ADMIN V30 · FASE 1–3</div><div id="v28MasterBadge" style="position:fixed;left:14px;bottom:14px;z-index:9999;padding:8px 11px;border-radius:10px;background:#111;color:#fff;font-size:11px">KAVORA ADMIN V30 · FASE 1–4 COMPLETE</div>
+
 <script>
 (()=>{"use strict";
 const $v=id=>document.getElementById(id), fmt=n=>new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(Number(n||0));
