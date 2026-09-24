@@ -557,13 +557,16 @@ nav=async function(page){oldNav(page);if(page==="smartoffers")await loadSmartOff
 <script>
 (()=>{"use strict";
 const $v=id=>document.getElementById(id), fmt=n=>new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(Number(n||0));
-function today(){return new Date().toISOString().slice(0,10)}
-function initDates(){if($v("bizFrom")){$v("bizFrom").value=today();$v("bizTo").value=today()}}
+function localDateISO(d=new Date()){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,"0"),day=String(d.getDate()).padStart(2,"0");return `${y}-${m}-${day}`}
+function today(){return localDateISO()}
+function initDates(){if($v("bizFrom")){const d=new Date();const first=new Date(d.getFullYear(),d.getMonth(),1);$v("bizFrom").value=localDateISO(first);$v("bizTo").value=today()}}
 async function loadBusiness(){
  const a=$v("bizFrom").value||today(),b=$v("bizTo").value||today();
- const r=await db.rpc("get_business_report",{p_from:a,p_to:b}); if(r.error){alert(r.error.message);return}
+ if(a>b){alert("Tanggal mulai tidak boleh lebih besar dari tanggal akhir.");return}
+ const r=await db.rpc("get_business_report",{p_from:a,p_to:b});
+ if(r.error){$v("bizRevenue").textContent="-";$v("bizOrders").textContent="-";$v("bizAov").textContent="-";$v("bizCancelled").textContent="-";$v("bizCash").textContent="-";$v("bizQris").textContent="-";$v("bizProducts").innerHTML=`<div class="notice" style="color:#a33">Gagal memuat sales: ${esc(r.error.message)}</div>`;return}
  const d=r.data||{},s=d.summary||{}; $v("bizRevenue").textContent=fmt(s.revenue);$v("bizOrders").textContent=s.orders||0;$v("bizAov").textContent=fmt(s.aov);$v("bizCancelled").textContent=s.cancelled||0;$v("bizCash").textContent=fmt(s.cash_revenue);$v("bizQris").textContent=fmt(s.qris_revenue);
- const ps=d.products||[];$v("bizProducts").innerHTML=ps.length?ps.map(x=>`<div class="item"><b>${esc(x.product_name)}</b><div>${Number(x.qty)} terjual · ${fmt(x.revenue)} revenue · ${fmt(x.gross_profit)} gross profit</div></div>`).join(""):"<div class=muted>Belum ada data.</div>";
+ const ps=d.products||[];$v("bizProducts").innerHTML=ps.length?ps.map(x=>`<div class="item"><b>${esc(x.product_name)}</b><div>${Number(x.qty)} terjual · ${fmt(x.revenue)} revenue · ${fmt(x.gross_profit)} gross profit</div></div>`).join(""):"<div class=muted>Belum ada data penjualan pada periode ini.</div>";
  const c=d.customers||{};$v("bizCustomers").innerHTML=`<div class="grid"><div class="stat"><small>New</small><b>${c.new||0}</b></div><div class="stat"><small>Repeat</small><b>${c.repeat||0}</b></div><div class="stat"><small>Loyal</small><b>${c.loyal||0}</b></div><div class="stat"><small>Inactive</small><b>${c.inactive||0}</b></div><div class="stat"><small>VIP</small><b>${c.vip||0}</b></div></div>`;
 }
 async function loadInventory(){
