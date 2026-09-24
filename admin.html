@@ -543,7 +543,7 @@ init();
 async function loadSmartOffers(){
  const box=document.getElementById("smartOffersList"); if(!box)return;
  const r=await db.from("customer_offers").select("*,members(name,phone)").order("created_at",{ascending:false}).limit(500);
- if(r.error){box.innerHTML='<div class="notice" style="color:#a33">'+esc(r.error.message)+'</div>';return}
+ if(r.error){box.innerHTML='<div class="notice" style="color:#a33">'+escBiz(r.error.message)+'</div>';return}
  const a=r.data||[];
  ["available","claimed","used","expired"].forEach(s=>{const el=document.getElementById("so"+s.charAt(0).toUpperCase()+s.slice(1));if(el)el.textContent=a.filter(x=>x.status===s).length});
  box.innerHTML=a.map(x=>`<div class="item"><div class="top"><div><b>${esc(x.title||"Offer")}</b><div class="muted">${esc(x.members?.name||"Customer")} · ${esc(x.members?.phone||"")}</div></div><span class="badge">${esc(x.status)}</span></div><div style="margin-top:6px"><span class="badge">${esc(x.code||"-")}</span> · ${x.discount_value?`Diskon ${x.discount_type==="percent"?x.discount_value+"%":rp(x.discount_value)}`:"Tanpa diskon"} · Bonus ${Number(x.bonus_points||0)} point</div><div class="muted" style="margin-top:5px">${x.expires_at?"Berlaku sampai "+new Date(x.expires_at).toLocaleString("id-ID"):""}</div></div>`).join("")||'<div class="muted">Belum ada customer offer.</div>';
@@ -556,17 +556,20 @@ nav=async function(page){oldNav(page);if(page==="smartoffers")await loadSmartOff
 
 <script>
 (()=>{"use strict";
-const $v=id=>document.getElementById(id), fmt=n=>new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(Number(n||0));
+const DB_URL="https://gooawhtldgefmiwplxzs.supabase.co";
+const DB_KEY="sb_publishable_sD0QPAk-uDg5cveBKtwePA_dWV5Q8GH";
+const bizDb=supabase.createClient(DB_URL,DB_KEY);
+const $v=id=>document.getElementById(id), fmt=n=>new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(Number(n||0)), escBiz=s=>String(s??"").replace(/[&<>\"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]));
 function localDateISO(d=new Date()){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,"0"),day=String(d.getDate()).padStart(2,"0");return `${y}-${m}-${day}`}
 function today(){return localDateISO()}
 function initDates(){if($v("bizFrom")){const d=new Date();const first=new Date(d.getFullYear(),d.getMonth(),1);$v("bizFrom").value=localDateISO(first);$v("bizTo").value=today()}}
 async function loadBusiness(){
  const a=$v("bizFrom").value||today(),b=$v("bizTo").value||today();
  if(a>b){alert("Tanggal mulai tidak boleh lebih besar dari tanggal akhir.");return}
- const r=await db.rpc("get_business_report",{p_from:a,p_to:b});
- if(r.error){$v("bizRevenue").textContent="-";$v("bizOrders").textContent="-";$v("bizAov").textContent="-";$v("bizCancelled").textContent="-";$v("bizCash").textContent="-";$v("bizQris").textContent="-";$v("bizProducts").innerHTML=`<div class="notice" style="color:#a33">Gagal memuat sales: ${esc(r.error.message)}</div>`;return}
+ const r=await bizDb.rpc("get_business_report",{p_from:a,p_to:b});
+ if(r.error){$v("bizRevenue").textContent="-";$v("bizOrders").textContent="-";$v("bizAov").textContent="-";$v("bizCancelled").textContent="-";$v("bizCash").textContent="-";$v("bizQris").textContent="-";$v("bizProducts").innerHTML=`<div class="notice" style="color:#a33">Gagal memuat sales: ${escBiz(r.error.message)}</div>`;return}
  const d=r.data||{},s=d.summary||{}; $v("bizRevenue").textContent=fmt(s.revenue);$v("bizOrders").textContent=s.orders||0;$v("bizAov").textContent=fmt(s.aov);$v("bizCancelled").textContent=s.cancelled||0;$v("bizCash").textContent=fmt(s.cash_revenue);$v("bizQris").textContent=fmt(s.qris_revenue);
- const ps=d.products||[];$v("bizProducts").innerHTML=ps.length?ps.map(x=>`<div class="item"><b>${esc(x.product_name)}</b><div>${Number(x.qty)} terjual · ${fmt(x.revenue)} revenue · ${fmt(x.gross_profit)} gross profit</div></div>`).join(""):"<div class=muted>Belum ada data penjualan pada periode ini.</div>";
+ const ps=d.products||[];$v("bizProducts").innerHTML=ps.length?ps.map(x=>`<div class="item"><b>${escBiz(x.product_name)}</b><div>${Number(x.qty)} terjual · ${fmt(x.revenue)} revenue · ${fmt(x.gross_profit)} gross profit</div></div>`).join(""):"<div class=muted>Belum ada data penjualan pada periode ini.</div>";
  const c=d.customers||{};$v("bizCustomers").innerHTML=`<div class="grid"><div class="stat"><small>New</small><b>${c.new||0}</b></div><div class="stat"><small>Repeat</small><b>${c.repeat||0}</b></div><div class="stat"><small>Loyal</small><b>${c.loyal||0}</b></div><div class="stat"><small>Inactive</small><b>${c.inactive||0}</b></div><div class="stat"><small>VIP</small><b>${c.vip||0}</b></div></div>`;
 }
 async function loadInventory(){
@@ -595,7 +598,9 @@ async function cashMove(){if(!window.currentShift)return alert("Buka shift terle
 async function closeShift(){if(!window.currentShift)return alert("Tidak ada shift aktif.");const mv=await db.from("cash_movements").select("type,amount").eq("shift_id",window.currentShift.id);const cashIn=(mv.data||[]).filter(x=>x.type==="in").reduce((a,x)=>a+Number(x.amount),0),cashOut=(mv.data||[]).filter(x=>x.type==="out").reduce((a,x)=>a+Number(x.amount),0);const expected=Number(window.currentShift.opening_cash)+cashIn-cashOut;const actual=Number($v("shiftActual").value||0);const r=await db.from("cash_shifts").update({status:"closed",closed_at:new Date().toISOString(),closing_cash_expected:expected,closing_cash_actual:actual,variance:actual-expected,notes:$v("shiftCloseNote").value.trim()}).eq("id",window.currentShift.id);$v("shiftMsg").textContent=r.error?.message||`Shift ditutup. Expected ${fmt(expected)} · Actual ${fmt(actual)} · Selisih ${fmt(actual-expected)}`;loadShift()}
 $v("bizLoad")?.addEventListener("click",loadBusiness);$v("invRefresh")?.addEventListener("click",loadInventory);$v("invSave")?.addEventListener("click",saveMovement);$v("shiftRefresh")?.addEventListener("click",loadShift);$v("shiftOpen")?.addEventListener("click",openShift);$v("cashSave")?.addEventListener("click",cashMove);$v("shiftClose")?.addEventListener("click",closeShift);
 initDates();
-const oldNav=nav;nav=function(page){oldNav(page);if(page==="business")loadBusiness();if(page==="inventory")loadInventory();if(page==="shifts")loadShift()};
+window.kavoraLoadBusiness=loadBusiness;
+window.kavoraLoadInventory=loadInventory;
+window.kavoraLoadShift=loadShift;
 })();
 </script>
 </body>
