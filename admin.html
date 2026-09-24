@@ -68,7 +68,7 @@ label{font-size:13px;font-weight:600}input,select,textarea{width:100%;padding:11
 <button data-page="products">☕ Menu Produk</button>
 <button data-page="promos">🎟️ Promo & Voucher</button>
 <button data-page="orders">📦 Pesanan</button>
-<button data-page="reports">📊 Laporan Penjualan</button>
+<button data-page="reports">📊 Laporan Penjualan</button><button data-page="business">📈 Business Dashboard</button><button data-page="inventory">📦 Inventory 2.0</button><button data-page="shifts">💵 Shift & Cashier</button>
 <button data-page="payments">💳 Pembayaran</button>
 <button data-page="delivery">🚚 Delivery</button>
 <button data-page="customers">⭐ Customer & Point</button>
@@ -254,6 +254,31 @@ label{font-size:13px;font-weight:600}input,select,textarea{width:100%;padding:11
 <div class="top"><div><h2>Notification Preference</h2><div class="muted">Pengaturan preferensi komunikasi customer.</div></div><button id="refreshNotifPrefs" class="secondary">Refresh</button></div>
 <div class="panel"><div class="notice">Preferensi customer dikelola dari Customer Dashboard. Halaman ini menjadi titik monitoring Admin.</div><div id="notifPrefsList" style="margin-top:12px"></div></div>
 </section>
+
+<section id="page-business" class="page">
+<div class="top"><div><h2>📈 Business Dashboard</h2><div class="muted">Owner view: omzet, transaksi, AOV, payment, produk, customer dan profit.</div></div>
+<div style="display:flex;gap:7px;flex-wrap:wrap"><input id="bizFrom" type="date"><input id="bizTo" type="date"><button id="bizLoad">Tampilkan</button></div></div>
+<div class="stats">
+<div class="stat"><small>Revenue</small><b id="bizRevenue">Rp 0</b></div><div class="stat"><small>Orders</small><b id="bizOrders">0</b></div><div class="stat"><small>AOV</small><b id="bizAov">Rp 0</b></div><div class="stat"><small>Cancelled</small><b id="bizCancelled">0</b></div>
+<div class="stat"><small>Cash</small><b id="bizCash">Rp 0</b></div><div class="stat"><small>QRIS</small><b id="bizQris">Rp 0</b></div>
+</div>
+<div class="panel"><h3>Produk Terlaris & Profit</h3><div id="bizProducts"></div></div>
+<div class="panel"><h3>Customer Intelligence</h3><div id="bizCustomers"></div></div>
+</section>
+
+<section id="page-inventory" class="page">
+<div class="top"><div><h2>📦 Inventory Management 2.0</h2><div class="muted">Stock In, Stock Out, Adjustment, Waste, minimum stock dan HPP.</div></div><button id="invRefresh">Refresh</button></div>
+<div class="panel"><h3>Update HPP & Minimum Stock</h3><div id="invProducts"></div></div>
+<div class="panel"><h3>Stock Movement</h3><div class="grid"><select id="invProduct"></select><select id="invType"><option value="in">Stock In</option><option value="out">Stock Out</option><option value="adjustment">Adjustment</option><option value="waste">Waste</option></select><input id="invQty" type="number" min="1" placeholder="Qty"><input id="invCost" type="number" min="0" placeholder="Harga modal"><input id="invReason" placeholder="Alasan / supplier"></div><button id="invSave" style="margin-top:9px">Simpan Movement</button><div id="invMsg" class="muted" style="margin-top:8px"></div></div>
+</section>
+
+<section id="page-shifts" class="page">
+<div class="top"><div><h2>💵 Shift & Cashier</h2><div class="muted">Open shift → cash movement → close shift.</div></div><button id="shiftRefresh">Refresh</button></div>
+<div class="panel"><h3>Shift Saat Ini</h3><div id="shiftCurrent"></div></div>
+<div class="panel"><h3>Open Shift</h3><div class="grid"><input id="shiftOpening" type="number" min="0" placeholder="Modal awal"><input id="shiftOpenedBy" placeholder="Nama cashier"></div><button id="shiftOpen" style="margin-top:9px">Open Shift</button></div>
+<div class="panel"><h3>Cash Movement</h3><div class="grid"><select id="cashType"><option value="in">Cash In</option><option value="out">Cash Out</option></select><input id="cashAmount" type="number" min="1" placeholder="Nominal"><input id="cashCategory" placeholder="Kategori"><input id="cashNote" placeholder="Catatan"></div><button id="cashSave" style="margin-top:9px">Simpan</button></div>
+<div class="panel"><h3>Close Shift</h3><div class="grid"><input id="shiftActual" type="number" min="0" placeholder="Cash actual"><input id="shiftCloseNote" placeholder="Catatan closing"></div><button id="shiftClose" style="margin-top:9px">Close Shift</button><div id="shiftMsg" class="muted" style="margin-top:8px"></div></div>
+</section>
 <section id="page-settings" class="page">
 <h2>Pengaturan</h2><div class="muted">Informasi dasar sistem Kavora.</div>
 <div class="panel"><div class="grid"><div><label>WhatsApp Order</label><input value="082262877440" id="waNumber"></div><div><label>Email Admin</label><input value="sandyalhaz79@gmail.com" disabled></div></div><div class="notice">WhatsApp order dan email admin digunakan oleh sistem customer/admin yang sudah terhubung.</div></div>
@@ -433,5 +458,47 @@ const oldNav=nav;
 nav=async function(page){oldNav(page);if(page==="smartoffers")await loadSmartOffers()};
 })();
 </script>
-<div id="v27BuildBadge" style="position:fixed;right:14px;bottom:14px;z-index:9999;padding:8px 11px;border-radius:10px;background:#111;color:#fff;font-size:11px">KAVORA ADMIN V28 · FASE 1–3</div><div id="v28MasterBadge" style="position:fixed;left:14px;bottom:14px;z-index:9999;padding:8px 11px;border-radius:10px;background:#111;color:#fff;font-size:11px">KAVORA ADMIN V28 · MASTER FASE 1–3</div></body>
+<div id="v27BuildBadge" style="position:fixed;right:14px;bottom:14px;z-index:9999;padding:8px 11px;border-radius:10px;background:#111;color:#fff;font-size:11px">KAVORA ADMIN V28 · FASE 1–3</div><div id="v28MasterBadge" style="position:fixed;left:14px;bottom:14px;z-index:9999;padding:8px 11px;border-radius:10px;background:#111;color:#fff;font-size:11px">KAVORA ADMIN V29 · FASE 1–4 COMPLETE</div>
+<script>
+(()=>{"use strict";
+const $v=id=>document.getElementById(id), fmt=n=>new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(Number(n||0));
+function today(){return new Date().toISOString().slice(0,10)}
+function initDates(){if($v("bizFrom")){$v("bizFrom").value=today();$v("bizTo").value=today()}}
+async function loadBusiness(){
+ const a=$v("bizFrom").value||today(),b=$v("bizTo").value||today();
+ const r=await db.rpc("get_business_report",{p_from:a,p_to:b}); if(r.error){alert(r.error.message);return}
+ const d=r.data||{},s=d.summary||{}; $v("bizRevenue").textContent=fmt(s.revenue);$v("bizOrders").textContent=s.orders||0;$v("bizAov").textContent=fmt(s.aov);$v("bizCancelled").textContent=s.cancelled||0;$v("bizCash").textContent=fmt(s.cash_revenue);$v("bizQris").textContent=fmt(s.qris_revenue);
+ const ps=d.products||[];$v("bizProducts").innerHTML=ps.length?ps.map(x=>`<div class="item"><b>${esc(x.product_name)}</b><div>${Number(x.qty)} terjual · ${fmt(x.revenue)} revenue · ${fmt(x.gross_profit)} gross profit</div></div>`).join(""):"<div class=muted>Belum ada data.</div>";
+ const c=d.customers||{};$v("bizCustomers").innerHTML=`<div class="grid"><div class="stat"><small>New</small><b>${c.new||0}</b></div><div class="stat"><small>Repeat</small><b>${c.repeat||0}</b></div><div class="stat"><small>Loyal</small><b>${c.loyal||0}</b></div><div class="stat"><small>Inactive</small><b>${c.inactive||0}</b></div><div class="stat"><small>VIP</small><b>${c.vip||0}</b></div></div>`;
+}
+async function loadInventory(){
+ const r=await db.from("products").select("id,name,stock,cost_price,min_stock,is_active").order("sort_order");if(r.error)return;
+ $v("invProducts").innerHTML=(r.data||[]).map(x=>`<div class="item"><div class=top><b>${esc(x.name)}</b><span class=badge>${x.stock<=x.min_stock?"⚠️ Low Stock":"Tersedia"}</span></div><div class=grid style="margin-top:7px"><label>Stock <input value="${x.stock}" disabled></label><label>HPP <input type=number min=0 value="${x.cost_price||0}" data-cost="${x.id}"></label><label>Min Stock <input type=number min=0 value="${x.min_stock||5}" data-min="${x.id}"></label></div><button class=secondary data-invsave="${x.id}" style="margin-top:7px">Simpan HPP/Min Stock</button></div>`).join("");
+ const sel=$v("invProduct");sel.innerHTML=(r.data||[]).map(x=>`<option value="${x.id}">${esc(x.name)} · stock ${x.stock}</option>`).join("");
+ document.querySelectorAll("[data-invsave]").forEach(b=>b.onclick=async()=>{const id=b.dataset.invsave;const cost=Number(document.querySelector(`[data-cost="${id}"]`).value||0),min=Number(document.querySelector(`[data-min="${id}"]`).value||0);const x=await db.from("products").update({cost_price:cost,min_stock:min,updated_at:new Date().toISOString()}).eq("id",id);alert(x.error?.message||"Tersimpan.");});
+}
+async function saveMovement(){
+ const id=$v("invProduct").value,type=$v("invType").value,q=Number($v("invQty").value||0),cost=Number($v("invCost").value||0),reason=$v("invReason").value.trim();
+ if(!q)return alert("Qty wajib diisi.");
+ const p=await db.from("products").select("stock").eq("id",id).single();if(p.error)return alert(p.error.message);
+ const current=Number(p.data.stock||0),delta=type==="in"?q:-q;if(current+delta<0)return alert("Stock tidak mencukupi.");
+ const a=await db.from("inventory_transactions").insert({product_id:id,type,quantity:q,unit_cost:cost,reason});
+ if(a.error)return alert(a.error.message);
+ const u=await db.from("products").update({stock:current+delta,updated_at:new Date().toISOString()}).eq("id",id);if(u.error)return alert(u.error.message);
+ $v("invMsg").textContent="Movement berhasil disimpan.";loadInventory();
+}
+async function loadShift(){
+ const r=await db.from("cash_shifts").select("*").eq("status","open").order("opened_at",{ascending:false}).limit(1);const x=r.data?.[0];
+ $v("shiftCurrent").innerHTML=x?`<div class=item><b>Open</b><div>Cashier: ${esc(x.opened_by||"-")} · Modal: ${fmt(x.opening_cash)}</div><div class=muted>${new Date(x.opened_at).toLocaleString("id-ID")}</div></div>`:"<div class=muted>Tidak ada shift aktif.</div>";
+ window.currentShift=x||null;
+}
+async function openShift(){if(window.currentShift)return alert("Masih ada shift aktif.");const r=await db.from("cash_shifts").insert({opened_by:$v("shiftOpenedBy").value.trim(),opening_cash:Number($v("shiftOpening").value||0)});alert(r.error?.message||"Shift dibuka.");loadShift()}
+async function cashMove(){if(!window.currentShift)return alert("Buka shift terlebih dahulu.");const r=await db.from("cash_movements").insert({shift_id:window.currentShift.id,type:$v("cashType").value,amount:Number($v("cashAmount").value||0),category:$v("cashCategory").value.trim(),note:$v("cashNote").value.trim()});alert(r.error?.message||"Cash movement tersimpan.");}
+async function closeShift(){if(!window.currentShift)return alert("Tidak ada shift aktif.");const mv=await db.from("cash_movements").select("type,amount").eq("shift_id",window.currentShift.id);const cashIn=(mv.data||[]).filter(x=>x.type==="in").reduce((a,x)=>a+Number(x.amount),0),cashOut=(mv.data||[]).filter(x=>x.type==="out").reduce((a,x)=>a+Number(x.amount),0);const expected=Number(window.currentShift.opening_cash)+cashIn-cashOut;const actual=Number($v("shiftActual").value||0);const r=await db.from("cash_shifts").update({status:"closed",closed_at:new Date().toISOString(),closing_cash_expected:expected,closing_cash_actual:actual,variance:actual-expected,notes:$v("shiftCloseNote").value.trim()}).eq("id",window.currentShift.id);$v("shiftMsg").textContent=r.error?.message||`Shift ditutup. Expected ${fmt(expected)} · Actual ${fmt(actual)} · Selisih ${fmt(actual-expected)}`;loadShift()}
+$v("bizLoad")?.addEventListener("click",loadBusiness);$v("invRefresh")?.addEventListener("click",loadInventory);$v("invSave")?.addEventListener("click",saveMovement);$v("shiftRefresh")?.addEventListener("click",loadShift);$v("shiftOpen")?.addEventListener("click",openShift);$v("cashSave")?.addEventListener("click",cashMove);$v("shiftClose")?.addEventListener("click",closeShift);
+initDates();
+const oldNav=nav;nav=function(page){oldNav(page);if(page==="business")loadBusiness();if(page==="inventory")loadInventory();if(page==="shifts")loadShift()};
+})();
+</script>
+</body>
 </html>
