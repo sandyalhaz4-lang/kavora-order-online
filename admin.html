@@ -53,9 +53,10 @@ label{font-size:13px;font-weight:600}input,select,textarea{width:100%;padding:11
 
 <div id="loginPage" class="login panel">
 <h2>KAVORA ADMIN</h2>
-<p class="muted">Login menggunakan email admin Supabase.</p>
+<p class="muted">Login menggunakan email dan password admin.</p>
 <input id="email" type="email" value="sandyalhaz79@gmail.com" placeholder="Email admin">
-<button id="loginBtn">Kirim Link Login</button>
+<input id="password" type="password" placeholder="Password admin" autocomplete="current-password">
+<button id="loginBtn">Login</button>
 <div id="loginMsg" class="muted" style="margin-top:10px"></div>
 </div>
 
@@ -242,6 +243,13 @@ label{font-size:13px;font-weight:600}input,select,textarea{width:100%;padding:11
 <div class="panel"><h3>Customer Offers Terbaru</h3><div id="offersAdminList"></div></div>
 </section>
 
+
+<section id="page-smartoffers" class="page">
+<div class="top"><div><h2>Smart Offer</h2><div class="muted">Monitoring offer personal customer dari campaign dan retention engine.</div></div><button id="refreshSmartOffers" class="secondary">Refresh</button></div>
+<div class="stats"><div class="stat"><small>Available</small><b id="soAvailable">0</b></div><div class="stat"><small>Claimed</small><b id="soClaimed">0</b></div><div class="stat"><small>Used</small><b id="soUsed">0</b></div><div class="stat"><small>Expired</small><b id="soExpired">0</b></div></div>
+<div class="panel"><h3>Offer Customer</h3><div id="smartOffersList"></div></div>
+<div class="panel"><h3>Catatan</h3><div class="notice">Campaign dibuat dari menu Engagement Campaign, sedangkan rule otomatis dibuat dari Retention Engine. Halaman ini dipakai untuk memantau hasil offer yang sudah terbentuk.</div></div>
+</section>
 <section id="page-settings" class="page">
 <h2>Pengaturan</h2><div class="muted">Informasi dasar sistem Kavora.</div>
 <div class="panel"><div class="grid"><div><label>WhatsApp Order</label><input value="082262877440" id="waNumber"></div><div><label>Email Admin</label><input value="sandyalhaz79@gmail.com" disabled></div></div><div class="notice">WhatsApp order dan email admin digunakan oleh sistem customer/admin yang sudah terhubung.</div></div>
@@ -277,10 +285,15 @@ $("loginPage").classList.add("hidden");$("app").classList.remove("hidden");await
 }
 async function refreshAll(){await loadCategories();await Promise.all([loadProducts(),loadOrders(),loadPromos(),loadRewardsAdmin(),loadSettings(),loadCustomers()]);updateDashboard();updateReports()}
 $("loginBtn").onclick=async()=>{
-const e=$("email").value.trim();if(e.toLowerCase()!==ADMIN){msg("loginMsg","Gunakan email admin yang terdaftar.",true);return}
-$("loginBtn").disabled=true;const {error}=await db.auth.signInWithOtp({email:e,options:{emailRedirectTo:location.href}});
-msg("loginMsg",error?error.message:"Link login sudah dikirim. Cek Gmail.");$("loginBtn").disabled=false
+const e=$("email").value.trim(),p=$("password").value;
+if(e.toLowerCase()!==ADMIN){msg("loginMsg","Gunakan email admin yang terdaftar.",true);return}
+if(!p)return msg("loginMsg","Password wajib diisi.",true);
+$("loginBtn").disabled=true;
+const {data,error}=await db.auth.signInWithPassword({email:e,password:p});
+if(error){msg("loginMsg","Login gagal: "+error.message,true)} else {await showApp(data.user)}
+$("loginBtn").disabled=false
 };
+$("password").addEventListener("keydown",e=>{if(e.key==="Enter")$("loginBtn").click()});
 $("logout").onclick=()=>db.auth.signOut().then(()=>location.reload());
 db.auth.onAuthStateChange((_e,s)=>{if(s)showApp(s.user)});
 async function init(){const {data}=await db.auth.getSession();if(data.session)showApp(data.session.user)}
@@ -398,6 +411,22 @@ $('refreshLifecycle').onclick=loadLifecycleAdmin;
 const _nav=nav;nav=async function(page){_nav(page);if(page==='membershipBenefits')await loadMembershipBenefits();if(page==='engagement')await loadEngagement();if(page==='retention')await loadRetention();if(page==='referrals'){await loadReferralSettings();await loadReferrals()}if(page==='feedback')await loadFeedback();if(page==='lifecycle')await loadLifecycleAdmin();};
 
 init();
+})();
+</script>
+
+<script>
+(()=>{
+async function loadSmartOffers(){
+ const box=document.getElementById("smartOffersList"); if(!box)return;
+ const r=await db.from("customer_offers").select("*,members(name,phone)").order("created_at",{ascending:false}).limit(500);
+ if(r.error){box.innerHTML='<div class="notice" style="color:#a33">'+esc(r.error.message)+'</div>';return}
+ const a=r.data||[];
+ ["available","claimed","used","expired"].forEach(s=>{const el=document.getElementById("so"+s.charAt(0).toUpperCase()+s.slice(1));if(el)el.textContent=a.filter(x=>x.status===s).length});
+ box.innerHTML=a.map(x=>`<div class="item"><div class="top"><div><b>${esc(x.title||"Offer")}</b><div class="muted">${esc(x.members?.name||"Customer")} · ${esc(x.members?.phone||"")}</div></div><span class="badge">${esc(x.status)}</span></div><div style="margin-top:6px"><span class="badge">${esc(x.code||"-")}</span> · ${x.discount_value?`Diskon ${x.discount_type==="percent"?x.discount_value+"%":rp(x.discount_value)}`:"Tanpa diskon"} · Bonus ${Number(x.bonus_points||0)} point</div><div class="muted" style="margin-top:5px">${x.expires_at?"Berlaku sampai "+new Date(x.expires_at).toLocaleString("id-ID"):""}</div></div>`).join("")||'<div class="muted">Belum ada customer offer.</div>';
+}
+document.getElementById("refreshSmartOffers")?.addEventListener("click",loadSmartOffers);
+const oldNav=nav;
+nav=async function(page){oldNav(page);if(page==="smartoffers")await loadSmartOffers()};
 })();
 </script>
 </body>
