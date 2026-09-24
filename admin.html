@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kavora Admin V29 — Fase 1–4 Complete — Scroll Architecture Fix</title>
+<title>Kavora Admin V30 — Fase 1–5 Complete</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box}
-body{margin:0;font-family:Inter,Arial,sans-serif;background:#f6f2ed;color:#2b211b;overflow-x:hidden;overflow-y:auto}
+body{margin:0;font-family:Inter,Arial,sans-serif;background:#f6f2ed;color:#2b211b}
 button,input,select,textarea{font:inherit}
 button{border:0;border-radius:10px;padding:10px 14px;background:#6b4226;color:#fff;cursor:pointer}
 button.secondary{background:#e7e0d9;color:#332a24}
@@ -15,20 +15,14 @@ button.danger{background:#a33}
 button:disabled{opacity:.55;cursor:not-allowed}
 .hidden{display:none!important}
 .layout{display:flex;min-height:100vh}
-.sidebar{width:230px;background:#241a15;color:#fff;position:fixed;inset:0 auto 0 0;padding:10px 10px;overflow:hidden;transition:width .2s,transform .2s;z-index:30}
-.sidebar.collapsed{width:0;padding-left:0;padding-right:0;overflow:hidden}
-.sidebar.collapsed>*{display:none}
-.sidebar-toggle{position:fixed;left:238px;top:14px;z-index:20;padding:8px 11px;border-radius:9px;background:#6b4226;color:#fff;box-shadow:0 2px 10px #0002;transition:left .2s}
-.sidebar.collapsed + .sidebar-toggle{left:8px}
-.brand{padding:4px 8px 9px;border-bottom:1px solid #ffffff22;margin-bottom:7px}.brand h1{font-size:20px}.brand small{font-size:11px;line-height:1.2;display:block}
-.brand h1{margin:0;font-size:20px}.brand small{opacity:.7}
-.nav{margin:0;padding:0}.nav button{display:block;width:100%;text-align:left;background:transparent;color:#fff;margin:1px 0;padding:5px 8px;border-radius:7px;font-size:12.5px;line-height:15px;white-space:nowrap}
+.sidebar{width:250px;background:#241a15;color:#fff;position:fixed;inset:0 auto 0 0;padding:20px 14px;overflow:auto}
+.brand{padding:8px 12px 20px;border-bottom:1px solid #ffffff22;margin-bottom:14px}
+.brand h1{margin:0;font-size:24px}.brand small{opacity:.7}
+.nav button{display:block;width:100%;text-align:left;background:transparent;color:#fff;margin:4px 0;padding:12px;border-radius:10px}
 .nav button:hover,.nav button.active{background:#6b4226}
-.main{margin-left:230px;width:calc(100% - 230px);min-height:100vh;padding:24px;transition:margin-left .2s,width .2s;scroll-behavior:auto;overflow:visible}
-.layout.sidebar-collapsed .main{margin-left:0;width:100%}
-.mobile-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-.mobile-head .desktop-menu-btn{display:inline-flex}
-.page{display:none!important}.page.active{display:block!important;position:relative;top:0;transform:none}
+.main{margin-left:250px;width:calc(100% - 250px);padding:24px}
+.mobile-head{display:none}
+.page{display:none}.page.active{display:block}
 .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 h2{margin:0 0 6px}h3{margin:0 0 12px}
 .muted{color:#756a62}.panel{background:#fff;border-radius:16px;padding:18px;margin:14px 0;box-shadow:0 3px 16px #0000000b}
@@ -49,9 +43,8 @@ label{font-size:13px;font-weight:600}input,select,textarea{width:100%;padding:11
 .order-card{border:1px solid #eee;border-radius:12px;padding:14px;margin:10px 0}
 .kpi{font-size:20px;font-weight:700}
 @media(max-width:800px){
-.sidebar{transform:translateX(-100%);transition:.2s;z-index:30;width:250px;padding:20px 14px}.sidebar.open{transform:translateX(0)}.sidebar.collapsed{width:250px;padding:20px 14px;overflow:auto}.sidebar.collapsed>*{display:block}
-.sidebar-toggle{display:none}
-.main,.layout.sidebar-collapsed .main{margin-left:0;width:100%;min-height:100vh;overflow:visible;padding:14px}.mobile-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.sidebar{transform:translateX(-100%);transition:.2s;z-index:10}.sidebar.open{transform:translateX(0)}
+.main{margin-left:0;width:100%;padding:14px}.mobile-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 .stats{grid-template-columns:1fr 1fr}.grid,.grid3{grid-template-columns:1fr}
 }
 </style>
@@ -69,7 +62,7 @@ label{font-size:13px;font-weight:600}input,select,textarea{width:100%;padding:11
 
 <div id="app" class="layout hidden">
 <aside id="sidebar" class="sidebar">
-<div class="brand"><h1>KAVORA</h1><small>Admin Dashboard V29 · Fase 1–4 Complete</small></div>
+<div class="brand"><h1>KAVORA</h1><small>Admin Dashboard V30 · Fase 1–5 Complete</small></div>
 <nav class="nav">
 <button data-page="dashboard" class="active">🏠 Dashboard</button>
 <button data-page="products">☕ Menu Produk</button>
@@ -85,12 +78,17 @@ label{font-size:13px;font-weight:600}input,select,textarea{width:100%;padding:11
 <button data-page="referrals">🤝 Referral</button>
 <button data-page="feedback">💬 Feedback Customer</button><button data-page="notificationPrefs">🔔 Notification Preference</button>
 <button data-page="lifecycle">🧭 Lifecycle & Offers</button>
+<button data-page="automation">🤖 Automation Center</button>
+<button data-page="whatsappQueue">📲 WhatsApp Queue</button>
+<button data-page="campaignAutomation">🎯 Customer Campaign</button>
+<button data-page="inventoryAlerts">🚨 Inventory Alert</button>
+<button data-page="ownerReports">📊 Owner Daily Report</button>
+<button data-page="outlets">🏪 Outlet Management</button>
 <button data-page="rewards">🎁 Rewards Point</button>
 <button data-page="settings">⚙️ Pengaturan</button>
 </nav>
-<button id="logout" class="secondary" style="width:100%;margin-top:5px;padding:5px 8px;font-size:12.5px">Logout</button>
+<button id="logout" class="secondary" style="width:100%;margin-top:18px">Logout</button>
 </aside>
-<button id="sidebarToggle" class="sidebar-toggle" type="button" title="Sembunyikan/Tampilkan menu">☰</button>
 
 <main class="main">
 <div class="mobile-head"><b>KAVORA ADMIN</b><button id="menuBtn" class="secondary">☰ Menu</button></div>
@@ -197,6 +195,7 @@ label{font-size:13px;font-weight:600}input,select,textarea{width:100%;padding:11
 <h3 style="margin-top:18px">Riwayat Point</h3><div id="customerPointHistory"></div>
 </div></div></div>
 </div>
+<div class="panel"><h3>Cek Point Cepat</h3><div class="grid"><div><label>No. HP Customer</label><input id="pointPhone" placeholder="08xxxxxxxxxx"></div><div style="display:flex;align-items:end"><button id="checkPoint">Cek Point</button></div></div><div id="pointResult" style="margin-top:14px"></div></div>
 </section>
 
 <section id="page-rewards" class="page">
@@ -286,6 +285,44 @@ label{font-size:13px;font-weight:600}input,select,textarea{width:100%;padding:11
 <div class="panel"><h3>Cash Movement</h3><div class="grid"><select id="cashType"><option value="in">Cash In</option><option value="out">Cash Out</option></select><input id="cashAmount" type="number" min="1" placeholder="Nominal"><input id="cashCategory" placeholder="Kategori"><input id="cashNote" placeholder="Catatan"></div><button id="cashSave" style="margin-top:9px">Simpan</button></div>
 <div class="panel"><h3>Close Shift</h3><div class="grid"><input id="shiftActual" type="number" min="0" placeholder="Cash actual"><input id="shiftCloseNote" placeholder="Catatan closing"></div><button id="shiftClose" style="margin-top:9px">Close Shift</button><div id="shiftMsg" class="muted" style="margin-top:8px"></div></div>
 </section>
+
+<section id="page-automation" class="page">
+<div class="top"><div><h2>🤖 Automation Center</h2><div class="muted">Pusat kontrol semua automation Fase 5.</div></div><button id="runAutomationCenter">▶ Run Automation</button></div>
+<div class="stats" style="margin-top:14px"><div class="stat"><small>Queue</small><b id="autoQueueCount">0</b></div><div class="stat"><small>Automation Runs</small><b id="autoRunsCount">0</b></div><div class="stat"><small>Offers Aktif</small><b id="autoOffersCount">0</b></div><div class="stat"><small>Inventory Alert</small><b id="autoInventoryCount">0</b></div></div>
+<div class="panel"><div class="top"><h3>Automation Rules</h3><button id="refreshAutomation" class="secondary">Refresh</button></div><div id="automationRulesList"></div></div>
+<div class="panel"><h3>Automation Run Terbaru</h3><div id="automationRunsList"></div></div>
+<div id="automationMsg"></div>
+</section>
+
+<section id="page-whatsappQueue" class="page">
+<div class="top"><div><h2>📲 WhatsApp Queue</h2><div class="muted">Pesan yang siap dikirim oleh provider WhatsApp.</div></div><button id="refreshWhatsQueue" class="secondary">Refresh</button></div>
+<div class="stats"><div class="stat"><small>Queued</small><b id="wqQueued">0</b></div><div class="stat"><small>Sent</small><b id="wqSent">0</b></div><div class="stat"><small>Failed</small><b id="wqFailed">0</b></div><div class="stat"><small>Customer</small><b id="wqCustomer">0</b></div></div>
+<div class="panel"><div class="toolbar"><select id="wqFilter"><option value="all">Semua Status</option><option value="queued">Queued</option><option value="sent">Sent</option><option value="failed">Failed</option></select></div><div id="whatsQueueList"></div></div>
+<div class="notice">Pengiriman WhatsApp otomatis memerlukan provider WhatsApp Business/API. Queue ini sudah siap menjadi sumber pengiriman.</div>
+</section>
+
+<section id="page-campaignAutomation" class="page">
+<div class="top"><div><h2>🎯 Customer Campaign Automation</h2><div class="muted">Jalankan campaign personal berdasarkan segment customer.</div></div><button id="runCampaignAutomation">▶ Run Campaign</button></div>
+<div class="panel"><h3>Campaign Aktif</h3><div id="campaignAutoList"></div></div><div class="panel"><h3>Offer yang Terbentuk</h3><div id="campaignOffersList"></div></div><div id="campaignAutoMsg"></div>
+</section>
+
+<section id="page-inventoryAlerts" class="page">
+<div class="top"><div><h2>🚨 Inventory Alert</h2><div class="muted">Monitoring stok minimum dan stok habis.</div></div><button id="runInventoryAlerts">🔄 Check Stock</button></div>
+<div class="stats"><div class="stat"><small>Open</small><b id="iaOpen">0</b></div><div class="stat"><small>Low Stock</small><b id="iaLow">0</b></div><div class="stat"><small>Out of Stock</small><b id="iaOut">0</b></div><div class="stat"><small>Resolved</small><b id="iaResolved">0</b></div></div>
+<div class="panel"><div id="inventoryAlertsList"></div></div><div id="inventoryAlertMsg"></div>
+</section>
+
+<section id="page-ownerReports" class="page">
+<div class="top"><div><h2>📊 Owner Daily Report</h2><div class="muted">Ringkasan otomatis untuk owner.</div></div><div class="row-actions"><input id="ownerReportDate" type="date"><button id="generateOwnerReport">Generate</button></div></div>
+<div class="panel"><div id="ownerReportDetail"></div></div><div class="panel"><h3>Riwayat Report</h3><div id="ownerReportsList"></div></div>
+</section>
+
+<section id="page-outlets" class="page">
+<div class="top"><div><h2>🏪 Outlet Management</h2><div class="muted">Persiapan multi-outlet Kavora.</div></div><button id="refreshOutlets" class="secondary">Refresh</button></div>
+<div class="panel"><h3>Tambah Outlet</h3><div class="grid3"><input id="outletName" placeholder="Nama outlet"><input id="outletCode" placeholder="Kode outlet"><input id="outletAddress" placeholder="Alamat"></div><button id="addOutlet">+ Tambah Outlet</button><div id="outletMsg"></div></div>
+<div class="panel"><h3>Daftar Outlet</h3><div id="outletsList"></div></div>
+</section>
+
 <section id="page-settings" class="page">
 <h2>Pengaturan</h2><div class="muted">Informasi dasar sistem Kavora.</div>
 <div class="panel"><div class="grid"><div><label>WhatsApp Order</label><input value="082262877440" id="waNumber"></div><div><label>Email Admin</label><input value="sandyalhaz79@gmail.com" disabled></div></div><div class="notice">WhatsApp order dan email admin digunakan oleh sistem customer/admin yang sudah terhubung.</div></div>
@@ -305,45 +342,15 @@ const $=id=>document.getElementById(id);
 const rp=n=>new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(Number(n||0));
 const esc=s=>String(s??"").replace(/[&<>\"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]));
 function msg(id,text,error=false){$(id).innerHTML=text?'<div class="notice" style="color:'+(error?'#a33':'#4f463f')+'">'+esc(text)+'</div>':''}
-function resetViewport(){
-  try{window.scrollTo(0,0)}catch(e){}
-  document.documentElement.scrollTop=0;
-  document.body.scrollTop=0;
-}
-async function nav(page){
-  const target=$("page-"+page);
-  if(!target)return;
-  document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
-  target.classList.add("active");
-  target.scrollIntoView({block:"start",inline:"nearest"});
-  window.scrollTo(0,0);
-  document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
-  $("sidebar").classList.remove("open");
-  resetViewport();
-  if(page==="products")renderProducts();
-  if(page==="orders")renderOrders();
-  if(page==="promos")loadPromos();
-  if(page==="customers")loadCustomers();
-  if(page==="membershipBenefits")await loadMembershipBenefits();
-  if(page==="engagement")await loadEngagement();
-  if(page==="retention")await loadRetention();
-  if(page==="referrals"){await loadReferralSettings();await loadReferrals()}
-  if(page==="feedback")await loadFeedback();
-  if(page==="lifecycle")await loadLifecycleAdmin();
-  if(page==="business")await loadBusiness();
-  if(page==="inventory")await loadInventory();
-  if(page==="shifts")await loadShift();
-  if(page==="smartoffers")await loadSmartOffers();
-  resetViewport();
+function nav(page){
+document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+$("page-"+page).classList.add("active");
+document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
+$("sidebar").classList.remove("open");
+if(page==="products")renderProducts(); if(page==="orders")renderOrders(); if(page==="promos")loadPromos(); if(page==="customers")loadCustomers();
 }
 document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>nav(b.dataset.page));
 $("menuBtn").onclick=()=>$("sidebar").classList.toggle("open");
-$("sidebarToggle").onclick=()=>{
- const collapsed=$("sidebar").classList.toggle("collapsed");
- $("app").classList.toggle("sidebar-collapsed",collapsed);
- $("sidebarToggle").textContent=collapsed?"☰":"✕";
- $("sidebarToggle").title=collapsed?"Tampilkan menu":"Sembunyikan menu";
-};
 
 async function showApp(user){
 if(!user||String(user.email||"").toLowerCase()!==ADMIN){await db.auth.signOut();alert("Email ini bukan akun admin Kavora.");return}
@@ -432,6 +439,7 @@ function renderCustomers(){const q=($("customerSearch")?.value||"").toLowerCase(
 async function selectCustomer(id){const c=crmCustomers.find(x=>x.id===id);if(!c)return;selectedCustomer=c;$("customerEmpty").classList.add("hidden");$("customerDetail").classList.remove("hidden");$("crmName").value=c.name||"";$("crmPhone").value=c.phone||"";$("crmEmail").value=c.email||"";$("crmBirthday").value=c.birthday||"";$("crmAddress").value=c.address||"";$("crmNotes").value=c.notes||"";$("crmMarketing").checked=c.marketing_opt_in!==false;$("customerStats").innerHTML=`<div class="stats"><div class="stat"><small>Point</small><b>⭐ ${c.points||0}</b></div><div class="stat"><small>Transaksi</small><b>${c.total_orders||0}</b></div><div class="stat"><small>Total Belanja</small><b>${rp(c.total_spent||0)}</b></div><div class="stat"><small>Bergabung</small><b style="font-size:14px">${c.created_at?new Date(c.created_at).toLocaleDateString("id-ID"):"-"}</b></div></div>`;await loadCustomerHistory(c)}
 async function loadCustomerHistory(c){const [or,tx]=await Promise.all([db.from("orders").select("id,created_at,status,total,order_type,payment_method,payment_status").eq("member_id",c.id).order("created_at",{ascending:false}).limit(50),db.from("member_transactions").select("id,created_at,type,points,note,order_id").eq("member_id",c.id).order("created_at",{ascending:false}).limit(50)]);if(or.error){$("customerOrders").innerHTML='<div class="notice" style="color:#a33">'+esc(or.error.message)+'</div>'}else{$("customerOrders").innerHTML=(or.data||[]).map(o=>`<div class="item"><b>${new Date(o.created_at).toLocaleString("id-ID")}</b><div>${rp(o.total)} · ${statusLabel(o.status)} · ${esc(o.payment_method||"-")}</div></div>`).join("")||'<div class="muted">Belum ada transaksi.</div>'}if(tx.error){$("customerPointHistory").innerHTML='<div class="notice" style="color:#a33">'+esc(tx.error.message)+'</div>'}else{$("customerPointHistory").innerHTML=(tx.data||[]).map(t=>`<div class="item"><b>${t.points>0?"+":""}${t.points} point</b> · ${esc(t.type||"")}<div class="muted">${new Date(t.created_at).toLocaleString("id-ID")} · ${esc(t.note||"")}</div></div>`).join("")||'<div class="muted">Belum ada riwayat point.</div>'}}
 $("customerSearch").oninput=renderCustomers;$("refreshCustomers").onclick=loadCustomers;$("saveCustomer").onclick=async()=>{if(!selectedCustomer)return;const payload={name:$("crmName").value.trim(),email:$("crmEmail").value.trim()||null,birthday:$("crmBirthday").value||null,address:$("crmAddress").value.trim()||null,notes:$("crmNotes").value.trim()||null,marketing_opt_in:$("crmMarketing").checked,updated_at:new Date().toISOString()};if(!payload.name)return msg("customerMsg","Nama customer wajib diisi.",true);const r=await db.from("members").update(payload).eq("id",selectedCustomer.id);if(r.error)return msg("customerMsg",r.error.message,true);msg("customerMsg","Profil customer berhasil disimpan.");await loadCustomers();selectedCustomer=crmCustomers.find(x=>x.id===selectedCustomer.id);await selectCustomer(selectedCustomer.id)}
+$("checkPoint").onclick=async()=>{const phone=$("pointPhone").value.trim();if(!phone)return msg("pointResult","Masukkan nomor HP customer.",true);const {data,error}=await db.rpc("get_customer_points",{p_phone:phone});if(error)return msg("pointResult",error.message,true);const x=Array.isArray(data)?data[0]:data;if(!x)return msg("pointResult","Data customer tidak ditemukan.");$("pointResult").innerHTML=`<div class="stats"><div class="stat"><small>Transaksi Selesai</small><b>${x.orders||0}</b></div><div class="stat"><small>Total Belanja</small><b>${rp(x.spend||0)}</b></div><div class="stat"><small>Point Kavora</small><b>⭐ ${x.points||0}</b></div></div>`}
 
 
 // ===== FASE 2 ADMIN MANAGEMENT =====
@@ -473,6 +481,53 @@ async function loadLifecycleAdmin(){const {data,error}=await db.rpc('get_lifecyc
 async function loadOffersAdmin(){const {data,error}=await db.from('customer_offers').select('*,members(name,phone)').order('created_at',{ascending:false}).limit(300);if(error)return $('offersAdminList').innerHTML='<div class="notice" style="color:#a33">'+esc(error.message)+'</div>';$('offersAdminList').innerHTML=(data||[]).map(x=>`<div class="item"><div class="top"><div><b>${esc(x.title)}</b><div class="muted">${esc(x.members?.name||'-')} · ${esc(x.members?.phone||'')}</div></div><span class="badge">${esc(x.status)}</span></div><div>${esc(x.code||'-')} · Diskon ${x.discount_value||0}${x.discount_type==='percent'?'%':''} · Bonus ${x.bonus_points||0}</div><div class="muted">${x.expires_at?'Expired '+new Date(x.expires_at).toLocaleString('id-ID'):''}</div></div>`).join('')||'<div class="muted">Belum ada offer.</div>'}
 $('refreshLifecycle').onclick=loadLifecycleAdmin;
 
+const _nav=nav;nav=async function(page){_nav(page);if(page==='membershipBenefits')await loadMembershipBenefits();if(page==='engagement')await loadEngagement();if(page==='retention')await loadRetention();if(page==='referrals'){await loadReferralSettings();await loadReferrals()}if(page==='feedback')await loadFeedback();if(page==='lifecycle')await loadLifecycleAdmin();};
+
+
+async function loadAutomationCenter(){
+  const [{data:rules},{data:runs},{count:qcount},{count:rcount},{count:ocount},{count:icount}]=await Promise.all([
+    db.from('automation_rules').select('*').order('created_at'),
+    db.from('automation_runs').select('*').order('created_at',{ascending:false}).limit(20),
+    db.from('notification_queue').select('*',{count:'exact',head:true}).eq('status','queued'),
+    db.from('automation_runs').select('*',{count:'exact',head:true}),
+    db.from('customer_offers').select('*',{count:'exact',head:true}).in('status',['available','claimed']),
+    db.from('inventory_alerts').select('*',{count:'exact',head:true}).eq('status','open')
+  ]);
+  $('autoQueueCount').textContent=qcount||0;$('autoRunsCount').textContent=rcount||0;$('autoOffersCount').textContent=ocount||0;$('autoInventoryCount').textContent=icount||0;
+  $('automationRulesList').innerHTML=(rules||[]).map(r=>`<div class="item"><b>${esc(r.name)}</b> <span class="badge ${r.is_active?'active':'inactive'}">${r.is_active?'ON':'OFF'}</span><div class="muted">${esc(r.automation_type)} · ${esc(r.trigger_key)} · ${esc(r.channel)}</div></div>`).join('')||'<div class="muted">Belum ada rule.</div>';
+  $('automationRunsList').innerHTML=(runs||[]).map(r=>`<div class="item"><b>${esc(r.result)}</b> <span class="muted">${new Date(r.created_at).toLocaleString('id-ID')}</span><div>${esc(r.details||'')}</div></div>`).join('')||'<div class="muted">Belum ada run.</div>';
+}
+async function loadWhatsQueue(){
+ const f=$('wqFilter').value; let q=db.from('notification_queue').select('*').order('created_at',{ascending:false}).limit(100); if(f!=='all')q=q.eq('status',f); const {data,error}=await q;if(error)return msg('automationMsg',error.message,true);
+ const {data:all}=await db.from('notification_queue').select('status,audience,channel').limit(1000); const rows=all||[];
+ $('wqQueued').textContent=rows.filter(x=>x.status==='queued').length;$('wqSent').textContent=rows.filter(x=>x.status==='sent').length;$('wqFailed').textContent=rows.filter(x=>x.status==='failed').length;$('wqCustomer').textContent=rows.filter(x=>x.audience==='customer'&&x.channel==='whatsapp').length;
+ $('whatsQueueList').innerHTML=(data||[]).map(n=>`<div class="order-card"><div class="top"><b>${esc(n.event_type)}</b><span class="badge ${n.status==='queued'?'warning':n.status==='sent'?'active':n.status==='failed'?'sold':''}">${esc(n.status)}</span></div><div>${esc(n.message)}</div><div class="muted">${esc(n.recipient||'-')} · ${new Date(n.created_at).toLocaleString('id-ID')}</div>${n.last_error?`<div class="notice">${esc(n.last_error)}</div>`:''}</div>`).join('')||'<div class="muted">Queue kosong.</div>';
+}
+async function loadCampaignAutomation(){
+ const {data:cs}=await db.from('engagement_campaigns').select('*').order('created_at',{ascending:false});
+ const {data:os}=await db.from('customer_offers').select('*').order('created_at',{ascending:false}).limit(50);
+ $('campaignAutoList').innerHTML=(cs||[]).map(c=>`<div class="item"><b>${esc(c.name)}</b> <span class="badge ${c.is_active?'active':'inactive'}">${c.is_active?'AKTIF':'OFF'}</span><div class="muted">${esc(c.campaign_type)} · ${esc(c.message||'')}</div></div>`).join('')||'<div class="muted">Belum ada campaign.</div>';
+ $('campaignOffersList').innerHTML=(os||[]).map(o=>`<div class="item"><b>${esc(o.title)}</b> <span class="badge">${esc(o.status)}</span><div>${esc(o.code||'-')} · ${esc(o.discount_type)} ${o.discount_value||0} · Bonus ${o.bonus_points||0} point</div></div>`).join('')||'<div class="muted">Belum ada offer.</div>';
+}
+async function loadInventoryAlerts(){
+ const {data,error}=await db.from('inventory_alerts').select('*,products(name)').order('created_at',{ascending:false}); if(error)return msg('inventoryAlertMsg',error.message,true); const a=data||[];
+ $('iaOpen').textContent=a.filter(x=>x.status==='open').length;$('iaLow').textContent=a.filter(x=>x.alert_type==='low_stock'&&x.status==='open').length;$('iaOut').textContent=a.filter(x=>x.alert_type==='out_of_stock'&&x.status==='open').length;$('iaResolved').textContent=a.filter(x=>x.status==='resolved').length;
+ $('inventoryAlertsList').innerHTML=a.map(x=>`<div class="item"><b>${esc(x.products?.name||'Produk')}</b> <span class="badge ${x.status==='open'?'warning':x.status==='resolved'?'active':''}">${esc(x.alert_type)} · ${esc(x.status)}</span><div>Stock ${x.stock} · Minimum ${x.min_stock}</div></div>`).join('')||'<div class="muted">Tidak ada alert.</div>';
+}
+async function loadOwnerReports(){
+ const d=$('ownerReportDate'); if(!d.value)d.value=new Date().toISOString().slice(0,10); const {data,error}=await db.from('owner_daily_reports').select('*').order('report_date',{ascending:false}).limit(30); if(error)return; const rows=data||[]; const r=rows.find(x=>x.report_date===d.value)||rows[0];
+ $('ownerReportDetail').innerHTML=r?`<div class="stats"><div class="stat"><small>Revenue</small><b>${rp(r.revenue)}</b></div><div class="stat"><small>Orders</small><b>${r.orders}</b></div><div class="stat"><small>Gross Profit</small><b>${rp(r.gross_profit)}</b></div><div class="stat"><small>AOV</small><b>${rp(r.aov)}</b></div></div><div class="notice" style="white-space:pre-line">${esc(r.report_text||'')}</div>`:'<div class="muted">Belum ada report.</div>';
+ $('ownerReportsList').innerHTML=rows.map(r=>`<div class="item"><b>${esc(r.report_date)}</b> · ${rp(r.revenue)} · ${r.orders} order · GP ${rp(r.gross_profit)}</div>`).join('')||'<div class="muted">Belum ada riwayat.</div>';
+}
+async function loadOutlets(){const {data,error}=await db.from('outlets').select('*').order('created_at');if(error)return msg('outletMsg',error.message,true);$('outletsList').innerHTML=(data||[]).map(o=>`<div class="item"><b>${esc(o.name)}</b> <span class="badge ${o.is_active?'active':'inactive'}">${o.is_active?'AKTIF':'OFF'}</span><div class="muted">${esc(o.code)} · ${esc(o.address||'-')}</div></div>`).join('')||'<div class="muted">Belum ada outlet.</div>'}
+async function automationRun(){const b=$('runAutomationCenter');b.disabled=true;const {data,error}=await db.rpc('run_automation_center');if(error)msg('automationMsg',error.message,true);else{msg('automationMsg','Automation Center berhasil dijalankan.');await Promise.all([loadAutomationCenter(),loadWhatsQueue(),loadCampaignAutomation(),loadInventoryAlerts(),loadOwnerReports()])}b.disabled=false}
+$('runAutomationCenter').onclick=automationRun;$('refreshAutomation').onclick=loadAutomationCenter;$('refreshWhatsQueue').onclick=loadWhatsQueue;$('wqFilter').onchange=loadWhatsQueue;
+$('runCampaignAutomation').onclick=async()=>{const {data,error}=await db.rpc('run_customer_campaign_automation');if(error)msg('campaignAutoMsg',error.message,true);else{msg('campaignAutoMsg',JSON.stringify(data));loadCampaignAutomation()}};
+$('runInventoryAlerts').onclick=async()=>{const {data,error}=await db.rpc('run_inventory_alert_automation');if(error)msg('inventoryAlertMsg',error.message,true);else{msg('inventoryAlertMsg','Inventory alert diperbarui.');loadInventoryAlerts()}};
+$('generateOwnerReport').onclick=async()=>{const {data,error}=await db.rpc('generate_owner_daily_report',{p_date:$('ownerReportDate').value});if(error)alert(error.message);else loadOwnerReports()};$('ownerReportDate').onchange=loadOwnerReports;
+$('refreshOutlets').onclick=loadOutlets;$('addOutlet').onclick=async()=>{const name=$('outletName').value.trim(),code=$('outletCode').value.trim().toUpperCase(),address=$('outletAddress').value.trim();if(!name||!code)return msg('outletMsg','Nama dan kode outlet wajib diisi.',true);const {error}=await db.from('outlets').insert({name,code,address});if(error)msg('outletMsg',error.message,true);else{$('outletName').value='';$('outletCode').value='';$('outletAddress').value='';msg('outletMsg','Outlet berhasil ditambahkan.');loadOutlets()}};
+const oldNav=nav; nav=async function(page){oldNav(page); if(page==='automation')loadAutomationCenter();if(page==='whatsappQueue')loadWhatsQueue();if(page==='campaignAutomation')loadCampaignAutomation();if(page==='inventoryAlerts')loadInventoryAlerts();if(page==='ownerReports')loadOwnerReports();if(page==='outlets')loadOutlets();};
+
 init();
 })();
 </script>
@@ -488,8 +543,11 @@ async function loadSmartOffers(){
  box.innerHTML=a.map(x=>`<div class="item"><div class="top"><div><b>${esc(x.title||"Offer")}</b><div class="muted">${esc(x.members?.name||"Customer")} · ${esc(x.members?.phone||"")}</div></div><span class="badge">${esc(x.status)}</span></div><div style="margin-top:6px"><span class="badge">${esc(x.code||"-")}</span> · ${x.discount_value?`Diskon ${x.discount_type==="percent"?x.discount_value+"%":rp(x.discount_value)}`:"Tanpa diskon"} · Bonus ${Number(x.bonus_points||0)} point</div><div class="muted" style="margin-top:5px">${x.expires_at?"Berlaku sampai "+new Date(x.expires_at).toLocaleString("id-ID"):""}</div></div>`).join("")||'<div class="muted">Belum ada customer offer.</div>';
 }
 document.getElementById("refreshSmartOffers")?.addEventListener("click",loadSmartOffers);
+const oldNav=nav;
+nav=async function(page){oldNav(page);if(page==="smartoffers")await loadSmartOffers()};
 })();
 </script>
+<div id="v27BuildBadge" style="position:fixed;right:14px;bottom:14px;z-index:9999;padding:8px 11px;border-radius:10px;background:#111;color:#fff;font-size:11px">KAVORA ADMIN V28 · FASE 1–3</div><div id="v28MasterBadge" style="position:fixed;left:14px;bottom:14px;z-index:9999;padding:8px 11px;border-radius:10px;background:#111;color:#fff;font-size:11px">KAVORA ADMIN V29 · FASE 1–4 COMPLETE</div>
 <script>
 (()=>{"use strict";
 const $v=id=>document.getElementById(id), fmt=n=>new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(Number(n||0));
@@ -518,11 +576,6 @@ async function saveMovement(){
  const u=await db.from("products").update({stock:current+delta,updated_at:new Date().toISOString()}).eq("id",id);if(u.error)return alert(u.error.message);
  $v("invMsg").textContent="Movement berhasil disimpan.";loadInventory();
 }
-$("invRefresh")?.addEventListener("click",loadInventory);
-$("invSave")?.addEventListener("click",saveMovement);
-$("shiftRefresh")?.addEventListener("click",loadShift);
-$("bizLoad")?.addEventListener("click",loadBusiness);
-
 async function loadShift(){
  const r=await db.from("cash_shifts").select("*").eq("status","open").order("opened_at",{ascending:false}).limit(1);const x=r.data?.[0];
  $v("shiftCurrent").innerHTML=x?`<div class=item><b>Open</b><div>Cashier: ${esc(x.opened_by||"-")} · Modal: ${fmt(x.opening_cash)}</div><div class=muted>${new Date(x.opened_at).toLocaleString("id-ID")}</div></div>`:"<div class=muted>Tidak ada shift aktif.</div>";
@@ -533,6 +586,7 @@ async function cashMove(){if(!window.currentShift)return alert("Buka shift terle
 async function closeShift(){if(!window.currentShift)return alert("Tidak ada shift aktif.");const mv=await db.from("cash_movements").select("type,amount").eq("shift_id",window.currentShift.id);const cashIn=(mv.data||[]).filter(x=>x.type==="in").reduce((a,x)=>a+Number(x.amount),0),cashOut=(mv.data||[]).filter(x=>x.type==="out").reduce((a,x)=>a+Number(x.amount),0);const expected=Number(window.currentShift.opening_cash)+cashIn-cashOut;const actual=Number($v("shiftActual").value||0);const r=await db.from("cash_shifts").update({status:"closed",closed_at:new Date().toISOString(),closing_cash_expected:expected,closing_cash_actual:actual,variance:actual-expected,notes:$v("shiftCloseNote").value.trim()}).eq("id",window.currentShift.id);$v("shiftMsg").textContent=r.error?.message||`Shift ditutup. Expected ${fmt(expected)} · Actual ${fmt(actual)} · Selisih ${fmt(actual-expected)}`;loadShift()}
 $v("bizLoad")?.addEventListener("click",loadBusiness);$v("invRefresh")?.addEventListener("click",loadInventory);$v("invSave")?.addEventListener("click",saveMovement);$v("shiftRefresh")?.addEventListener("click",loadShift);$v("shiftOpen")?.addEventListener("click",openShift);$v("cashSave")?.addEventListener("click",cashMove);$v("shiftClose")?.addEventListener("click",closeShift);
 initDates();
+const oldNav=nav;nav=function(page){oldNav(page);if(page==="business")loadBusiness();if(page==="inventory")loadInventory();if(page==="shifts")loadShift()};
 })();
 </script>
 </body>
