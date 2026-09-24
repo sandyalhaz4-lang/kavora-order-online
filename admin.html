@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kavora Admin V28 — Fase 1–3 Complete</title>
+<title>Kavora Admin V29 — Fase 1–4 Complete</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box}
@@ -15,13 +15,19 @@ button.danger{background:#a33}
 button:disabled{opacity:.55;cursor:not-allowed}
 .hidden{display:none!important}
 .layout{display:flex;min-height:100vh}
-.sidebar{width:250px;background:#241a15;color:#fff;position:fixed;inset:0 auto 0 0;padding:20px 14px;overflow:auto}
+.sidebar{width:250px;background:#241a15;color:#fff;position:fixed;inset:0 auto 0 0;padding:20px 14px;overflow:auto;transition:width .2s,transform .2s}
+.sidebar.collapsed{width:0;padding-left:0;padding-right:0;overflow:hidden}
+.sidebar.collapsed>*{display:none}
+.sidebar-toggle{position:fixed;left:258px;top:14px;z-index:20;padding:8px 11px;border-radius:9px;background:#6b4226;color:#fff;box-shadow:0 2px 10px #0002;transition:left .2s}
+.sidebar.collapsed + .sidebar-toggle{left:8px}
 .brand{padding:8px 12px 20px;border-bottom:1px solid #ffffff22;margin-bottom:14px}
 .brand h1{margin:0;font-size:24px}.brand small{opacity:.7}
 .nav button{display:block;width:100%;text-align:left;background:transparent;color:#fff;margin:4px 0;padding:12px;border-radius:10px}
 .nav button:hover,.nav button.active{background:#6b4226}
-.main{margin-left:250px;width:calc(100% - 250px);padding:24px}
-.mobile-head{display:none}
+.main{margin-left:250px;width:calc(100% - 250px);padding:24px;transition:margin-left .2s,width .2s}
+.layout.sidebar-collapsed .main{margin-left:0;width:100%}
+.mobile-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.mobile-head .desktop-menu-btn{display:inline-flex}
 .page{display:none}.page.active{display:block}
 .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 h2{margin:0 0 6px}h3{margin:0 0 12px}
@@ -43,8 +49,9 @@ label{font-size:13px;font-weight:600}input,select,textarea{width:100%;padding:11
 .order-card{border:1px solid #eee;border-radius:12px;padding:14px;margin:10px 0}
 .kpi{font-size:20px;font-weight:700}
 @media(max-width:800px){
-.sidebar{transform:translateX(-100%);transition:.2s;z-index:10}.sidebar.open{transform:translateX(0)}
-.main{margin-left:0;width:100%;padding:14px}.mobile-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.sidebar{transform:translateX(-100%);transition:.2s;z-index:30;width:250px;padding:20px 14px}.sidebar.open{transform:translateX(0)}.sidebar.collapsed{width:250px;padding:20px 14px;overflow:auto}.sidebar.collapsed>*{display:block}
+.sidebar-toggle{display:none}
+.main,.layout.sidebar-collapsed .main{margin-left:0;width:100%;padding:14px}.mobile-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 .stats{grid-template-columns:1fr 1fr}.grid,.grid3{grid-template-columns:1fr}
 }
 </style>
@@ -62,7 +69,7 @@ label{font-size:13px;font-weight:600}input,select,textarea{width:100%;padding:11
 
 <div id="app" class="layout hidden">
 <aside id="sidebar" class="sidebar">
-<div class="brand"><h1>KAVORA</h1><small>Admin Dashboard V28 · Fase 1–3 Complete</small></div>
+<div class="brand"><h1>KAVORA</h1><small>Admin Dashboard V29 · Fase 1–4 Complete</small></div>
 <nav class="nav">
 <button data-page="dashboard" class="active">🏠 Dashboard</button>
 <button data-page="products">☕ Menu Produk</button>
@@ -83,6 +90,7 @@ label{font-size:13px;font-weight:600}input,select,textarea{width:100%;padding:11
 </nav>
 <button id="logout" class="secondary" style="width:100%;margin-top:18px">Logout</button>
 </aside>
+<button id="sidebarToggle" class="sidebar-toggle" type="button" title="Sembunyikan/Tampilkan menu">☰</button>
 
 <main class="main">
 <div class="mobile-head"><b>KAVORA ADMIN</b><button id="menuBtn" class="secondary">☰ Menu</button></div>
@@ -189,7 +197,6 @@ label{font-size:13px;font-weight:600}input,select,textarea{width:100%;padding:11
 <h3 style="margin-top:18px">Riwayat Point</h3><div id="customerPointHistory"></div>
 </div></div></div>
 </div>
-<div class="panel"><h3>Cek Point Cepat</h3><div class="grid"><div><label>No. HP Customer</label><input id="pointPhone" placeholder="08xxxxxxxxxx"></div><div style="display:flex;align-items:end"><button id="checkPoint">Cek Point</button></div></div><div id="pointResult" style="margin-top:14px"></div></div>
 </section>
 
 <section id="page-rewards" class="page">
@@ -299,14 +306,29 @@ const rp=n=>new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maxim
 const esc=s=>String(s??"").replace(/[&<>\"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]));
 function msg(id,text,error=false){$(id).innerHTML=text?'<div class="notice" style="color:'+(error?'#a33':'#4f463f')+'">'+esc(text)+'</div>':''}
 function nav(page){
+const target=$("page-"+page);
+if(!target)return;
 document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
-$("page-"+page).classList.add("active");
+target.classList.add("active");
 document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
 $("sidebar").classList.remove("open");
-if(page==="products")renderProducts(); if(page==="orders")renderOrders(); if(page==="promos")loadPromos(); if(page==="customers")loadCustomers();
+window.scrollTo({top:0,left:0,behavior:"instant"});
+if(page==="products")renderProducts();
+if(page==="orders")renderOrders();
+if(page==="promos")loadPromos();
+if(page==="customers")loadCustomers();
+if(page==="business" && typeof loadBusinessDashboard==="function")loadBusinessDashboard();
+if(page==="inventory" && typeof loadInventory==="function")loadInventory();
+if(page==="shifts" && typeof loadShifts==="function")loadShifts();
 }
 document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>nav(b.dataset.page));
 $("menuBtn").onclick=()=>$("sidebar").classList.toggle("open");
+$("sidebarToggle").onclick=()=>{
+ const collapsed=$("sidebar").classList.toggle("collapsed");
+ $("app").classList.toggle("sidebar-collapsed",collapsed);
+ $("sidebarToggle").textContent=collapsed?"☰":"✕";
+ $("sidebarToggle").title=collapsed?"Tampilkan menu":"Sembunyikan menu";
+};
 
 async function showApp(user){
 if(!user||String(user.email||"").toLowerCase()!==ADMIN){await db.auth.signOut();alert("Email ini bukan akun admin Kavora.");return}
@@ -395,7 +417,6 @@ function renderCustomers(){const q=($("customerSearch")?.value||"").toLowerCase(
 async function selectCustomer(id){const c=crmCustomers.find(x=>x.id===id);if(!c)return;selectedCustomer=c;$("customerEmpty").classList.add("hidden");$("customerDetail").classList.remove("hidden");$("crmName").value=c.name||"";$("crmPhone").value=c.phone||"";$("crmEmail").value=c.email||"";$("crmBirthday").value=c.birthday||"";$("crmAddress").value=c.address||"";$("crmNotes").value=c.notes||"";$("crmMarketing").checked=c.marketing_opt_in!==false;$("customerStats").innerHTML=`<div class="stats"><div class="stat"><small>Point</small><b>⭐ ${c.points||0}</b></div><div class="stat"><small>Transaksi</small><b>${c.total_orders||0}</b></div><div class="stat"><small>Total Belanja</small><b>${rp(c.total_spent||0)}</b></div><div class="stat"><small>Bergabung</small><b style="font-size:14px">${c.created_at?new Date(c.created_at).toLocaleDateString("id-ID"):"-"}</b></div></div>`;await loadCustomerHistory(c)}
 async function loadCustomerHistory(c){const [or,tx]=await Promise.all([db.from("orders").select("id,created_at,status,total,order_type,payment_method,payment_status").eq("member_id",c.id).order("created_at",{ascending:false}).limit(50),db.from("member_transactions").select("id,created_at,type,points,note,order_id").eq("member_id",c.id).order("created_at",{ascending:false}).limit(50)]);if(or.error){$("customerOrders").innerHTML='<div class="notice" style="color:#a33">'+esc(or.error.message)+'</div>'}else{$("customerOrders").innerHTML=(or.data||[]).map(o=>`<div class="item"><b>${new Date(o.created_at).toLocaleString("id-ID")}</b><div>${rp(o.total)} · ${statusLabel(o.status)} · ${esc(o.payment_method||"-")}</div></div>`).join("")||'<div class="muted">Belum ada transaksi.</div>'}if(tx.error){$("customerPointHistory").innerHTML='<div class="notice" style="color:#a33">'+esc(tx.error.message)+'</div>'}else{$("customerPointHistory").innerHTML=(tx.data||[]).map(t=>`<div class="item"><b>${t.points>0?"+":""}${t.points} point</b> · ${esc(t.type||"")}<div class="muted">${new Date(t.created_at).toLocaleString("id-ID")} · ${esc(t.note||"")}</div></div>`).join("")||'<div class="muted">Belum ada riwayat point.</div>'}}
 $("customerSearch").oninput=renderCustomers;$("refreshCustomers").onclick=loadCustomers;$("saveCustomer").onclick=async()=>{if(!selectedCustomer)return;const payload={name:$("crmName").value.trim(),email:$("crmEmail").value.trim()||null,birthday:$("crmBirthday").value||null,address:$("crmAddress").value.trim()||null,notes:$("crmNotes").value.trim()||null,marketing_opt_in:$("crmMarketing").checked,updated_at:new Date().toISOString()};if(!payload.name)return msg("customerMsg","Nama customer wajib diisi.",true);const r=await db.from("members").update(payload).eq("id",selectedCustomer.id);if(r.error)return msg("customerMsg",r.error.message,true);msg("customerMsg","Profil customer berhasil disimpan.");await loadCustomers();selectedCustomer=crmCustomers.find(x=>x.id===selectedCustomer.id);await selectCustomer(selectedCustomer.id)}
-$("checkPoint").onclick=async()=>{const phone=$("pointPhone").value.trim();if(!phone)return msg("pointResult","Masukkan nomor HP customer.",true);const {data,error}=await db.rpc("get_customer_points",{p_phone:phone});if(error)return msg("pointResult",error.message,true);const x=Array.isArray(data)?data[0]:data;if(!x)return msg("pointResult","Data customer tidak ditemukan.");$("pointResult").innerHTML=`<div class="stats"><div class="stat"><small>Transaksi Selesai</small><b>${x.orders||0}</b></div><div class="stat"><small>Total Belanja</small><b>${rp(x.spend||0)}</b></div><div class="stat"><small>Point Kavora</small><b>⭐ ${x.points||0}</b></div></div>`}
 
 
 // ===== FASE 2 ADMIN MANAGEMENT =====
@@ -455,10 +476,9 @@ async function loadSmartOffers(){
 }
 document.getElementById("refreshSmartOffers")?.addEventListener("click",loadSmartOffers);
 const oldNav=nav;
-nav=async function(page){oldNav(page);if(page==="smartoffers")await loadSmartOffers()};
+nav=async function(page){oldNav(page);window.scrollTo({top:0,left:0,behavior:"instant"});if(page==="business")await loadBusiness();if(page==="inventory")await loadInventory();if(page==="shifts")await loadShift();if(page==="smartoffers")await loadSmartOffers()};
 })();
 </script>
-<div id="v27BuildBadge" style="position:fixed;right:14px;bottom:14px;z-index:9999;padding:8px 11px;border-radius:10px;background:#111;color:#fff;font-size:11px">KAVORA ADMIN V28 · FASE 1–3</div><div id="v28MasterBadge" style="position:fixed;left:14px;bottom:14px;z-index:9999;padding:8px 11px;border-radius:10px;background:#111;color:#fff;font-size:11px">KAVORA ADMIN V29 · FASE 1–4 COMPLETE</div>
 <script>
 (()=>{"use strict";
 const $v=id=>document.getElementById(id), fmt=n=>new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(Number(n||0));
@@ -487,6 +507,11 @@ async function saveMovement(){
  const u=await db.from("products").update({stock:current+delta,updated_at:new Date().toISOString()}).eq("id",id);if(u.error)return alert(u.error.message);
  $v("invMsg").textContent="Movement berhasil disimpan.";loadInventory();
 }
+$("invRefresh")?.addEventListener("click",loadInventory);
+$("invSave")?.addEventListener("click",saveMovement);
+$("shiftRefresh")?.addEventListener("click",loadShift);
+$("bizLoad")?.addEventListener("click",loadBusiness);
+
 async function loadShift(){
  const r=await db.from("cash_shifts").select("*").eq("status","open").order("opened_at",{ascending:false}).limit(1);const x=r.data?.[0];
  $v("shiftCurrent").innerHTML=x?`<div class=item><b>Open</b><div>Cashier: ${esc(x.opened_by||"-")} · Modal: ${fmt(x.opening_cash)}</div><div class=muted>${new Date(x.opened_at).toLocaleString("id-ID")}</div></div>`:"<div class=muted>Tidak ada shift aktif.</div>";
