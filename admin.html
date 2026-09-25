@@ -734,11 +734,28 @@ function editInv(id){
 }
 async function saveInvEdit(){
  const id=p6EditingInventoryId; if(!id)return;
- const payload={p_id:id,p_name:q("p6EditName").value.trim(),p_sku:q("p6EditSku").value.trim()||null,p_unit:q("p6EditUnit").value,p_stock:Number(q("p6EditStock").value||0),p_min_stock:Number(q("p6EditMin").value||0),p_unit_cost:Number(q("p6EditCost").value||0),p_outlet_id:q("p6EditOutlet").value||null,p_is_active:q("p6EditActive").checked};
- if(!payload.p_name)return q("p6InvEditMsg").textContent="Nama bahan wajib diisi.";
- const r=await p6db.rpc("admin_update_inventory_item",payload);
- if(r.error){q("p6InvEditMsg").textContent=r.error.message;return}
- q("p6InvEditMsg").textContent="Perubahan berhasil disimpan."; await loadInv(); setTimeout(()=>q("p6InvEdit").classList.add("hidden"),400);
+ const msg=q("p6InvEditMsg");
+ const name=q("p6EditName").value.trim();
+ const unit=q("p6EditUnit").value;
+ const stock=Number(q("p6EditStock").value);
+ const minStock=Number(q("p6EditMin").value);
+ const cost=Number(q("p6EditCost").value);
+ const outlet=q("p6EditOutlet").value||null;
+ if(!name){msg.textContent="Nama bahan wajib diisi.";return}
+ if(!["gram","ml","pcs"].includes(unit)){msg.textContent="Satuan harus gram, ml, atau pcs.";return}
+ if(!Number.isFinite(stock)||stock<0||!Number.isFinite(minStock)||minStock<0||!Number.isFinite(cost)||cost<0){msg.textContent="Stock, minimum stock, dan HPP harus berupa angka 0 atau lebih.";return}
+ const btn=q("p6InvUpdate"); btn.disabled=true; btn.textContent="Menyimpan..."; msg.textContent="";
+ try{
+   const {data:sd}=await p6db.auth.getSession();
+   if(!sd?.session){msg.textContent="Sesi Admin sudah habis. Silakan login kembali.";return}
+   const payload={p_id:id,p_name:name,p_sku:q("p6EditSku").value.trim()||null,p_unit:unit,p_stock:stock,p_min_stock:minStock,p_unit_cost:cost,p_outlet_id:outlet,p_is_active:q("p6EditActive").checked};
+   const r=await p6db.rpc("admin_update_inventory_item",payload);
+   if(r.error) throw new Error(r.error.message||"Gagal menyimpan perubahan.");
+   msg.textContent="Perubahan berhasil disimpan.";
+   await loadInv();
+   setTimeout(()=>q("p6InvEdit").classList.add("hidden"),500);
+ }catch(err){msg.textContent="Gagal menyimpan: "+(err?.message||err)}
+ finally{btn.disabled=false;btn.textContent="Simpan Perubahan"}
 }
 
 async function addInv(){const name=q("p6InvName").value.trim();if(!name)return alert("Nama bahan wajib diisi.");const r=await p6db.from("inventory_items").insert({name,sku:q("p6InvSku").value.trim()||null,unit:q("p6InvUnit").value.trim()||"pcs",stock:Number(q("p6InvStock").value||0),min_stock:Number(q("p6InvMin").value||0),unit_cost:Number(q("p6InvCost").value||0),outlet_id:q("p6InvOutlet").value||null});if(r.error)q("p6InvMsg").textContent=r.error.message;else{q("p6InvMsg").textContent="Bahan tersimpan.";loadInv()}}
